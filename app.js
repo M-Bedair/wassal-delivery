@@ -1,5 +1,3 @@
-import { stateRef, connectedRef, set, onValue } from './firebase-config.js';
-
 const STORAGE_KEY = 'wassal_modern_ops_v2';
 
 const INITIAL_RIDERS = [
@@ -23,6 +21,8 @@ const INITIAL_STORES = [
     { id: 'S5', name: 'صيدلية الشفاء', category: 'صيدلية', fee: 20, phone: '01099887705', address: 'شارع المحطة - تقاطع النصر' },
     { id: 'S6', name: 'أسماك البحر', category: 'مطعم', fee: 30, phone: '01099887706', address: 'الكورنيش - بجوار النادي' }
 ];
+
+let cloudBridge = null;
 
 function getTodayStr() {
     const d = new Date();
@@ -119,7 +119,7 @@ function setSyncStatus(status) {
     const configs = {
         connecting: { text: 'جاري الاتصال بالسحابة...', dot: 'bg-wassalAmber animate-pulse', txt: 'text-wassalAmber' },
         online: { text: 'متصل بالسحابة (مباشر)', dot: 'bg-statusDone', txt: 'text-statusDone' },
-        offline: { text: 'وضع محلي (بدون إنترنت)', dot: 'bg-red-500', txt: 'text-red-400' }
+        offline: { text: 'وضع محلي (يعمل بدون سحابة)', dot: 'bg-wassalOrange', txt: 'text-wassalOrange' }
     };
     const cfg = configs[status];
     ['desktop', 'mobile'].forEach(prefix => {
@@ -132,10 +132,6 @@ function setSyncStatus(status) {
         }
     });
 }
-
-onValue(connectedRef, (snap) => {
-    setSyncStatus(snap.val() === true ? 'online' : 'offline');
-});
 
 function syncRidersAvailability() {
     const activeRiderIds = new Set(
@@ -154,10 +150,43 @@ function syncRidersAvailability() {
 
 function saveData() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
-    set(stateRef, appState).catch(err => {
-        console.error('Firebase save error:', err);
-        showToast('⚠️ تم الحفظ محلياً (تعذرت المزامنة السحابية)');
-    });
+    if (cloudBridge && cloudBridge.set && cloudBridge.stateRef) {
+        cloudBridge.set(cloudBridge.stateRef, appState).catch(err => {
+            console.error('Firebase save error:', err);
+        });
+    }
+}
+
+function normalizeArray(val, fallback) {
+    if (!val) return fallback;
+    return Array.isArray(val) ? val : Object.values(val);
+}
+
+function loadLocalOrDefaultData() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+        try {
+            const parsed = JSON.parse(raw);
+            appState = {
+                riders: normalizeArray(parsed.riders, JSON.parse(JSON.stringify(INITIAL_RIDERS))),
+                stores: normalizeArray(parsed.stores, JSON.parse(JSON.stringify(INITIAL_STORES))),
+                orders: normalizeArray(parsed.orders, []),
+                expenses: normalizeArray(parsed.expenses, []),
+                nextOrderNum: parsed.nextOrderNum || 121
+            };
+            syncRidersAvailability();
+            return;
+        } catch (e) {}
+    }
+    appState = {
+        riders: JSON.parse(JSON.stringify(INITIAL_RIDERS)),
+        stores: JSON.parse(JSON.stringify(INITIAL_STORES)),
+        orders: createDemoOrders(),
+        expenses: createDemoExpenses(),
+        nextOrderNum: 121
+    };
+    syncRidersAvailability();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
 }
 
 function resetDemoData(notify) {
@@ -176,73 +205,60 @@ function resetDemoData(notify) {
     syncRidersAvailability();
     saveData();
     renderAll();
-    if (notify) showToast('تمت إعادة ضبط البيانات التجريبية ومزامنتها سحابياً');
+    if (notify) showToast('تمت إعادة ضبط البيانات التجريبية');
 }
 
-function normalizeArray(val, fallback) {
-    if (!val) return fallback;
-    return Array.isArray(val) ? val : Object.values(val);
-}
+// تحميل البيانات المحلية فوراً قبل انتظار الشبكة
+loadLocalOrDefaultData();
 
-onValue(stateRef, (snapshot) => {
-    const cloudData = snapshot.val();
-    if (cloudData) {
-        appState = {
-            riders: normalizeArray(cloudData.riders, JSON.parse(JSON.stringify(INITIAL_RIDERS))),
-            stores: normalizeArray(cloudData.stores, JSON.parse(JSON.stringify(INITIAL_STORES))),
-            orders: normalizeArray(cloudData.orders, []),
-            expenses: normalizeArray(cloudData.expenses, []),
-            nextOrderNum: cloudData.nextOrderNum || 121
-        };
-        const today = getTodayStr();
-        appState.orders.forEach(o => { if (!o.dateStr) o.dateStr = today; });
-        syncRidersAvailability();
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
-        isInitialCloudLoaded = true;
-        renderAll();
-    } else if (!isInitialCloudLoaded) {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-            try {
-                const parsed = JSON.parse(raw);
-                appState = {
-                    riders: normalizeArray(parsed.riders, JSON.parse(JSON.stringify(INITIAL_RIDERS))),
-                    stores: normalizeArray(parsed.stores, JSON.parse(JSON.stringify(INITIAL_STORES))),
-                    orders: normalizeArray(parsed.orders, []),
-                    expenses: normalizeArray(parsed.expenses, []),
-                    nextOrderNum: parsed.nextOrderNum || 121
-                };
-                syncRidersAvailability();
-                saveData();
-            } catch (e) {
-                resetDemoData(false);
-            }
-        } else {
-            resetDemoData(false);
+// ربط السحابة بشكل غير معطّل مع مهلة 5 ثوانٍ للشبكات البطيئة
+async function initCloudSync() {
+    const fallbackTimer = setTimeout(() => {
+        if (!isInitialCloudLoaded) {
+            setSyncStatus('offline');
         }
-        isInitialCloudLoaded = true;
-        renderAll();
+    }, 5000);
+
+    try {
+        const fb = await import('./firebase-config.js');
+        cloudBridge = fb;
+
+        fb.onValue(fb.connectedRef, (snap) => {
+            clearTimeout(fallbackTimer);
+            setSyncStatus(snap.val() === true ? 'online' : 'offline');
+        });
+
+        fb.onValue(fb.stateRef, (snapshot) => {
+            clearTimeout(fallbackTimer);
+            const cloudData = snapshot.val();
+            if (cloudData) {
+                appState = {
+                    riders: normalizeArray(cloudData.riders, JSON.parse(JSON.stringify(INITIAL_RIDERS))),
+                    stores: normalizeArray(cloudData.stores, JSON.parse(JSON.stringify(INITIAL_STORES))),
+                    orders: normalizeArray(cloudData.orders, []),
+                    expenses: normalizeArray(cloudData.expenses, []),
+                    nextOrderNum: cloudData.nextOrderNum || 121
+                };
+                const today = getTodayStr();
+                appState.orders.forEach(o => { if (!o.dateStr) o.dateStr = today; });
+                syncRidersAvailability();
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+                isInitialCloudLoaded = true;
+                renderAll();
+            } else if (!isInitialCloudLoaded) {
+                isInitialCloudLoaded = true;
+                saveData();
+            }
+        }, () => {
+            clearTimeout(fallbackTimer);
+            setSyncStatus('offline');
+        });
+    } catch (err) {
+        clearTimeout(fallbackTimer);
+        console.warn('Cloud module unavailable, running in local mode:', err);
+        setSyncStatus('offline');
     }
-}, (error) => {
-    console.error('Firebase read error:', error);
-    setSyncStatus('offline');
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-        try {
-            appState = JSON.parse(raw);
-            syncRidersAvailability();
-        } catch (e) {}
-    } else {
-        appState = {
-            riders: JSON.parse(JSON.stringify(INITIAL_RIDERS)),
-            stores: JSON.parse(JSON.stringify(INITIAL_STORES)),
-            orders: createDemoOrders(),
-            expenses: createDemoExpenses(),
-            nextOrderNum: 121
-        };
-    }
-    renderAll();
-});
+}
 
 function getStore(id) {
     return appState.stores.find(s => s.id === id) || { name: 'متجر', category: 'مطعم', fee: 25, phone: '', address: '' };
@@ -363,6 +379,7 @@ function copyToClipboardSafe(text) {
 
 function showToast(msg) {
     const container = document.getElementById('toast-container');
+    if (!container) return;
     const el = document.createElement('div');
     el.className = 'pointer-events-auto glass-panel border border-wassalOrange/60 text-white px-4 py-3 rounded-2xl shadow-2xl text-xs font-extrabold flex items-center gap-2.5 transition-all duration-300';
     el.innerHTML = `<span class="w-2.5 h-2.5 rounded-full wassal-grad shrink-0"></span><span>${msg}</span>`;
@@ -1581,6 +1598,7 @@ document.getElementById('search-input').addEventListener('input', renderOrdersBo
 
 // ==================== INIT & LIVE TIMER ====================
 renderAll();
+initCloudSync();
 
 let seconds = 0;
 const tick = () => {

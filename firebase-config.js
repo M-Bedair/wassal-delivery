@@ -3,7 +3,7 @@ import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebase
 
 const firebaseConfig = {
     projectId: "wassal-delivery-a8b12",
-    databaseURL: "https://wassal-delivery-a8b12-default-rtdb.firebaseio.com",
+    databaseURL: "https://wassal-delivery-a8b12-default-rtdb.europe-west1.firebasedatabase.app",
     authDomain: "wassal-delivery-a8b12.firebaseapp.com"
 };
 

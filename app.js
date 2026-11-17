@@ -24,7 +24,7 @@ const INITIAL_STORES = [
 
 let cloudBridge = null;
 
-function getTodayStr() {
+function getSystemTodayStr() {
     const d = new Date();
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -32,8 +32,18 @@ function getTodayStr() {
     return `${y}-${m}-${day}`;
 }
 
+function getActiveShiftDate() {
+    return appState.activeDate || getSystemTodayStr();
+}
+
+function getNextDateStr(dateStr) {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const dt = new Date(y, m - 1, d + 1);
+    return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+}
+
 function getCurrentMonthStr() {
-    return getTodayStr().slice(0, 7);
+    return getActiveShiftDate().slice(0, 7);
 }
 
 function getPastDateInCurrentMonth(daysBack) {
@@ -58,33 +68,31 @@ function formatTime12(ts) {
 
 function createDemoOrders() {
     const now = Date.now();
-    const today = getTodayStr();
+    const today = getSystemTodayStr();
     const d1 = getPastDateInCurrentMonth(2);
     const d2 = getPastDateInCurrentMonth(5);
     const d3 = getPastDateInCurrentMonth(9);
 
     return [
-        { id: 'W-115', dateStr: today, storeId: 'S1', customerName: 'أ. سامح عبد الرحمن', address: 'حي المساعيد - عمارة 14', phone: '01022334455', amount: 340, fee: 25, riderId: 'R1', status: 'delivered', receivedTs: now - 52 * 60000, departedTs: now - 43 * 60000, deliveredTs: now - 24 * 60000 },
-        { id: 'W-116', dateStr: today, storeId: 'S1', customerName: 'م. كريم الشاذلي', address: 'حي الزهور - برج الصفوة', phone: '01066778899', amount: 520, fee: 25, riderId: 'R5', status: 'delivered', receivedTs: now - 40 * 60000, departedTs: now - 32 * 60000, deliveredTs: now - 15 * 60000 },
-        { id: 'W-117', dateStr: today, storeId: 'S2', customerName: 'د. هبة محمود', address: 'شارع الفاتح - برج النور', phone: '01144556677', amount: 185, fee: 20, riderId: 'R2', status: 'onway', receivedTs: now - 18 * 60000, departedTs: now - 10 * 60000, deliveredTs: null },
-        { id: 'W-118', dateStr: today, storeId: 'S4', customerName: 'أ. نادية كمال', address: 'شارع الجمهورية - عمارة 9', phone: '01555443322', amount: 275, fee: 25, riderId: 'R4', status: 'onway', receivedTs: now - 38 * 60000, departedTs: now - 25 * 60000, deliveredTs: null },
-        { id: 'W-119', dateStr: today, storeId: 'S3', customerName: 'م. طارق الجندي', address: 'حي الضاحية - فيلا 22', phone: '01288990011', amount: 460, fee: 30, riderId: 'R3', status: 'received', receivedTs: now - 6 * 60000, departedTs: null, deliveredTs: null },
-        { id: 'W-120', dateStr: today, storeId: 'S1', customerName: 'أ. ياسر المنياوي', address: 'ميدان المحطة - خلف البريد', phone: '01099112233', amount: 210, fee: 25, riderId: 'R7', status: 'received', receivedTs: now - 3 * 60000, departedTs: null, deliveredTs: null },
-        { id: 'W-101', dateStr: d3, storeId: 'S1', customerName: 'أ. وائل عزت', address: 'شارع البحر', phone: '01011223344', amount: 310, fee: 25, riderId: 'R1', status: 'delivered', receivedTs: now - 3 * 86400000, departedTs: now - 3 * 86400000 + 8 * 60000, deliveredTs: now - 3 * 86400000 + 22 * 60000 },
-        { id: 'W-102', dateStr: d3, storeId: 'S1', customerName: 'د. مروة علي', address: 'حي الزهور', phone: '01022331144', amount: 420, fee: 25, riderId: 'R1', status: 'delivered', receivedTs: now - 3 * 86400000 + 3600000, departedTs: now - 3 * 86400000 + 3600000 + 7 * 60000, deliveredTs: now - 3 * 86400000 + 3600000 + 20 * 60000 },
-        { id: 'W-103', dateStr: d3, storeId: 'S3', customerName: 'أ. سلوى حسن', address: 'حي المساعيد', phone: '01122334455', amount: 640, fee: 30, riderId: 'R2', status: 'delivered', receivedTs: now - 3 * 86400000 + 7200000, departedTs: now - 3 * 86400000 + 7200000 + 10 * 60000, deliveredTs: now - 3 * 86400000 + 7200000 + 28 * 60000 },
-        { id: 'W-104', dateStr: d2, storeId: 'S1', customerName: 'أ. حسام فؤاد', address: 'شارع 23 يوليو', phone: '01233445566', amount: 290, fee: 25, riderId: 'R1', status: 'delivered', receivedTs: now - 2 * 86400000, departedTs: now - 2 * 86400000 + 6 * 60000, deliveredTs: now - 2 * 86400000 + 19 * 60000 },
-        { id: 'W-105', dateStr: d2, storeId: 'S2', customerName: 'أ. منال إبراهيم', address: 'ميدان الساعة', phone: '01544556677', amount: 155, fee: 20, riderId: 'R3', status: 'delivered', receivedTs: now - 2 * 86400000 + 4000000, departedTs: now - 2 * 86400000 + 4000000 + 5 * 60000, deliveredTs: now - 2 * 86400000 + 4000000 + 17 * 60000 },
-        { id: 'W-106', dateStr: d2, storeId: 'S6', customerName: 'م. شريف نصر', address: 'الكورنيش', phone: '01055667788', amount: 480, fee: 30, riderId: 'R5', status: 'delivered', receivedTs: now - 2 * 86400000 + 8000000, departedTs: now - 2 * 86400000 + 8000000 + 9 * 60000, deliveredTs: now - 2 * 86400000 + 8000000 + 25 * 60000 },
-        { id: 'W-107', dateStr: d1, storeId: 'S1', customerName: 'أ. إيهاب سالم', address: 'حي الضاحية', phone: '01066771122', amount: 370, fee: 25, riderId: 'R6', status: 'delivered', receivedTs: now - 86400000, departedTs: now - 86400000 + 7 * 60000, deliveredTs: now - 86400000 + 23 * 60000 },
-        { id: 'W-108', dateStr: d1, storeId: 'S4', customerName: 'أ. دينا مجدي', address: 'شارع الفاتح', phone: '01177889900', amount: 245, fee: 25, riderId: 'R8', status: 'delivered', receivedTs: now - 86400000 + 3000000, departedTs: now - 86400000 + 3000000 + 8 * 60000, deliveredTs: now - 86400000 + 3000000 + 21 * 60000 },
-        { id: 'W-109', dateStr: d1, storeId: 'S3', customerName: 'أ. عمرو جمال', address: 'حي الزهور', phone: '01288991122', amount: 530, fee: 30, riderId: 'R9', status: 'delivered', receivedTs: now - 86400000 + 6000000, departedTs: now - 86400000 + 6000000 + 9 * 60000, deliveredTs: now - 86400000 + 6000000 + 26 * 60000 },
-        { id: 'W-110', dateStr: d1, storeId: 'S5', customerName: 'أ. سارة عادل', address: 'ميدان المحطة', phone: '01099001122', amount: 120, fee: 20, riderId: 'R10', status: 'delivered', receivedTs: now - 86400000 + 9000000, departedTs: now - 86400000 + 9000000 + 5 * 60000, deliveredTs: now - 86400000 + 9000000 + 16 * 60000 }
+        { id: 'W-115', dateStr: today, storeId: 'S1', customerName: 'أ. سامح عبد الرحمن', address: 'حي المساعيد - عمارة 14', phone: '01022334455', amount: 340, fee: 25, riderId: 'R1', status: 'settled', receivedTs: now - 52 * 60000, departedTs: now - 43 * 60000, deliveredTs: now - 28 * 60000, settledTs: now - 15 * 60000 },
+        { id: 'W-116', dateStr: today, storeId: 'S1', customerName: 'م. كريم الشاذلي', address: 'حي الزهور - برج الصفوة', phone: '01066778899', amount: 520, fee: 25, riderId: 'R5', status: 'delivered', receivedTs: now - 40 * 60000, departedTs: now - 32 * 60000, deliveredTs: now - 10 * 60000, settledTs: null },
+        { id: 'W-117', dateStr: today, storeId: 'S2', customerName: 'د. هبة محمود', address: 'شارع الفاتح - برج النور', phone: '01144556677', amount: 185, fee: 20, riderId: 'R2', status: 'onway', receivedTs: now - 18 * 60000, departedTs: now - 10 * 60000, deliveredTs: null, settledTs: null },
+        { id: 'W-118', dateStr: today, storeId: 'S4', customerName: 'أ. نادية كمال', address: 'شارع الجمهورية - عمارة 9', phone: '01555443322', amount: 275, fee: 25, riderId: 'R4', status: 'onway', receivedTs: now - 38 * 60000, departedTs: now - 25 * 60000, deliveredTs: null, settledTs: null },
+        { id: 'W-119', dateStr: today, storeId: 'S3', customerName: 'م. طارق الجندي', address: 'حي الضاحية - فيلا 22', phone: '01288990011', amount: 460, fee: 30, riderId: 'R3', status: 'received', receivedTs: now - 6 * 60000, departedTs: null, deliveredTs: null, settledTs: null },
+        { id: 'W-120', dateStr: today, storeId: 'S1', customerName: 'أ. ياسر المنياوي', address: 'ميدان المحطة - خلف البريد', phone: '01099112233', amount: 210, fee: 25, riderId: 'R7', status: 'received', receivedTs: now - 3 * 60000, departedTs: null, deliveredTs: null, settledTs: null },
+        { id: 'W-101', dateStr: d3, storeId: 'S1', customerName: 'أ. وائل عزت', address: 'شارع البحر', phone: '01011223344', amount: 310, fee: 25, riderId: 'R1', status: 'settled', receivedTs: now - 3 * 86400000, departedTs: now - 3 * 86400000 + 8 * 60000, deliveredTs: now - 3 * 86400000 + 22 * 60000, settledTs: now - 3 * 86400000 + 30 * 60000 },
+        { id: 'W-102', dateStr: d3, storeId: 'S1', customerName: 'د. مروة علي', address: 'حي الزهور', phone: '01022331144', amount: 420, fee: 25, riderId: 'R1', status: 'settled', receivedTs: now - 3 * 86400000 + 3600000, departedTs: now - 3 * 86400000 + 3600000 + 7 * 60000, deliveredTs: now - 3 * 86400000 + 3600000 + 20 * 60000, settledTs: now - 3 * 86400000 + 3600000 + 28 * 60000 },
+        { id: 'W-103', dateStr: d3, storeId: 'S3', customerName: 'أ. سلوى حسن', address: 'حي المساعيد', phone: '01122334455', amount: 640, fee: 30, riderId: 'R2', status: 'settled', receivedTs: now - 3 * 86400000 + 7200000, departedTs: now - 3 * 86400000 + 7200000 + 10 * 60000, deliveredTs: now - 3 * 86400000 + 7200000 + 28 * 60000, settledTs: now - 3 * 86400000 + 7200000 + 35 * 60000 },
+        { id: 'W-104', dateStr: d2, storeId: 'S1', customerName: 'أ. حسام فؤاد', address: 'شارع 23 يوليو', phone: '01233445566', amount: 290, fee: 25, riderId: 'R1', status: 'settled', receivedTs: now - 2 * 86400000, departedTs: now - 2 * 86400000 + 6 * 60000, deliveredTs: now - 2 * 86400000 + 19 * 60000, settledTs: now - 2 * 86400000 + 27 * 60000 },
+        { id: 'W-105', dateStr: d2, storeId: 'S2', customerName: 'أ. منال إبراهيم', address: 'ميدان الساعة', phone: '01544556677', amount: 155, fee: 20, riderId: 'R3', status: 'settled', receivedTs: now - 2 * 86400000 + 4000000, departedTs: now - 2 * 86400000 + 4000000 + 5 * 60000, deliveredTs: now - 2 * 86400000 + 4000000 + 17 * 60000, settledTs: now - 2 * 86400000 + 4000000 + 24 * 60000 },
+        { id: 'W-106', dateStr: d2, storeId: 'S6', customerName: 'م. شريف نصر', address: 'الكورنيش', phone: '01055667788', amount: 480, fee: 30, riderId: 'R5', status: 'settled', receivedTs: now - 2 * 86400000 + 8000000, departedTs: now - 2 * 86400000 + 8000000 + 9 * 60000, deliveredTs: now - 2 * 86400000 + 8000000 + 25 * 60000, settledTs: now - 2 * 86400000 + 8000000 + 34 * 60000 },
+        { id: 'W-107', dateStr: d1, storeId: 'S1', customerName: 'أ. إيهاب سالم', address: 'حي الضاحية', phone: '01066771122', amount: 370, fee: 25, riderId: 'R6', status: 'settled', receivedTs: now - 86400000, departedTs: now - 86400000 + 7 * 60000, deliveredTs: now - 86400000 + 23 * 60000, settledTs: now - 86400000 + 31 * 60000 },
+        { id: 'W-108', dateStr: d1, storeId: 'S4', customerName: 'أ. دينا مجدي', address: 'شارع الفاتح', phone: '01177889900', amount: 245, fee: 25, riderId: 'R8', status: 'settled', receivedTs: now - 86400000 + 3000000, departedTs: now - 86400000 + 3000000 + 8 * 60000, deliveredTs: now - 86400000 + 3000000 + 21 * 60000, settledTs: now - 86400000 + 3000000 + 29 * 60000 }
     ];
 }
 
 function createDemoExpenses() {
-    const today = getTodayStr();
+    const today = getSystemTodayStr();
     const d1 = getPastDateInCurrentMonth(1);
     const d3 = getPastDateInCurrentMonth(3);
     return [
@@ -96,6 +104,8 @@ function createDemoExpenses() {
 }
 
 let appState = {
+    activeDate: getSystemTodayStr(),
+    closedDays: [],
     riders: [],
     stores: [],
     orders: [],
@@ -109,7 +119,10 @@ let uiState = {
     statusFilter: 'all',
     riderFilter: 'all',
     selectedOrderId: null,
-    reportMonth: getCurrentMonthStr(),
+    selectedRiderStatsId: null,
+    riderStatsPeriod: 'today',
+    archiveDateFilter: getSystemTodayStr(),
+    reportMonth: getSystemTodayStr().slice(0, 7),
     expenseCatFilter: 'all'
 };
 
@@ -133,14 +146,22 @@ function setSyncStatus(status) {
     });
 }
 
+function isOrderActiveInRoom(o) {
+    return o.status === 'received' || o.status === 'onway' || o.status === 'delivered';
+}
+
+function isOrderCompleted(o) {
+    return o.status === 'settled';
+}
+
 function syncRidersAvailability() {
-    const activeRiderIds = new Set(
+    const busyRiderIds = new Set(
         appState.orders
-            .filter(o => o.status === 'received' || o.status === 'onway')
+            .filter(o => isOrderActiveInRoom(o))
             .map(o => o.riderId)
     );
     appState.riders.forEach(r => {
-        if (activeRiderIds.has(r.id)) {
+        if (busyRiderIds.has(r.id)) {
             r.status = 'busy';
         } else if (r.status === 'busy') {
             r.status = 'available';
@@ -168,29 +189,39 @@ function loadLocalOrDefaultData() {
         try {
             const parsed = JSON.parse(raw);
             appState = {
+                activeDate: parsed.activeDate || getSystemTodayStr(),
+                closedDays: normalizeArray(parsed.closedDays, []),
                 riders: normalizeArray(parsed.riders, JSON.parse(JSON.stringify(INITIAL_RIDERS))),
                 stores: normalizeArray(parsed.stores, JSON.parse(JSON.stringify(INITIAL_STORES))),
                 orders: normalizeArray(parsed.orders, []),
                 expenses: normalizeArray(parsed.expenses, []),
                 nextOrderNum: parsed.nextOrderNum || 121
             };
+            uiState.archiveDateFilter = appState.activeDate;
             syncRidersAvailability();
             return;
         } catch (e) {}
     }
+    const sysToday = getSystemTodayStr();
     appState = {
+        activeDate: sysToday,
+        closedDays: [],
         riders: JSON.parse(JSON.stringify(INITIAL_RIDERS)),
         stores: JSON.parse(JSON.stringify(INITIAL_STORES)),
         orders: createDemoOrders(),
         expenses: createDemoExpenses(),
         nextOrderNum: 121
     };
+    uiState.archiveDateFilter = sysToday;
     syncRidersAvailability();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
 }
 
 function resetDemoData(notify) {
+    const sysToday = getSystemTodayStr();
     appState = {
+        activeDate: sysToday,
+        closedDays: [],
         riders: JSON.parse(JSON.stringify(INITIAL_RIDERS)),
         stores: JSON.parse(JSON.stringify(INITIAL_STORES)),
         orders: createDemoOrders(),
@@ -199,7 +230,8 @@ function resetDemoData(notify) {
     };
     uiState.riderFilter = 'all';
     uiState.statusFilter = 'all';
-    uiState.reportMonth = getCurrentMonthStr();
+    uiState.archiveDateFilter = sysToday;
+    uiState.reportMonth = sysToday.slice(0, 7);
     const monthPicker = document.getElementById('report-month-picker');
     if (monthPicker) monthPicker.value = uiState.reportMonth;
     syncRidersAvailability();
@@ -231,14 +263,17 @@ async function initCloudSync() {
             const cloudData = snapshot.val();
             if (cloudData) {
                 appState = {
+                    activeDate: cloudData.activeDate || getSystemTodayStr(),
+                    closedDays: normalizeArray(cloudData.closedDays, []),
                     riders: normalizeArray(cloudData.riders, JSON.parse(JSON.stringify(INITIAL_RIDERS))),
                     stores: normalizeArray(cloudData.stores, JSON.parse(JSON.stringify(INITIAL_STORES))),
                     orders: normalizeArray(cloudData.orders, []),
                     expenses: normalizeArray(cloudData.expenses, []),
                     nextOrderNum: cloudData.nextOrderNum || 121
                 };
-                const today = getTodayStr();
-                appState.orders.forEach(o => { if (!o.dateStr) o.dateStr = today; });
+                const activeD = getActiveShiftDate();
+                appState.orders.forEach(o => { if (!o.dateStr) o.dateStr = activeD; });
+                if (!uiState.archiveDateFilter) uiState.archiveDateFilter = activeD;
                 syncRidersAvailability();
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
                 isInitialCloudLoaded = true;
@@ -253,7 +288,6 @@ async function initCloudSync() {
         });
     } catch (err) {
         clearTimeout(fallbackTimer);
-        console.warn('Cloud module unavailable, running in local mode:', err);
         setSyncStatus('offline');
     }
 }
@@ -270,34 +304,35 @@ function getOrderDurations(order) {
     const now = Date.now();
     const rTs = Number(order.receivedTs) || now;
     const dTs = order.departedTs ? Number(order.departedTs) : null;
-    const endTs = (order.status === 'delivered' && order.deliveredTs) ? Number(order.deliveredTs) : now;
+    const delTs = order.deliveredTs ? Number(order.deliveredTs) : null;
+    const setTs = order.settledTs ? Number(order.settledTs) : null;
 
+    const endTs = setTs || delTs || now;
     const totalMins = Math.max(0, Math.round((endTs - rTs) / 60000));
+    const deliveryMins = delTs ? Math.max(0, Math.round((delTs - rTs) / 60000)) : Math.max(0, Math.round((now - rTs) / 60000));
     const waitMins = dTs ? Math.max(0, Math.round((dTs - rTs) / 60000)) : null;
-    const roadMins = (dTs && order.status === 'delivered' && order.deliveredTs)
-        ? Math.max(0, Math.round((Number(order.deliveredTs) - dTs) / 60000))
-        : (dTs && order.status === 'onway' ? Math.max(0, Math.round((now - dTs) / 60000)) : null);
+    const roadMins = (dTs && delTs) ? Math.max(0, Math.round((delTs - dTs) / 60000)) : null;
 
-    return { totalMins, waitMins, roadMins };
+    return { totalMins, deliveryMins, waitMins, roadMins };
 }
 
 function getAnalyticsSummary(targetMonth) {
-    const today = getTodayStr();
-    const month = targetMonth || getCurrentMonthStr();
+    const today = getActiveShiftDate();
+    const month = targetMonth || today.slice(0, 7);
 
     const todayOrders = appState.orders.filter(o => o.dateStr === today);
     const monthOrders = appState.orders.filter(o => (o.dateStr || '').startsWith(month));
 
-    const todayDelivered = todayOrders.filter(o => o.status === 'delivered');
-    const monthDelivered = monthOrders.filter(o => o.status === 'delivered');
+    const todaySettledOrders = todayOrders.filter(o => isOrderCompleted(o));
+    const monthSettledOrders = monthOrders.filter(o => isOrderCompleted(o));
 
-    const todayRev = todayDelivered.reduce((s, o) => s + Number(o.fee), 0);
-    const todaySettled = todayDelivered.reduce((s, o) => s + Number(o.amount), 0);
+    const todayRev = todaySettledOrders.reduce((s, o) => s + Number(o.fee), 0);
+    const todaySettled = todaySettledOrders.reduce((s, o) => s + Number(o.amount), 0);
     const todayExp = appState.expenses.filter(e => e.dateStr === today).reduce((s, e) => s + Number(e.amount), 0);
     const todayProfit = todayRev - todayExp;
 
-    const monthRev = monthDelivered.reduce((s, o) => s + Number(o.fee), 0);
-    const monthSettled = monthDelivered.reduce((s, o) => s + Number(o.amount), 0);
+    const monthRev = monthSettledOrders.reduce((s, o) => s + Number(o.fee), 0);
+    const monthSettled = monthSettledOrders.reduce((s, o) => s + Number(o.amount), 0);
     const monthExpensesList = appState.expenses.filter(e => (e.dateStr || '').startsWith(month));
     const monthExp = monthExpensesList.reduce((s, e) => s + Number(e.amount), 0);
     const monthProfit = monthRev - monthExp;
@@ -305,48 +340,47 @@ function getAnalyticsSummary(targetMonth) {
     const storeStats = appState.stores.map(s => {
         const sToday = todayOrders.filter(o => o.storeId === s.id);
         const sMonth = monthOrders.filter(o => o.storeId === s.id);
-        const sAll = appState.orders.filter(o => o.storeId === s.id);
-        const sMonthDelivered = sMonth.filter(o => o.status === 'delivered');
-        const settledMonth = sMonthDelivered.reduce((sum, o) => sum + Number(o.amount), 0);
-        const feeMonth = sMonthDelivered.reduce((sum, o) => sum + Number(o.fee), 0);
+        const sMonthDone = sMonth.filter(o => isOrderCompleted(o));
+        const settledMonth = sMonthDone.reduce((sum, o) => sum + Number(o.amount), 0);
+        const feeMonth = sMonthDone.reduce((sum, o) => sum + Number(o.fee), 0);
         const sharePct = monthOrders.length > 0 ? Math.round((sMonth.length / monthOrders.length) * 100) : 0;
-        return { store: s, todayCount: sToday.length, monthCount: sMonth.length, allCount: sAll.length, settledMonth, feeMonth, sharePct };
+        return { store: s, todayCount: sToday.length, monthCount: sMonth.length, settledMonth, feeMonth, sharePct };
     }).sort((a, b) => b.monthCount - a.monthCount || b.todayCount - a.todayCount);
 
     const riderStats = appState.riders.map(r => {
         const rToday = todayOrders.filter(o => o.riderId === r.id);
         const rMonth = monthOrders.filter(o => o.riderId === r.id);
         const rAll = appState.orders.filter(o => o.riderId === r.id);
-        const rMonthDone = rMonth.filter(o => o.status === 'delivered');
-        const rAllDone = rAll.filter(o => o.status === 'delivered');
+        const rMonthDone = rMonth.filter(o => isOrderCompleted(o));
+        const rAllDone = rAll.filter(o => o.status === 'delivered' || isOrderCompleted(o));
 
         const settledMonth = rMonthDone.reduce((sum, o) => sum + Number(o.amount), 0);
         const feeMonth = rMonthDone.reduce((sum, o) => sum + Number(o.fee), 0);
-        const feeToday = rToday.filter(o => o.status === 'delivered').reduce((sum, o) => sum + Number(o.fee), 0);
         const avgMins = rAllDone.length > 0
-            ? Math.round(rAllDone.reduce((sum, o) => sum + getOrderDurations(o).totalMins, 0) / rAllDone.length)
+            ? Math.round(rAllDone.reduce((sum, o) => sum + getOrderDurations(o).deliveryMins, 0) / rAllDone.length)
             : null;
 
-        return { rider: r, todayCount: rToday.length, monthCount: rMonth.length, allCount: rAll.length, settledMonth, feeMonth, feeToday, avgMins };
+        return { rider: r, todayCount: rToday.length, monthCount: rMonth.length, settledMonth, feeMonth, avgMins };
     }).sort((a, b) => b.monthCount - a.monthCount || b.todayCount - a.todayCount);
 
-    return { today, month, todayOrders, monthOrders, todayDelivered, monthDelivered, todayRev, todaySettled, todayExp, todayProfit, monthRev, monthSettled, monthExpensesList, monthExp, monthProfit, storeStats, riderStats };
+    return { today, month, todayOrders, monthOrders, todaySettledOrders, monthSettledOrders, todayRev, todaySettled, todayExp, todayProfit, monthRev, monthSettled, monthExpensesList, monthExp, monthProfit, storeStats, riderStats };
 }
 
 function buildWhatsAppMessage(o) {
     const st = getStore(o.storeId);
     const rd = getRider(o.riderId);
-    const { totalMins } = getOrderDurations(o);
+    const { deliveryMins } = getOrderDurations(o);
 
     const statusArabic = {
         received: '🟡 تم الاستلام من المتجر',
         onway: '🔵 في الطريق للعميل',
-        delivered: '🟢 تم التسليم وتوريد الفلوس للمتجر'
+        delivered: '🟢 تم التسليم للعميل (جاري التوريد)',
+        settled: '✅ تم التوريد للمتجر والعودة للمكتب'
     };
 
     return [
         `🟠 *تحديث أوردر وصّل - WASSAL*`,
-        `• رقم الطلب: *#${o.id}* (${o.dateStr || getTodayStr()})`,
+        `• رقم الطلب: *#${o.id}* (${o.dateStr || getActiveShiftDate()})`,
         `• الحالة: *${statusArabic[o.status]}*`,
         `• المتجر: ${st.name} (${st.category})`,
         `• المندوب: ${rd.name} (${rd.plate})`,
@@ -354,7 +388,8 @@ function buildWhatsAppMessage(o) {
         `• العنوان: ${o.address}`,
         `• وقت الاستلام: ${formatTime12(o.receivedTs)}`,
         o.departedTs ? `• وقت التحرك: ${formatTime12(o.departedTs)}` : null,
-        o.deliveredTs ? `• وقت التسليم: ${formatTime12(o.deliveredTs)} (المدة: ${totalMins} دقيقة)` : `• الوقت المنقضي: ${totalMins} دقيقة`,
+        o.deliveredTs ? `• وقت التسليم: ${formatTime12(o.deliveredTs)} (مدة التوصيل: ${deliveryMins} دقيقة)` : null,
+        o.settledTs ? `• وقت التوريد والعودة: ${formatTime12(o.settledTs)}` : null,
         `• المطلوب تحصيله: *${Number(o.amount) + Number(o.fee)} ج.م*`,
         `_وصّل .. هتشوف الفرق_`
     ].filter(Boolean).join('\n');
@@ -391,22 +426,35 @@ function showToast(msg) {
 
 // ==================== RENDERING ====================
 function renderKPIs() {
-    const currentStats = getAnalyticsSummary(getCurrentMonthStr());
-    const pickedCount = appState.orders.filter(o => o.status === 'received').length;
-    const onwayCount = appState.orders.filter(o => o.status === 'onway').length;
-    const active = pickedCount + onwayCount;
+    const activeD = getActiveShiftDate();
+    const currentStats = getAnalyticsSummary(activeD.slice(0, 7));
+
+    const sideDay = document.getElementById('sidebar-active-day');
+    const mobDay = document.getElementById('mobile-active-day');
+    if (sideDay) sideDay.textContent = activeD;
+    if (mobDay) mobDay.textContent = activeD;
+
+    const activeOrdersList = appState.orders.filter(o => isOrderActiveInRoom(o));
+    const pickedCount = activeOrdersList.filter(o => o.status === 'received').length;
+    const onwayCount = activeOrdersList.filter(o => o.status === 'onway').length;
+    const delivWaitCount = activeOrdersList.filter(o => o.status === 'delivered').length;
+    const activeTotal = activeOrdersList.length;
+    const settledTotalCount = appState.orders.filter(o => isOrderCompleted(o)).length;
+
     const totalRidersCount = appState.riders.length;
     const availRiders = appState.riders.filter(r => r.status === 'available').length;
     const busyRiders = appState.riders.filter(r => r.status === 'busy').length;
 
     document.getElementById('kpi-today-orders').textContent = currentStats.todayOrders.length;
     document.getElementById('kpi-month-orders').textContent = currentStats.monthOrders.length;
-    document.getElementById('kpi-delivered-sub').textContent = currentStats.todayDelivered.length;
+    document.getElementById('kpi-delivered-sub').textContent = currentStats.todaySettledOrders.length;
     document.getElementById('kpi-total').textContent = appState.orders.length;
 
-    document.getElementById('kpi-active').textContent = active;
+    document.getElementById('kpi-active').textContent = activeTotal;
     document.getElementById('kpi-picked-count').textContent = `${pickedCount} استلام`;
     document.getElementById('kpi-onway-count').textContent = `${onwayCount} طريق`;
+    const delivWaitEl = document.getElementById('kpi-deliv-wait-count');
+    if (delivWaitEl) delivWaitEl.textContent = `${delivWaitCount} توريد`;
 
     const topM = currentStats.storeStats[0];
     if (topM && topM.monthCount > 0) {
@@ -430,7 +478,9 @@ function renderKPIs() {
     document.getElementById('kpi-revenue').textContent = currentStats.todayRev.toLocaleString('ar-EG');
     document.getElementById('kpi-today-expense').textContent = currentStats.todayExp.toLocaleString('ar-EG');
 
-    document.getElementById('nav-badge-active').textContent = active;
+    document.getElementById('nav-badge-active').textContent = activeTotal;
+    const settledBadge = document.getElementById('nav-badge-settled');
+    if (settledBadge) settledBadge.textContent = settledTotalCount;
     const navLabelRiders = document.getElementById('nav-label-riders');
     if (navLabelRiders) navLabelRiders.textContent = `المناديب والموتوسيكلات (${totalRidersCount})`;
     document.getElementById('nav-badge-riders').textContent = `${availRiders}/${totalRidersCount}`;
@@ -453,11 +503,11 @@ function renderFleetRibbon() {
     if (uiState.riderFilter !== 'all') clearBtn.classList.remove('hidden');
     else clearBtn.classList.add('hidden');
 
-    const today = getTodayStr();
+    const today = getActiveShiftDate();
     const month = getCurrentMonthStr();
 
     container.innerHTML = appState.riders.map(r => {
-        const activeOrder = appState.orders.find(o => o.riderId === r.id && o.status !== 'delivered');
+        const activeOrder = appState.orders.find(o => o.riderId === r.id && isOrderActiveInRoom(o));
         const todayCnt = appState.orders.filter(o => o.riderId === r.id && o.dateStr === today).length;
         const monthCnt = appState.orders.filter(o => o.riderId === r.id && (o.dateStr || '').startsWith(month)).length;
         const isSelected = uiState.riderFilter === r.id;
@@ -469,12 +519,15 @@ function renderFleetRibbon() {
         if (activeOrder) {
             const { totalMins } = getOrderDurations(activeOrder);
             const st = getStore(activeOrder.storeId);
-            if (activeOrder.status === 'onway') {
+            if (activeOrder.status === 'delivered') {
+                dotClass = 'bg-statusDone animate-pulse';
+                subText = `توريد لـ ${st.name} (${totalMins}د)`;
+            } else if (activeOrder.status === 'onway') {
                 dotClass = 'bg-statusOnway animate-pulse';
-                subText = `طريق (${totalMins}د) • ${todayCnt}ي/${monthCnt}ش`;
+                subText = `في الطريق (${totalMins}د) • ${todayCnt}ي/${monthCnt}ش`;
             } else {
                 dotClass = 'bg-statusPicked';
-                subText = `${st.name} (${totalMins}د) • ${todayCnt}ي/${monthCnt}ش`;
+                subText = `استلام ${st.name} (${totalMins}د)`;
             }
         } else if (r.status === 'off') {
             dotClass = 'bg-slate-500';
@@ -493,9 +546,10 @@ function renderFleetRibbon() {
     }).join('');
 }
 
-function getFilteredOrders() {
+function getFilteredActiveOrders() {
     const q = (document.getElementById('search-input').value || '').trim().toLowerCase();
     return appState.orders.filter(o => {
+        if (!isOrderActiveInRoom(o)) return false;
         const st = getStore(o.storeId);
         const rd = getRider(o.riderId);
         const matchText = !q ||
@@ -512,7 +566,7 @@ function getFilteredOrders() {
 }
 
 function renderOrdersBoardAndTable() {
-    const filtered = getFilteredOrders();
+    const filtered = getFilteredActiveOrders();
 
     ['received', 'onway', 'delivered'].forEach(stage => {
         const list = filtered.filter(o => o.status === stage);
@@ -520,7 +574,10 @@ function renderOrdersBoardAndTable() {
         const container = document.getElementById(`col-list-${stage}`);
 
         if (list.length === 0) {
-            container.innerHTML = `<div class="h-44 border border-dashed border-slateBorder rounded-2xl flex items-center justify-center text-slate-500 text-xs">لا توجد طلبات مطابقة</div>`;
+            const emptyMsg = stage === 'delivered'
+                ? 'لا توجد طلبات بانتظار التوريد للمتجر'
+                : 'لا توجد طلبات جارية في هذه المرحلة';
+            container.innerHTML = `<div class="h-44 border border-dashed border-slateBorder rounded-2xl flex items-center justify-center text-slate-500 text-xs text-center px-3">${emptyMsg}</div>`;
             return;
         }
         container.innerHTML = list.map(o => buildOrderCard(o)).join('');
@@ -528,7 +585,7 @@ function renderOrdersBoardAndTable() {
 
     const tbody = document.getElementById('quick-table-body');
     if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="py-10 text-center text-slate-500">لا توجد طلبات مطابقة للبحث أو التصفية</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="py-10 text-center text-slate-500">لا توجد طلبات جارية مطابقة (الطلبات الموردة تنتقل تلقائياً للأرشيف)</td></tr>`;
         return;
     }
     tbody.innerHTML = filtered.map(o => {
@@ -538,22 +595,22 @@ function renderOrdersBoardAndTable() {
         const isOverdue = o.status !== 'delivered' && totalMins > 35;
 
         const statusPill = o.status === 'received'
-            ? `<span class="px-2.5 py-1 rounded-lg bg-statusPicked/15 border border-statusPicked/40 text-statusPicked font-black text-[11px]">تم الاستلام • ${totalMins} د</span>`
+            ? `<span class="px-2.5 py-1 rounded-lg bg-statusPicked/15 border border-statusPicked/40 text-statusPicked font-black text-[11px]">1. تم الاستلام • ${totalMins} د</span>`
             : o.status === 'onway'
-            ? `<span class="px-2.5 py-1 rounded-lg ${isOverdue ? 'bg-red-500/20 border-red-500 text-red-400 animate-pulse' : 'bg-statusOnway/15 border-statusOnway/40 text-statusOnway'} border font-black text-[11px]">في الطريق • ${totalMins} د</span>`
-            : `<span class="px-2.5 py-1 rounded-lg bg-statusDone/15 border border-statusDone/40 text-statusDone font-black text-[11px]">تم التسليم (${totalMins} د)</span>`;
+            ? `<span class="px-2.5 py-1 rounded-lg ${isOverdue ? 'bg-red-500/20 border-red-500 text-red-400 animate-pulse' : 'bg-statusOnway/15 border-statusOnway/40 text-statusOnway'} border font-black text-[11px]">2. في الطريق • ${totalMins} د</span>`
+            : `<span class="px-2.5 py-1 rounded-lg bg-statusDone/15 border border-statusDone/40 text-statusDone font-black text-[11px]">3. تم التسليم (توريد)</span>`;
 
         const quickAction = o.status === 'received'
-            ? `<button type="button" data-action="move-onway" data-id="${o.id}" class="px-2.5 py-1.5 rounded-lg bg-statusOnway/20 hover:bg-statusOnway text-statusOnway hover:text-obsidian font-black text-[11px] transition-colors">تحرك ➔</button>`
+            ? `<button type="button" data-action="move-onway" data-id="${o.id}" class="px-2.5 py-1.5 rounded-lg bg-statusOnway/20 hover:bg-statusOnway text-statusOnway hover:text-obsidian font-black text-[11px] transition-colors">تحرك للعميل ➔</button>`
             : o.status === 'onway'
-            ? `<button type="button" data-action="move-delivered" data-id="${o.id}" class="px-2.5 py-1.5 rounded-lg bg-statusDone/20 hover:bg-statusDone text-statusDone hover:text-obsidian font-black text-[11px] transition-colors">✓ تسليم</button>`
-            : `<span class="text-statusDone font-bold text-[11px]">مكتمل</span>`;
+            ? `<button type="button" data-action="move-delivered" data-id="${o.id}" class="px-2.5 py-1.5 rounded-lg bg-statusDone/20 hover:bg-statusDone text-statusDone hover:text-obsidian font-black text-[11px] transition-colors">✓ تم التسليم</button>`
+            : `<button type="button" data-action="move-settled" data-id="${o.id}" class="px-2.5 py-1.5 rounded-lg wassal-grad text-obsidian font-black text-[11px] transition-colors">💰 تم التوريد والعودة</button>`;
 
         return `
             <tr data-action="open-drawer" data-id="${o.id}" class="hover:bg-slateCard/90 cursor-pointer transition-colors">
                 <td class="px-4 py-3.5">
                     <div class="font-black text-wassalOrange">#${o.id}</div>
-                    <div class="text-[10px] text-slate-500">${o.dateStr || getTodayStr()}</div>
+                    <div class="text-[10px] text-slate-500">${o.dateStr || getActiveShiftDate()}</div>
                 </td>
                 <td class="px-4 py-3.5">${statusPill}</td>
                 <td class="px-4 py-3.5 font-bold text-white">${st.name}</td>
@@ -565,6 +622,7 @@ function renderOrdersBoardAndTable() {
                 <td class="px-4 py-3.5 text-[11px] text-slate-300">
                     <div>استلام: <strong class="text-statusPicked">${formatTime12(o.receivedTs)}</strong></div>
                     ${o.departedTs ? `<div>تحرك: <strong class="text-statusOnway">${formatTime12(o.departedTs)}</strong></div>` : ''}
+                    ${o.deliveredTs ? `<div>تسليم: <strong class="text-statusDone">${formatTime12(o.deliveredTs)}</strong></div>` : ''}
                 </td>
                 <td class="px-4 py-3.5 font-black text-white">${Number(o.amount) + Number(o.fee)} ج.م</td>
                 <td class="px-4 py-3.5 text-center">
@@ -581,22 +639,20 @@ function renderOrdersBoardAndTable() {
 function buildOrderCard(o) {
     const store = getStore(o.storeId);
     const rider = getRider(o.riderId);
-    const { totalMins, waitMins, roadMins } = getOrderDurations(o);
+    const { totalMins, deliveryMins } = getOrderDurations(o);
     const isOverdue = o.status !== 'delivered' && totalMins > 35;
-    const isToday = (o.dateStr || getTodayStr()) === getTodayStr();
 
     const timeBadge = o.status === 'delivered'
-        ? `<span class="px-2 py-0.5 rounded-lg bg-statusDone/15 border border-statusDone/30 text-statusDone font-black text-[10px]">✓ ${totalMins} د</span>`
+        ? `<span class="px-2 py-0.5 rounded-lg bg-statusDone/15 border border-statusDone/30 text-statusDone font-black text-[10px]">✓ سُلّم في ${deliveryMins} د</span>`
         : `<span class="px-2 py-0.5 rounded-lg ${isOverdue ? 'bg-red-500/20 border-red-500 text-red-400 animate-pulse' : 'bg-slateDark border-slateBorder text-slate-200'} border font-black text-[10px]">⏳ منذ ${totalMins} د</span>`;
 
     let actionButton = '';
     if (o.status === 'received') {
         actionButton = `<button type="button" data-action="move-onway" data-id="${o.id}" class="w-full py-2.5 px-3 rounded-xl bg-statusOnway/20 hover:bg-statusOnway text-statusOnway hover:text-obsidian border border-statusOnway/40 font-black text-xs transition-all">تحرك للعميل ➔</button>`;
     } else if (o.status === 'onway') {
-        actionButton = `<button type="button" data-action="move-delivered" data-id="${o.id}" class="w-full py-2.5 px-3 rounded-xl bg-statusDone/20 hover:bg-statusDone text-statusDone hover:text-obsidian border border-statusDone/40 font-black text-xs transition-all">✓ تم التسليم وتوريد الفلوس</button>`;
-    } else {
-        const detail = (waitMins !== null && roadMins !== null) ? ` (${waitMins}د انتظار + ${roadMins}د طريق)` : '';
-        actionButton = `<div class="w-full py-2 px-3 rounded-xl bg-statusDone/10 border border-statusDone/30 text-statusDone font-bold text-[11px] text-center">✓ تم التسليم${detail}</div>`;
+        actionButton = `<button type="button" data-action="move-delivered" data-id="${o.id}" class="w-full py-2.5 px-3 rounded-xl bg-statusDone/20 hover:bg-statusDone text-statusDone hover:text-obsidian border border-statusDone/40 font-black text-xs transition-all">✓ تم التسليم للعميل</button>`;
+    } else if (o.status === 'delivered') {
+        actionButton = `<button type="button" data-action="move-settled" data-id="${o.id}" class="w-full py-2.5 px-3 rounded-xl wassal-grad wassal-grad-hover text-obsidian font-black text-xs shadow-md shadow-orange-500/20 transition-all">💰 تم التوريد والعودة للمكتب</button>`;
     }
 
     return `
@@ -605,7 +661,6 @@ function buildOrderCard(o) {
                 <div class="flex items-center gap-1.5 flex-wrap">
                     <span class="px-2.5 py-0.5 rounded-lg bg-obsidian border border-wassalOrange/40 text-wassalOrange font-black text-xs">#${o.id}</span>
                     ${timeBadge}
-                    ${!isToday ? `<span class="px-2 py-0.5 rounded-md bg-obsidian text-slate-400 border border-slateBorder text-[10px] font-bold">${o.dateStr}</span>` : ''}
                 </div>
                 <div class="flex items-center gap-1">
                     <button type="button" data-action="copy-whatsapp" data-id="${o.id}" class="px-2.5 py-1 rounded-lg bg-obsidian hover:bg-statusDone/20 text-slate-300 hover:text-statusDone border border-slateBorder text-[11px] font-bold transition-colors">واتساب</button>
@@ -614,15 +669,15 @@ function buildOrderCard(o) {
 
             <div class="bg-obsidian/90 rounded-xl p-2 border border-slateBorder grid grid-cols-3 gap-1 text-center text-[11px]">
                 <div>
-                    <div class="text-[10px] text-statusPicked font-bold">استلام</div>
+                    <div class="text-[10px] text-statusPicked font-bold">1. استلام</div>
                     <div class="font-black text-white">${formatTime12(o.receivedTs)}</div>
                 </div>
                 <div class="border-x border-slateBorder">
-                    <div class="text-[10px] text-statusOnway font-bold">تحرك</div>
+                    <div class="text-[10px] text-statusOnway font-bold">2. تحرك</div>
                     <div class="font-black ${o.departedTs ? 'text-white' : 'text-slate-600'}">${formatTime12(o.departedTs)}</div>
                 </div>
                 <div>
-                    <div class="text-[10px] text-statusDone font-bold">تسليم</div>
+                    <div class="text-[10px] text-statusDone font-bold">3. تسليم</div>
                     <div class="font-black ${o.deliveredTs ? 'text-statusDone' : 'text-slate-600'}">${formatTime12(o.deliveredTs)}</div>
                 </div>
             </div>
@@ -648,7 +703,7 @@ function buildOrderCard(o) {
 
             <div class="grid grid-cols-3 gap-1 bg-obsidian rounded-xl p-2 border border-slateBorder text-center text-xs">
                 <div>
-                    <div class="text-[10px] text-slate-400">للمتجر</div>
+                    <div class="text-[10px] text-slate-400">توريد للمتجر</div>
                     <div class="font-extrabold text-white">${o.amount} ج.م</div>
                 </div>
                 <div class="border-x border-slateBorder">
@@ -668,6 +723,136 @@ function buildOrderCard(o) {
     `;
 }
 
+// ==================== VIEW 2: ARCHIVE & DAY CLOSE RENDERING ====================
+function renderArchive() {
+    const activeD = getActiveShiftDate();
+    const curLabel = document.getElementById('archive-current-day-label');
+    if (curLabel) curLabel.textContent = activeD;
+
+    const datePicker = document.getElementById('archive-date-picker');
+    if (datePicker && uiState.archiveDateFilter && datePicker.value !== uiState.archiveDateFilter) {
+        datePicker.value = uiState.archiveDateFilter;
+    }
+
+    // Collect unique dates sorted desc
+    const dateSet = new Set([activeD, ...appState.orders.map(o => o.dateStr).filter(Boolean)]);
+    const sortedDates = Array.from(dateSet).sort((a, b) => b.localeCompare(a));
+
+    const quickDatesEl = document.getElementById('archive-quick-dates');
+    if (quickDatesEl) {
+        quickDatesEl.innerHTML = sortedDates.map(d => {
+            const isSelected = uiState.archiveDateFilter === d;
+            const isOpenDay = d === activeD;
+            const cnt = appState.orders.filter(o => o.dateStr === d).length;
+            return `
+                <button type="button" data-action="archive-select-date" data-date="${d}" class="shrink-0 px-3 py-1.5 rounded-xl border text-xs font-black transition-all ${isSelected ? 'wassal-grad text-obsidian border-wassalOrange' : 'bg-obsidian border-slateBorder text-slate-300 hover:border-wassalOrange'}">
+                    ${d} ${isOpenDay ? '(اليوم المفتوح)' : ''} • [${cnt}]
+                </button>
+            `;
+        }).join('');
+    }
+
+    const filteredOrders = uiState.archiveDateFilter
+        ? appState.orders.filter(o => o.dateStr === uiState.archiveDateFilter)
+        : appState.orders;
+
+    const settledOnly = filteredOrders.filter(o => isOrderCompleted(o));
+    const merchantCash = settledOnly.reduce((s, o) => s + Number(o.amount), 0);
+    const feesCash = settledOnly.reduce((s, o) => s + Number(o.fee), 0);
+
+    document.getElementById('arch-stat-count').textContent = filteredOrders.length;
+    document.getElementById('arch-stat-settled-count').textContent = settledOnly.length;
+    document.getElementById('arch-stat-merchant-cash').textContent = `${merchantCash.toLocaleString('ar-EG')} ج.م`;
+    document.getElementById('arch-stat-fees').textContent = `${feesCash.toLocaleString('ar-EG')} ج.م`;
+
+    const tbody = document.getElementById('archive-table-body');
+    if (filteredOrders.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="py-10 text-center text-slate-500">لا توجد طلبات مسجلة في هذا التاريخ</td></tr>`;
+    } else {
+        tbody.innerHTML = filteredOrders.map(o => {
+            const st = getStore(o.storeId);
+            const rd = getRider(o.riderId);
+            const statusMap = {
+                received: `<span class="px-2 py-0.5 rounded bg-statusPicked/20 text-statusPicked font-black text-[11px]">تم الاستلام</span>`,
+                onway: `<span class="px-2 py-0.5 rounded bg-statusOnway/20 text-statusOnway font-black text-[11px]">في الطريق</span>`,
+                delivered: `<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-black text-[11px]">تم التسليم (بانتظار التوريد)</span>`,
+                settled: `<span class="px-2 py-0.5 rounded bg-statusDone/20 text-statusDone font-black text-[11px]">✓ تم التوريد والعودة</span>`
+            };
+
+            return `
+                <tr data-action="open-drawer" data-id="${o.id}" class="hover:bg-slateCard/80 cursor-pointer">
+                    <td class="px-3.5 py-3 font-black text-wassalOrange">#${o.id}</td>
+                    <td class="px-3.5 py-3 font-mono text-slate-400">${o.dateStr}</td>
+                    <td class="px-3.5 py-3">${statusMap[o.status] || o.status}</td>
+                    <td class="px-3.5 py-3 font-bold text-white">${st.name}</td>
+                    <td class="px-3.5 py-3">
+                        <div class="text-slate-200 font-bold">${o.customerName}</div>
+                        <div class="text-[11px] text-slate-400">${o.address}</div>
+                    </td>
+                    <td class="px-3.5 py-3 font-bold text-slate-200">${rd.name}</td>
+                    <td class="px-3.5 py-3 text-[11px]">
+                        <span class="text-statusPicked font-bold">${formatTime12(o.receivedTs)}</span> ➔
+                        <span class="text-statusOnway font-bold">${formatTime12(o.departedTs)}</span> ➔
+                        <span class="text-emerald-300 font-bold">${formatTime12(o.deliveredTs)}</span> ➔
+                        <span class="text-statusDone font-black">${formatTime12(o.settledTs)}</span>
+                    </td>
+                    <td class="px-3.5 py-3 font-black">
+                        <span class="text-white">${o.amount}</span> + <span class="text-wassalOrange">${o.fee} ج.م</span>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    // Closed Days History Table
+    const closedBody = document.getElementById('closed-days-body');
+    if (appState.closedDays.length === 0) {
+        closedBody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-500">لم يتم إقفال أي يومية سابقة بعد. عند انتهاء العمل اضغط "إقفال اليوم الحالي وبدء يوم جديد".</td></tr>`;
+    } else {
+        closedBody.innerHTML = appState.closedDays.map(cd => `
+            <tr class="hover:bg-slateCard/80">
+                <td class="px-4 py-3 font-black text-white font-mono">${cd.dateStr}</td>
+                <td class="px-4 py-3 text-slate-400">${formatTime12(cd.closedAt)}</td>
+                <td class="px-4 py-3 font-black text-white">${cd.ordersCount} أوردر</td>
+                <td class="px-4 py-3 font-bold text-slate-200">${Number(cd.settledCash).toLocaleString('ar-EG')} ج.م</td>
+                <td class="px-4 py-3 font-black text-statusDone">${Number(cd.revenue).toLocaleString('ar-EG')} ج.م</td>
+                <td class="px-4 py-3 font-bold text-red-400">${Number(cd.expenses).toLocaleString('ar-EG')} ج.م</td>
+                <td class="px-4 py-3 font-black text-wassalOrange text-sm">${Number(cd.netProfit).toLocaleString('ar-EG')} ج.م</td>
+                <td class="px-4 py-3 text-center">
+                    <button type="button" data-action="archive-select-date" data-date="${cd.dateStr}" class="px-3 py-1 rounded-lg bg-slateCard hover:bg-wassalOrange text-slate-200 hover:text-obsidian font-black text-[11px] transition-colors">عرض الطلبات</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+}
+
+function openCloseDayModal() {
+    const activeD = getActiveShiftDate();
+    const unFinished = appState.orders.filter(o => o.dateStr === activeD && isOrderActiveInRoom(o));
+    const dayOrders = appState.orders.filter(o => o.dateStr === activeD);
+    const daySettled = dayOrders.filter(o => isOrderCompleted(o));
+    const rev = daySettled.reduce((s, o) => s + Number(o.fee), 0);
+    const cash = daySettled.reduce((s, o) => s + Number(o.amount), 0);
+    const exp = appState.expenses.filter(e => e.dateStr === activeD).reduce((s, e) => s + Number(e.amount), 0);
+
+    const box = document.getElementById('close-day-summary-box');
+    box.innerHTML = `
+        <div class="flex justify-between"><span class="text-slate-400">اليوم الجاري إقفاله:</span><strong class="text-wassalOrange font-mono">${activeD}</strong></div>
+        <div class="flex justify-between"><span class="text-slate-400">أوردرات تم توريدها:</span><strong class="text-statusDone">${daySettled.length} من أصل ${dayOrders.length}</strong></div>
+        <div class="flex justify-between"><span class="text-slate-400">مبالغ موردة للمتاجر:</span><strong class="text-white">${cash.toLocaleString('ar-EG')} ج.م</strong></div>
+        <div class="flex justify-between"><span class="text-slate-400">إيراد التوصيل:</span><strong class="text-statusDone">${rev.toLocaleString('ar-EG')} ج.م</strong></div>
+        <div class="flex justify-between"><span class="text-slate-400">المصروفات المسجلة:</span><strong class="text-red-400">${exp.toLocaleString('ar-EG')} ج.م</strong></div>
+        <div class="pt-2 border-t border-slateBorder flex justify-between text-sm"><span class="font-black text-white">صافي ربح اليومية:</span><strong class="text-wassalOrange font-black">${(rev - exp).toLocaleString('ar-EG')} ج.م</strong></div>
+        ${unFinished.length > 0 ? `<div class="mt-2 p-2 rounded-lg bg-red-500/15 border border-red-500/40 text-red-300 text-[11px] font-bold">⚠️ تنبيه: يوجد ${unFinished.length} طلب لم يتم توريده بعد (سيبقى ظاهراً في غرفة العمليات لإنهائه).</div>` : ''}
+    `;
+
+    document.getElementById('input-next-shift-date').value = getNextDateStr(activeD);
+    const modal = document.getElementById('modal-close-day');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+// ==================== DRAWER & RIDER PERFORMANCE MODAL ====================
 function openOrderDrawer(orderId) {
     const o = appState.orders.find(item => item.id === orderId);
     if (!o) return;
@@ -675,19 +860,22 @@ function openOrderDrawer(orderId) {
 
     const st = getStore(o.storeId);
     const rd = getRider(o.riderId);
-    const { totalMins, waitMins, roadMins } = getOrderDurations(o);
+    const { totalMins, deliveryMins, waitMins, roadMins } = getOrderDurations(o);
 
     document.getElementById('drawer-order-id').textContent = `#${o.id}`;
     const badge = document.getElementById('drawer-status-badge');
     if (o.status === 'received') {
         badge.className = 'px-2.5 py-1 rounded-lg bg-statusPicked/20 border border-statusPicked/40 text-statusPicked text-xs font-black';
-        badge.textContent = 'تم الاستلام من المتجر';
+        badge.textContent = '1. تم الاستلام من المتجر';
     } else if (o.status === 'onway') {
         badge.className = 'px-2.5 py-1 rounded-lg bg-statusOnway/20 border border-statusOnway/40 text-statusOnway text-xs font-black';
-        badge.textContent = 'في الطريق للعميل';
+        badge.textContent = '2. في الطريق للعميل';
+    } else if (o.status === 'delivered') {
+        badge.className = 'px-2.5 py-1 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-black';
+        badge.textContent = '3. تم التسليم (بانتظار التوريد)';
     } else {
         badge.className = 'px-2.5 py-1 rounded-lg bg-statusDone/20 border border-statusDone/40 text-statusDone text-xs font-black';
-        badge.textContent = 'تم التسليم وتوريد الفلوس';
+        badge.textContent = '4. تم التوريد والعودة';
     }
 
     const waMessage = buildWhatsAppMessage(o);
@@ -695,36 +883,44 @@ function openOrderDrawer(orderId) {
     document.getElementById('drawer-content').innerHTML = `
         <div class="bg-slateCard border border-slateBorder rounded-2xl p-4 space-y-4">
             <div class="flex items-center justify-between">
-                <h4 class="text-xs font-black text-white">⏱️ الخط الزمني للطلب (${o.dateStr || getTodayStr()})</h4>
-                <span class="text-xs font-black text-wassalOrange">إجمالي المدة: ${totalMins} دقيقة</span>
+                <h4 class="text-xs font-black text-white">⏱️ دورة حياة الطلب الكاملة (${o.dateStr})</h4>
+                <span class="text-xs font-black text-wassalOrange">مدة التوصيل: ${deliveryMins} د</span>
             </div>
 
-            <div class="relative pr-6 space-y-5 before:content-[''] before:absolute before:right-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slateBorder">
+            <div class="relative pr-6 space-y-4 before:content-[''] before:absolute before:right-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slateBorder">
                 <div class="relative">
                     <span class="absolute -right-6 top-1 w-3.5 h-3.5 rounded-full bg-statusPicked ring-4 ring-statusPicked/20"></span>
                     <div class="flex items-center justify-between text-xs">
                         <span class="font-black text-statusPicked">1. الاستلام من ${st.name}</span>
                         <span class="font-black text-white">${formatTime12(o.receivedTs)}</span>
                     </div>
-                    <p class="text-[11px] text-slate-400 mt-0.5">تم استلام الأوردر وتعيين المندوب ${rd.name}</p>
                 </div>
 
                 <div class="relative">
                     <span class="absolute -right-6 top-1 w-3.5 h-3.5 rounded-full ${o.departedTs ? 'bg-statusOnway ring-4 ring-statusOnway/20' : 'bg-slate-600'}"></span>
                     <div class="flex items-center justify-between text-xs">
-                        <span class="font-black ${o.departedTs ? 'text-statusOnway' : 'text-slate-500'}">2. التحرك في الطريق للعميل</span>
+                        <span class="font-black ${o.departedTs ? 'text-statusOnway' : 'text-slate-500'}">2. التحرك للعميل</span>
                         <span class="font-black ${o.departedTs ? 'text-white' : 'text-slate-500'}">${formatTime12(o.departedTs)}</span>
                     </div>
-                    <p class="text-[11px] text-slate-400 mt-0.5">${waitMins !== null ? `مدة التجهيز/الانتظار بالمتجر: ${waitMins} دقيقة` : 'في انتظار تحرك المندوب'}</p>
+                    ${waitMins !== null ? `<p class="text-[11px] text-slate-400">وقت التجهيز بالمتجر: ${waitMins} دقيقة</p>` : ''}
                 </div>
 
                 <div class="relative">
-                    <span class="absolute -right-6 top-1 w-3.5 h-3.5 rounded-full ${o.deliveredTs ? 'bg-statusDone ring-4 ring-statusDone/20' : 'bg-slate-600'}"></span>
+                    <span class="absolute -right-6 top-1 w-3.5 h-3.5 rounded-full ${o.deliveredTs ? 'bg-emerald-400 ring-4 ring-emerald-400/20' : 'bg-slate-600'}"></span>
                     <div class="flex items-center justify-between text-xs">
-                        <span class="font-black ${o.deliveredTs ? 'text-statusDone' : 'text-slate-500'}">3. التسليم وتوريد الفلوس للمتجر</span>
-                        <span class="font-black ${o.deliveredTs ? 'text-statusDone' : 'text-slate-500'}">${formatTime12(o.deliveredTs)}</span>
+                        <span class="font-black ${o.deliveredTs ? 'text-emerald-300' : 'text-slate-500'}">3. التسليم للعميل</span>
+                        <span class="font-black ${o.deliveredTs ? 'text-emerald-300' : 'text-slate-500'}">${formatTime12(o.deliveredTs)}</span>
                     </div>
-                    <p class="text-[11px] text-slate-400 mt-0.5">${roadMins !== null ? `مدة الطريق والتسليم: ${roadMins} دقيقة` : 'لم يتم التسليم بعد'}</p>
+                    ${roadMins !== null ? `<p class="text-[11px] text-slate-400">مدة الطريق: ${roadMins} دقيقة</p>` : ''}
+                </div>
+
+                <div class="relative">
+                    <span class="absolute -right-6 top-1 w-3.5 h-3.5 rounded-full ${o.settledTs ? 'bg-statusDone ring-4 ring-statusDone/20' : 'bg-slate-600'}"></span>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="font-black ${o.settledTs ? 'text-statusDone' : 'text-slate-500'}">4. التوريد للمتجر والعودة للمكتب</span>
+                        <span class="font-black ${o.settledTs ? 'text-statusDone' : 'text-slate-500'}">${formatTime12(o.settledTs)}</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400">${o.settledTs ? `إجمالي الدورة الكاملة: ${totalMins} دقيقة` : 'في انتظار عودة المندوب وتوريد المبلغ'}</p>
                 </div>
             </div>
         </div>
@@ -768,7 +964,7 @@ function openOrderDrawer(orderId) {
                 <span class="font-black text-statusDone">💬 رسالة جروب الواتساب</span>
                 <a href="https://wa.me/?text=${encodeURIComponent(waMessage)}" target="_blank" rel="noopener" class="text-[11px] text-statusOnway underline font-bold">فتح واتساب ويب ↗</a>
             </div>
-            <textarea readonly rows="6" class="w-full bg-obsidian border border-slateBorder rounded-xl p-2.5 text-[11px] text-slate-200 leading-relaxed focus:outline-none">${waMessage}</textarea>
+            <textarea readonly rows="5" class="w-full bg-obsidian border border-slateBorder rounded-xl p-2.5 text-[11px] text-slate-200 leading-relaxed focus:outline-none">${waMessage}</textarea>
         </div>
     `;
 
@@ -776,13 +972,15 @@ function openOrderDrawer(orderId) {
     if (o.status === 'received') {
         primaryAction = `<button type="button" data-action="move-onway" data-id="${o.id}" class="w-full py-3 rounded-xl bg-statusOnway text-obsidian font-black text-xs shadow-lg">تحرك للعميل الآن ➔</button>`;
     } else if (o.status === 'onway') {
-        primaryAction = `<button type="button" data-action="move-delivered" data-id="${o.id}" class="w-full py-3 rounded-xl bg-statusDone text-obsidian font-black text-xs shadow-lg">✓ تأكيد التسليم وتوريد الفلوس للمتجر</button>`;
+        primaryAction = `<button type="button" data-action="move-delivered" data-id="${o.id}" class="w-full py-3 rounded-xl bg-statusDone text-obsidian font-black text-xs shadow-lg">✓ تأكيد التسليم للعميل</button>`;
+    } else if (o.status === 'delivered') {
+        primaryAction = `<button type="button" data-action="move-settled" data-id="${o.id}" class="w-full py-3 rounded-xl wassal-grad text-obsidian font-black text-xs shadow-lg">💰 تم التوريد للمتجر والعودة للمكتب</button>`;
     }
 
     document.getElementById('drawer-footer').innerHTML = `
         ${primaryAction}
         <div class="flex gap-2">
-            <button type="button" data-action="copy-whatsapp" data-id="${o.id}" class="flex-1 py-2.5 rounded-xl wassal-grad text-obsidian font-black text-xs">📋 نسخ رسالة الواتساب</button>
+            <button type="button" data-action="copy-whatsapp" data-id="${o.id}" class="flex-1 py-2.5 rounded-xl bg-slateCard hover:bg-slateHover border border-slateBorder text-white font-black text-xs">📋 نسخ رسالة الواتساب</button>
             <button type="button" data-action="delete-order" data-id="${o.id}" class="px-4 py-2.5 rounded-xl bg-red-500/15 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 font-black text-xs transition-colors">حذف</button>
         </div>
     `;
@@ -797,6 +995,136 @@ function closeOrderDrawer() {
     document.getElementById('order-drawer').classList.add('-translate-x-full');
 }
 
+function openRiderStatsModal(riderId, period = 'today') {
+    const r = appState.riders.find(item => item.id === riderId);
+    if (!r) return;
+    uiState.selectedRiderStatsId = riderId;
+    uiState.riderStatsPeriod = period;
+
+    document.getElementById('rstats-name').textContent = `كشف أداء المندوب: ${r.name}`;
+    document.getElementById('rstats-sub').textContent = `${r.bike} • لوحة: ${r.plate} ${r.phone ? '• 📞 ' + r.phone : ''}`;
+
+    document.querySelectorAll('.rstats-period-btn').forEach(btn => {
+        if (btn.getAttribute('data-period') === period) {
+            btn.className = 'rstats-period-btn px-3 py-1.5 rounded-lg text-xs font-black wassal-grad text-obsidian';
+        } else {
+            btn.className = 'rstats-period-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white';
+        }
+    });
+
+    const activeD = getActiveShiftDate();
+    const monthPrefix = activeD.slice(0, 7);
+    const [ay, am, ad] = activeD.split('-').map(Number);
+    const sevenDaysAgo = new Date(ay, am - 1, ad - 6);
+    const sevenDaysStr = `${sevenDaysAgo.getFullYear()}-${String(sevenDaysAgo.getMonth() + 1).padStart(2, '0')}-${String(sevenDaysAgo.getDate()).padStart(2, '0')}`;
+
+    const riderAll = appState.orders.filter(o => o.riderId === riderId);
+    const filtered = riderAll.filter(o => {
+        const d = o.dateStr || activeD;
+        if (period === 'today') return d === activeD;
+        if (period === 'week') return d >= sevenDaysStr && d <= activeD;
+        if (period === 'month') return d.startsWith(monthPrefix);
+        return true;
+    });
+
+    const pickedCount = filtered.length;
+    const deliveredCount = filtered.filter(o => o.status === 'delivered' || o.status === 'settled').length;
+    const settledList = filtered.filter(o => o.status === 'settled');
+    const settledCount = settledList.length;
+    const totalFees = settledList.reduce((s, o) => s + Number(o.fee), 0);
+    const totalMerchantCash = settledList.reduce((s, o) => s + Number(o.amount), 0);
+    const doneForSpeed = filtered.filter(o => o.deliveredTs);
+    const avgSpeed = doneForSpeed.length > 0
+        ? Math.round(doneForSpeed.reduce((s, o) => s + getOrderDurations(o).deliveryMins, 0) / doneForSpeed.length)
+        : null;
+
+    const periodNames = {
+        today: `اليوم (${activeD})`,
+        week: `آخر 7 أيام (${sevenDaysStr} إلى ${activeD})`,
+        month: `الشهر الحالي (${monthPrefix})`,
+        all: 'منذ بداية التشغيل'
+    };
+
+    const rowsHTML = filtered.length === 0
+        ? `<tr><td colspan="6" class="py-8 text-center text-slate-500">لا توجد أوردرات مسجلة لهذا المندوب في هذه الفترة</td></tr>`
+        : filtered.map(o => {
+            const st = getStore(o.storeId);
+            const { deliveryMins } = getOrderDurations(o);
+            const stBadge = o.status === 'settled'
+                ? `<span class="text-statusDone font-black">✓ تم التوريد</span>`
+                : o.status === 'delivered'
+                ? `<span class="text-emerald-300 font-bold">سُلّم (توريد)</span>`
+                : o.status === 'onway'
+                ? `<span class="text-statusOnway font-bold">في الطريق</span>`
+                : `<span class="text-statusPicked font-bold">مستلم</span>`;
+            return `
+                <tr class="hover:bg-slateCard/70">
+                    <td class="px-3 py-2.5 font-black text-wassalOrange">#${o.id}</td>
+                    <td class="px-3 py-2.5 font-mono text-slate-400">${o.dateStr}</td>
+                    <td class="px-3 py-2.5 font-bold text-white">${st.name}</td>
+                    <td class="px-3 py-2.5 text-slate-300">${o.customerName}</td>
+                    <td class="px-3 py-2.5">${stBadge}</td>
+                    <td class="px-3 py-2.5 font-black text-white">${o.amount} + <span class="text-wassalOrange">${o.fee} ج.م</span> ${o.deliveredTs ? `(${deliveryMins}د)` : ''}</td>
+                </tr>
+            `;
+        }).join('');
+
+    document.getElementById('rstats-body').innerHTML = `
+        <div class="text-xs font-bold text-wassalOrange">الفترة المعروضة: ${periodNames[period]}</div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 text-center text-xs">
+            <div class="bg-obsidian border border-statusPicked/40 rounded-xl p-3">
+                <div class="text-[10px] text-statusPicked font-bold">طلع / استلم</div>
+                <div class="text-xl font-black text-white mt-1">${pickedCount}</div>
+            </div>
+            <div class="bg-obsidian border border-emerald-500/40 rounded-xl p-3">
+                <div class="text-[10px] text-emerald-300 font-bold">سلّم للعملاء</div>
+                <div class="text-xl font-black text-emerald-300 mt-1">${deliveredCount}</div>
+            </div>
+            <div class="bg-obsidian border border-statusDone/40 rounded-xl p-3">
+                <div class="text-[10px] text-statusDone font-bold">تم التوريد</div>
+                <div class="text-xl font-black text-statusDone mt-1">${settledCount}</div>
+            </div>
+            <div class="bg-obsidian border border-wassalOrange/40 rounded-xl p-3">
+                <div class="text-[10px] text-wassalOrange font-bold">رسوم التوصيل</div>
+                <div class="text-base font-black text-wassalOrange mt-1.5">${totalFees} ج.م</div>
+            </div>
+            <div class="bg-obsidian border border-slateBorder rounded-xl p-3">
+                <div class="text-[10px] text-slate-400">مبالغ موردة</div>
+                <div class="text-base font-black text-white mt-1.5">${totalMerchantCash} ج.م</div>
+            </div>
+            <div class="bg-obsidian border border-statusOnway/40 rounded-xl p-3">
+                <div class="text-[10px] text-statusOnway font-bold">متوسط السرعة</div>
+                <div class="text-base font-black text-statusOnway mt-1.5">${avgSpeed !== null ? avgSpeed + ' د' : '—'}</div>
+            </div>
+        </div>
+
+        <div class="border border-slateBorder rounded-xl overflow-hidden">
+            <div class="bg-slateCard px-3.5 py-2.5 text-xs font-black text-white border-b border-slateBorder">سجل رحلات المندوب في هذه الفترة</div>
+            <div class="overflow-x-auto max-h-60">
+                <table class="w-full text-right text-xs">
+                    <thead class="bg-obsidian text-slate-400 border-b border-slateBorder">
+                        <tr>
+                            <th class="px-3 py-2">#</th>
+                            <th class="px-3 py-2">التاريخ</th>
+                            <th class="px-3 py-2">المتجر</th>
+                            <th class="px-3 py-2">العميل</th>
+                            <th class="px-3 py-2">الحالة</th>
+                            <th class="px-3 py-2">المبلغ والمدة</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slateBorder">${rowsHTML}</tbody>
+                </table>
+            </div>
+        </div>
+    `;
+
+    const modal = document.getElementById('modal-rider-stats');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+// ==================== RENDER RIDERS, STORES, ACCOUNTING ====================
 function renderRiders() {
     const stats = getAnalyticsSummary(getCurrentMonthStr());
     const topToday = [...stats.riderStats].sort((a, b) => b.todayCount - a.todayCount)[0];
@@ -804,7 +1132,7 @@ function renderRiders() {
 
     const headingEl = document.getElementById('riders-view-heading');
     if (headingEl) {
-        headingEl.textContent = `أسطول المناديب والموتوسيكلات (${appState.riders.length} طيارين) — إحصائيات اليوم والشهر`;
+        headingEl.textContent = `أسطول المناديب والموتوسيكلات (${appState.riders.length} طيارين)`;
     }
 
     document.getElementById('riders-top-today-badge').textContent = (topToday && topToday.todayCount > 0)
@@ -816,15 +1144,14 @@ function renderRiders() {
 
     const grid = document.getElementById('riders-grid');
     if (appState.riders.length === 0) {
-        grid.innerHTML = `<div class="col-span-full bg-slateDark border border-dashed border-slateBorder rounded-2xl p-10 text-center text-slate-400 text-xs">لا يوجد مناديب مسجلون حالياً. اضغط على "+ إضافة مندوب جديد" للبدء.</div>`;
+        grid.innerHTML = `<div class="col-span-full bg-slateDark border border-dashed border-slateBorder rounded-2xl p-10 text-center text-slate-400 text-xs">لا يوجد مناديب مسجلون حالياً.</div>`;
         return;
     }
 
     grid.innerHTML = appState.riders.map((r, idx) => {
         const rStat = stats.riderStats.find(item => item.rider.id === r.id) || { todayCount: 0, monthCount: 0, feeMonth: 0, avgMins: null };
         const riderOrders = appState.orders.filter(o => o.riderId === r.id);
-        const activeOrder = riderOrders.find(o => o.status !== 'delivered');
-        const lastOrder = riderOrders[0];
+        const activeOrder = riderOrders.find(o => isOrderActiveInRoom(o));
         const isTopMonth = topMonth && topMonth.rider.id === r.id && topMonth.monthCount > 0;
 
         const statusMap = {
@@ -834,31 +1161,23 @@ function renderRiders() {
         };
         const stObj = statusMap[r.status] || statusMap.available;
 
-        let destHTML = `<div class="text-xs text-slate-500 bg-obsidian rounded-xl p-2.5 border border-slateBorder">لا توجد رحلات نشطة حالياً</div>`;
+        let destHTML = `<div class="text-xs text-slate-500 bg-obsidian rounded-xl p-2.5 border border-slateBorder">متواجد بالمكتب وجاهز لاستلام أوردرات</div>`;
         if (activeOrder) {
             const st = getStore(activeOrder.storeId);
             const { totalMins } = getOrderDurations(activeOrder);
             destHTML = `
                 <div class="text-xs bg-statusOnway/10 border border-statusOnway/30 rounded-xl p-2.5 space-y-1">
                     <div class="flex justify-between font-black text-statusOnway">
-                        <span>الوجهة الحالية (#${activeOrder.id})</span>
+                        <span>مهمة حالية (#${activeOrder.id})</span>
                         <span>منذ ${totalMins} د</span>
                     </div>
                     <div class="text-white font-bold">${st.name} ➔ ${activeOrder.address}</div>
                 </div>
             `;
-        } else if (lastOrder) {
-            const st = getStore(lastOrder.storeId);
-            destHTML = `
-                <div class="text-xs bg-obsidian rounded-xl p-2.5 border border-slateBorder space-y-0.5">
-                    <div class="text-[11px] text-slate-400">آخر وجهة (${lastOrder.dateStr} • ${formatTime12(lastOrder.deliveredTs || lastOrder.receivedTs)}):</div>
-                    <div class="text-slate-200 font-bold">${st.name} ➔ ${lastOrder.address}</div>
-                </div>
-            `;
         }
 
         return `
-            <div class="bg-slateDark border ${isTopMonth ? 'border-wassalOrange/70 shadow-lg shadow-orange-500/10' : 'border-slateBorder hover:border-wassalOrange/50'} transition-all rounded-2xl p-5 flex flex-col justify-between space-y-4">
+            <div data-action="open-rider-stats" data-id="${r.id}" class="cursor-pointer bg-slateDark border ${isTopMonth ? 'border-wassalOrange/70 shadow-lg shadow-orange-500/10' : 'border-slateBorder hover:border-wassalOrange/60'} transition-all rounded-2xl p-5 flex flex-col justify-between space-y-4">
                 <div class="space-y-3">
                     <div class="flex items-start justify-between gap-2">
                         <div class="flex items-center gap-3">
@@ -866,10 +1185,9 @@ function renderRiders() {
                             <div>
                                 <div class="flex items-center gap-1.5">
                                     <h3 class="font-black text-base text-white">${r.name}</h3>
-                                    ${isTopMonth ? `<span class="text-xs" title="الأكثر توصيلاً هذا الشهر">👑</span>` : ''}
+                                    ${isTopMonth ? `<span class="text-xs">👑</span>` : ''}
                                 </div>
                                 <p class="text-xs text-slate-400">${r.bike} • <span class="text-wassalOrange font-bold">${r.plate}</span></p>
-                                ${r.phone ? `<p class="text-[11px] text-slate-400 font-mono mt-0.5">📞 ${r.phone}</p>` : ''}
                             </div>
                         </div>
                         <span class="px-2.5 py-1 rounded-lg text-[11px] font-black shrink-0 ${stObj.cls}">${stObj.label}</span>
@@ -880,11 +1198,11 @@ function renderRiders() {
                 <div class="pt-3 border-t border-slateBorder space-y-3">
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
                         <div class="bg-obsidian rounded-xl p-2 border border-statusDone/30">
-                            <div class="text-[10px] text-statusDone font-bold">أوردرات اليوم</div>
+                            <div class="text-[10px] text-statusDone font-bold">اليوم</div>
                             <div class="font-black text-white text-base mt-0.5">${rStat.todayCount}</div>
                         </div>
                         <div class="bg-obsidian rounded-xl p-2 border border-wassalOrange/30">
-                            <div class="text-[10px] text-wassalOrange font-bold">أوردرات الشهر</div>
+                            <div class="text-[10px] text-wassalOrange font-bold">الشهر</div>
                             <div class="font-black text-wassalOrange text-base mt-0.5">${rStat.monthCount}</div>
                         </div>
                         <div class="bg-obsidian rounded-xl p-2 border border-slateBorder">
@@ -892,18 +1210,21 @@ function renderRiders() {
                             <div class="font-black text-white text-xs mt-1">${rStat.feeMonth} ج.م</div>
                         </div>
                         <div class="bg-obsidian rounded-xl p-2 border border-slateBorder">
-                            <div class="text-[10px] text-slate-400">متوسط السرعة</div>
+                            <div class="text-[10px] text-slate-400">السرعة</div>
                             <div class="font-black text-statusOnway text-xs mt-1">${rStat.avgMins !== null ? rStat.avgMins + ' د' : '—'}</div>
                         </div>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <button type="button" data-action="cycle-rider-status" data-id="${r.id}" class="flex-1 py-2 px-2 rounded-xl bg-slateCard hover:bg-slateHover border border-slateBorder text-xs font-bold text-slate-300 hover:text-white transition-colors">
-                            تغيير الحالة
+                    <div class="flex items-center gap-1.5">
+                        <button type="button" data-action="open-rider-stats" data-id="${r.id}" class="flex-1 py-2 px-2 rounded-xl wassal-grad text-obsidian text-xs font-black">
+                            📊 كشف الأداء
                         </button>
-                        <button type="button" data-action="edit-rider" data-id="${r.id}" class="px-3 py-2 rounded-xl bg-statusOnway/15 hover:bg-statusOnway text-statusOnway hover:text-obsidian border border-statusOnway/30 text-xs font-black transition-colors">
+                        <button type="button" data-action="cycle-rider-status" data-id="${r.id}" class="px-2.5 py-2 rounded-xl bg-slateCard hover:bg-slateHover border border-slateBorder text-xs font-bold text-slate-300">
+                            الحالة
+                        </button>
+                        <button type="button" data-action="edit-rider" data-id="${r.id}" class="px-2.5 py-2 rounded-xl bg-statusOnway/15 hover:bg-statusOnway text-statusOnway hover:text-obsidian border border-statusOnway/30 text-xs font-black">
                             تعديل
                         </button>
-                        <button type="button" data-action="delete-rider" data-id="${r.id}" class="px-3 py-2 rounded-xl bg-red-500/15 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 text-xs font-black transition-colors">
+                        <button type="button" data-action="delete-rider" data-id="${r.id}" class="px-2.5 py-2 rounded-xl bg-red-500/15 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 text-xs font-black">
                             حذف
                         </button>
                     </div>
@@ -1005,7 +1326,7 @@ function renderAccounting() {
     const targetMonth = uiState.reportMonth || getCurrentMonthStr();
     const stats = getAnalyticsSummary(targetMonth);
 
-    document.getElementById('pnl-today-date').textContent = `تاريخ اليوم: ${stats.today}`;
+    document.getElementById('pnl-today-date').textContent = `وردية اليوم: ${stats.today}`;
     document.getElementById('pnl-today-rev').textContent = `${stats.todayRev.toLocaleString('ar-EG')} ج.م`;
     document.getElementById('pnl-today-exp').textContent = `${stats.todayExp.toLocaleString('ar-EG')} ج.م`;
     const todayNetEl = document.getElementById('pnl-today-net');
@@ -1016,7 +1337,7 @@ function renderAccounting() {
     document.getElementById('pnl-today-settled').textContent = `${stats.todaySettled.toLocaleString('ar-EG')} ج.م`;
 
     document.getElementById('pnl-month-label').textContent = `الفترة المحاسبية: ${targetMonth}`;
-    document.getElementById('pnl-month-orders-count').textContent = stats.monthDelivered.length;
+    document.getElementById('pnl-month-orders-count').textContent = stats.monthSettledOrders.length;
     document.getElementById('pnl-month-exp-count').textContent = stats.monthExpensesList.length;
     document.getElementById('pnl-month-rev').textContent = `${stats.monthRev.toLocaleString('ar-EG')} ج.م`;
     document.getElementById('pnl-month-exp').textContent = `${stats.monthExp.toLocaleString('ar-EG')} ج.م`;
@@ -1119,27 +1440,6 @@ function renderAccounting() {
             </tr>
         `;
     }).join('');
-
-    const auditBody = document.getElementById('audit-table-body');
-    auditBody.innerHTML = stats.monthOrders.map(o => {
-        const st = getStore(o.storeId);
-        const rd = getRider(o.riderId);
-        const { totalMins } = getOrderDurations(o);
-        return `
-            <tr class="hover:bg-slateCard/80">
-                <td class="px-3 py-3 font-black text-wassalOrange">#${o.id}</td>
-                <td class="px-3 py-3 text-slate-400 font-mono">${o.dateStr || getTodayStr()}</td>
-                <td class="px-3 py-3 font-bold text-white">${st.name}</td>
-                <td class="px-3 py-3 text-slate-200">${o.customerName} — <span class="text-slate-400">${o.address}</span></td>
-                <td class="px-3 py-3 font-bold text-slate-200">${rd.name}</td>
-                <td class="px-3 py-3 font-bold text-statusPicked">${formatTime12(o.receivedTs)}</td>
-                <td class="px-3 py-3 font-bold text-statusOnway">${formatTime12(o.departedTs)}</td>
-                <td class="px-3 py-3 font-bold text-statusDone">${formatTime12(o.deliveredTs)}</td>
-                <td class="px-3 py-3 font-black text-white">${totalMins} د</td>
-                <td class="px-3 py-3 font-black text-statusDone">${Number(o.amount) + Number(o.fee)} ج.م</td>
-            </tr>
-        `;
-    }).join('');
 }
 
 function exportMonthlyCSV() {
@@ -1187,7 +1487,7 @@ function populateExpenseFormDefaults() {
     }
     const expDateInput = document.getElementById('exp-date');
     if (expDateInput && !expDateInput.value) {
-        expDateInput.value = getTodayStr();
+        expDateInput.value = getActiveShiftDate();
     }
     const monthPicker = document.getElementById('report-month-picker');
     if (monthPicker && !monthPicker.value) {
@@ -1200,6 +1500,7 @@ function renderAll() {
     renderKPIs();
     renderFleetRibbon();
     renderOrdersBoardAndTable();
+    renderArchive();
     renderRiders();
     renderStores();
     renderAccounting();
@@ -1227,8 +1528,9 @@ function switchTab(tabName) {
     }
 
     const titles = {
-        operations: ['غرفة العمليات ومتابعة الطلبات الحية', 'تتبع لحظي لحركة المناديب وأوقات الاستلام والتحرك والتسليم وتوريد المبالغ للمتاجر'],
-        riders: [`أسطول المناديب والموتوسيكلات (${appState.riders.length} طيارين)`, 'إحصائيات أوردرات اليوم وأوردرات الشهر ومتوسط السرعة لكل مندوب'],
+        operations: ['غرفة العمليات ومتابعة الطلبات الجارية', 'تم الاستلام ➔ تحرك للعميل ➔ تم التسليم ➔ تم التوريد والعودة (ينتقل للأرشيف تلقائياً)'],
+        archive: ['أرشيف الطلبات المنتهية وإقفال اليوميات', 'استعراض أي يوم سابق وإقفال اليوم الحالي لبدء يوم عمل جديد'],
+        riders: [`أسطول المناديب والموتوسيكلات (${appState.riders.length} طيارين)`, 'اضغط على أي مندوب لعرض إحصائيات أوردراته اليومية والأسبوعية والشهرية'],
         stores: ['المتاجر المتعاقدة وترتيب الأكثر عملاً', 'تصنيف المتاجر حسب حجم الأوردرات اليومية والشهرية ونسبة المساهمة'],
         accounting: ['المحاسبة والمصروفات وتقارير الإدارة', 'قائمة الدخل اليومية والشهرية، إدارة المصروفات، وتقارير التقفيل والطباعة']
     };
@@ -1266,6 +1568,10 @@ function setViewMode(mode) {
 }
 
 function openNewOrderModal() {
+    const activeD = getActiveShiftDate();
+    const dayBadge = document.getElementById('modal-order-active-day');
+    if (dayBadge) dayBadge.textContent = activeD;
+
     const storeSel = document.getElementById('input-order-store');
     storeSel.innerHTML = appState.stores.map(s => `<option value="${s.id}">${s.name} (${s.category}) - توصيل ${s.fee} ج.م</option>`).join('');
     if (appState.stores.length > 0) {
@@ -1355,10 +1661,26 @@ document.addEventListener('click', (e) => {
         openRiderModal(null);
     } else if (action === 'edit-rider') {
         openRiderModal(id);
+    } else if (action === 'open-rider-stats') {
+        openRiderStatsModal(id, 'today');
+    } else if (action === 'set-rstats-period') {
+        if (uiState.selectedRiderStatsId) {
+            openRiderStatsModal(uiState.selectedRiderStatsId, btn.getAttribute('data-period'));
+        }
+    } else if (action === 'open-close-day-modal') {
+        openCloseDayModal();
+    } else if (action === 'archive-select-date') {
+        uiState.archiveDateFilter = btn.getAttribute('data-date');
+        renderArchive();
+    } else if (action === 'archive-show-all') {
+        uiState.archiveDateFilter = '';
+        const dp = document.getElementById('archive-date-picker');
+        if (dp) dp.value = '';
+        renderArchive();
     } else if (action === 'delete-rider') {
         const rider = appState.riders.find(r => r.id === id);
         if (!rider) return;
-        const hasActive = appState.orders.some(o => o.riderId === id && o.status !== 'delivered');
+        const hasActive = appState.orders.some(o => o.riderId === id && isOrderActiveInRoom(o));
         if (hasActive) {
             showToast(`⚠️ لا يمكن حذف ${rider.name} لوجود طلب جاري مكلف به حالياً`);
             return;
@@ -1406,8 +1728,20 @@ document.addEventListener('click', (e) => {
             syncRidersAvailability();
             saveData();
             renderAll();
-            const { totalMins } = getOrderDurations(order);
-            showToast(`🟢 تم تسليم #${order.id} في ${totalMins} دقيقة وعاد المندوب للمكتب`);
+            showToast(`🟢 تم تسليم #${order.id} للعميل — في انتظار توريد المبلغ للمتجر`);
+        }
+    } else if (action === 'move-settled') {
+        const order = appState.orders.find(o => o.id === id);
+        if (order) {
+            const now = Date.now();
+            if (!order.departedTs) order.departedTs = now;
+            if (!order.deliveredTs) order.deliveredTs = now;
+            order.status = 'settled';
+            order.settledTs = now;
+            syncRidersAvailability();
+            saveData();
+            renderAll();
+            showToast(`💰 تم توريد #${order.id} وعودة المندوب للمكتب (نُقل للأرشيف)`);
         }
     } else if (action === 'delete-order') {
         appState.orders = appState.orders.filter(o => o.id !== id);
@@ -1424,7 +1758,7 @@ document.addEventListener('click', (e) => {
     } else if (action === 'cycle-rider-status') {
         const rider = appState.riders.find(r => r.id === id);
         if (rider) {
-            const hasActive = appState.orders.some(o => o.riderId === id && o.status !== 'delivered');
+            const hasActive = appState.orders.some(o => o.riderId === id && isOrderActiveInRoom(o));
             if (hasActive) {
                 showToast(`المندوب ${rider.name} لديه طلب جاري حالياً`);
                 return;
@@ -1465,7 +1799,7 @@ document.getElementById('form-new-order').addEventListener('submit', (e) => {
 
     const newOrder = {
         id: `W-${appState.nextOrderNum++}`,
-        dateStr: getTodayStr(),
+        dateStr: getActiveShiftDate(),
         storeId,
         customerName,
         address,
@@ -1476,7 +1810,8 @@ document.getElementById('form-new-order').addEventListener('submit', (e) => {
         status: 'received',
         receivedTs,
         departedTs: null,
-        deliveredTs: null
+        deliveredTs: null,
+        settledTs: null
     };
 
     appState.orders.unshift(newOrder);
@@ -1491,13 +1826,55 @@ document.getElementById('form-new-order').addEventListener('submit', (e) => {
     showToast(`🟡 تم تسجيل استلام الطلب #${newOrder.id} الساعة ${formatTime12(receivedTs)}`);
 });
 
+document.getElementById('form-close-day').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const closingDate = getActiveShiftDate();
+    const nextDate = document.getElementById('input-next-shift-date').value;
+    if (!nextDate) return;
+
+    const dayOrders = appState.orders.filter(o => o.dateStr === closingDate);
+    const daySettled = dayOrders.filter(o => isOrderCompleted(o));
+    const settledCash = daySettled.reduce((s, o) => s + Number(o.amount), 0);
+    const revenue = daySettled.reduce((s, o) => s + Number(o.fee), 0);
+    const expenses = appState.expenses.filter(ex => ex.dateStr === closingDate).reduce((s, ex) => s + Number(ex.amount), 0);
+
+    appState.closedDays.unshift({
+        id: 'CLOSE-' + Date.now(),
+        dateStr: closingDate,
+        closedAt: Date.now(),
+        ordersCount: dayOrders.length,
+        settledCount: daySettled.length,
+        settledCash,
+        revenue,
+        expenses,
+        netProfit: revenue - expenses
+    });
+
+    appState.activeDate = nextDate;
+    uiState.archiveDateFilter = nextDate;
+    uiState.reportMonth = nextDate.slice(0, 7);
+
+    saveData();
+    renderAll();
+
+    const modal = document.getElementById('modal-close-day');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    showToast(`🔒 تم إقفال يومية ${closingDate} وبدء يوم جديد (${nextDate})`);
+});
+
+document.getElementById('archive-date-picker').addEventListener('change', (e) => {
+    uiState.archiveDateFilter = e.target.value;
+    renderArchive();
+});
+
 document.getElementById('form-new-expense').addEventListener('submit', (e) => {
     e.preventDefault();
     const title = document.getElementById('exp-title').value.trim();
     const category = document.getElementById('exp-category').value;
     const amount = Number(document.getElementById('exp-amount').value) || 0;
     const riderId = document.getElementById('exp-rider').value;
-    const dateStr = document.getElementById('exp-date').value || getTodayStr();
+    const dateStr = document.getElementById('exp-date').value || getActiveShiftDate();
     const notes = document.getElementById('exp-notes').value.trim();
 
     appState.expenses.unshift({

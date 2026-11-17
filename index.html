@@ -948,7 +948,48 @@
             </form>
         </div>
     </div>
-
+<!-- MODAL: RETURN ORDER WITH REASON -->
+    <div id="modal-return-order" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-slateDark border border-red-500/50 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
+            <div class="p-5 border-b border-slateBorder flex items-center justify-between bg-slateCard">
+                <div>
+                    <h3 class="font-black text-base text-red-400">↩️ تسجيل الطلب كمرتجع</h3>
+                    <p class="text-[11px] text-slate-400">رقم الطلب: <strong id="return-modal-order-id" class="text-white">#W-101</strong></p>
+                </div>
+                <button type="button" data-action="close-modal" data-modal="modal-return-order" class="text-slate-400 hover:text-white px-2 py-1 text-lg">✕</button>
+            </div>
+            <form id="form-return-order" class="p-5 space-y-3.5 text-xs">
+                <input type="hidden" id="input-return-order-id">
+                <div>
+                    <label class="block font-bold text-slate-200 mb-1">سبب عدم الاستلام / الإرجاع *</label>
+                    <select id="input-return-reason-select" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-red-400">
+                        <option value="العميل لا يرد على الهاتف">📵 العميل لا يرد على الهاتف</option>
+                        <option value="هاتف العميل مغلق أو غير متاح">📴 هاتف العميل مغلق أو غير متاح</option>
+                        <option value="العميل ألغى الطلب عند الوصول">❌ العميل ألغى الطلب عند الوصول</option>
+                        <option value="العنوان غير واضح أو خارج النطاق">📍 العنوان غير واضح أو خارج النطاق</option>
+                        <option value="تأخر تجهيز الطلب من المتجر">⏱️ تأخر تجهيز الطلب من المتجر</option>
+                        <option value="أخرى">✏️ سبب آخر (اكتبه بالأسفل)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-200 mb-1">تفاصيل إضافية للسبب (اختياري)</label>
+                    <input type="text" id="input-return-reason-note" placeholder="مثال: تم الاتصال 4 مرات دون رد..." class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-red-400">
+                </div>
+                <div class="bg-obsidian border border-slateBorder rounded-xl p-3 space-y-1.5">
+                    <label class="block font-bold text-wassalOrange">موقف رسوم التوصيل للمرتجع:</label>
+                    <select id="input-return-fee-mode" class="w-full bg-slateDark border border-slateBorder rounded-lg px-3 py-2 text-white focus:outline-none">
+                        <option value="zero">مرتجع مجاني (0 ج.م رسوم توصيل)</option>
+                        <option value="keep">احتساب رسوم التوصيل كاملة على المتجر</option>
+                        <option value="half">احتساب نصف رسوم التوصيل (50%)</option>
+                    </select>
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" data-action="close-modal" data-modal="modal-return-order" class="px-4 py-2.5 rounded-xl bg-slateCard text-slate-300 font-bold">إلغاء</button>
+                    <button type="submit" class="bg-red-500 hover:bg-red-600 text-white font-black px-5 py-2.5 rounded-xl shadow-lg shadow-red-500/20">تأكيد المرتجع وإعادته للمتجر</button>
+                </div>
+            </form>
+        </div>
+    </div>
     <script type="module" src="app.js"></script>
 </body>
 </html>

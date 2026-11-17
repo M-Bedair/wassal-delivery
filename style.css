@@ -1,0 +1,87 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800;900&family=Tajawal:wght@400;500;700&display=swap');
+
+:root {
+  --bg-dark: #0B0D12;
+  --bg-surface: #13161F;
+  --glass-bg: rgba(22, 27, 38, 0.78);
+  --brand-orange: #FF6B00;
+  --brand-amber: #FF9E00;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: 'Tajawal', sans-serif;
+}
+
+h1, h2, h3, h4, .font-cairo, button {
+  font-family: 'Cairo', sans-serif;
+}
+
+body {
+  background-color: var(--bg-dark);
+  color: #F3F4F6;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
+}
+
+.brand-gradient {
+  background: linear-gradient(135deg, #FF6B00 0%, #FF9E00 100%);
+}
+
+.brand-glow {
+  box-shadow: 0 0 25px rgba(255, 107, 0, 0.35);
+}
+
+/* شريط التمرير المخصص */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0B0D12;
+}
+::-webkit-scrollbar-thumb {
+  background: #2A303C;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #FF6B00;
+}
+
+/* تنسيق الطباعة لتقارير التقفيل اليومي */
+@media print {
+  body {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .glass-card {
+    background: #FFFFFF !important;
+    border: 1px solid #CCCCCC !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    border: 1px solid #999999 !important;
+    color: #000000 !important;
+    padding: 6px !important;
+  }
+}

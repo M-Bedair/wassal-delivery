@@ -458,4 +458,1156 @@ function renderFleetRibbon() {
 
     container.innerHTML = appState.riders.map(r => {
         const activeOrder = appState.orders.find(o => o.riderId === r.id && o.status !== 'delivered');
-        const todayCnt = appState.orders.filter(o => o.riderId === r.id && o.date
+        const todayCnt = appState.orders.filter(o => o.riderId === r.id && o.dateStr === today).length;
+        const monthCnt = appState.orders.filter(o => o.riderId === r.id && (o.dateStr || '').startsWith(month)).length;
+        const isSelected = uiState.riderFilter === r.id;
+
+        let dotClass = 'bg-statusDone';
+        let subText = `متاح • ${todayCnt} يوم / ${monthCnt} شهر`;
+        let borderClass = isSelected ? 'border-wassalOrange bg-wassalOrange/15 ring-1 ring-wassalOrange' : 'border-slateBorder bg-slateCard hover:border-slate-500';
+
+        if (activeOrder) {
+            const { totalMins } = getOrderDurations(activeOrder);
+            const st = getStore(activeOrder.storeId);
+            if (activeOrder.status === 'onway') {
+                dotClass = 'bg-statusOnway animate-pulse';
+                subText = `طريق (${totalMins}د) • ${todayCnt}ي/${monthCnt}ش`;
+            } else {
+                dotClass = 'bg-statusPicked';
+                subText = `${st.name} (${totalMins}د) • ${todayCnt}ي/${monthCnt}ش`;
+            }
+        } else if (r.status === 'off') {
+            dotClass = 'bg-slate-500';
+            subText = `غير متاح • ${todayCnt} يوم / ${monthCnt} شهر`;
+        }
+
+        return `
+            <button type="button" data-action="filter-by-rider-pill" data-id="${r.id}" class="shrink-0 flex items-center gap-2.5 px-3 py-2 rounded-xl border ${borderClass} transition-all text-right">
+                <span class="w-2.5 h-2.5 rounded-full ${dotClass} shrink-0"></span>
+                <div>
+                    <div class="text-xs font-black text-white leading-tight">${r.name}</div>
+                    <div class="text-[10px] text-slate-400 font-bold mt-0.5">${subText}</div>
+                </div>
+            </button>
+        `;
+    }).join('');
+}
+
+function getFilteredOrders() {
+    const q = (document.getElementById('search-input').value || '').trim().toLowerCase();
+    return appState.orders.filter(o => {
+        const st = getStore(o.storeId);
+        const rd = getRider(o.riderId);
+        const matchText = !q ||
+            o.id.toLowerCase().includes(q) ||
+            o.customerName.toLowerCase().includes(q) ||
+            o.address.toLowerCase().includes(q) ||
+            o.phone.includes(q) ||
+            st.name.toLowerCase().includes(q) ||
+            rd.name.toLowerCase().includes(q);
+        const matchRider = uiState.riderFilter === 'all' || o.riderId === uiState.riderFilter;
+        const matchStatus = uiState.statusFilter === 'all' || o.status === uiState.statusFilter;
+        return matchText && matchRider && matchStatus;
+    });
+}
+
+function renderOrdersBoardAndTable() {
+    const filtered = getFilteredOrders();
+
+    ['received', 'onway', 'delivered'].forEach(stage => {
+        const list = filtered.filter(o => o.status === stage);
+        document.getElementById(`col-count-${stage}`).textContent = list.length;
+        const container = document.getElementById(`col-list-${stage}`);
+
+        if (list.length === 0) {
+            container.innerHTML = `<div class="h-44 border border-dashed border-slateBorder rounded-2xl flex items-center justify-center text-slate-500 text-xs">لا توجد طلبات مطابقة</div>`;
+            return;
+        }
+        container.innerHTML = list.map(o => buildOrderCard(o)).join('');
+    });
+
+    const tbody = document.getElementById('quick-table-body');
+    if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="py-10 text-center text-slate-500">لا توجد طلبات مطابقة للبحث أو التصفية</td></tr>`;
+        return;
+    }
+    tbody.innerHTML = filtered.map(o => {
+        const st = getStore(o.storeId);
+        const rd = getRider(o.riderId);
+        const { totalMins } = getOrderDurations(o);
+        const isOverdue = o.status !== 'delivered' && totalMins > 35;
+
+        const statusPill = o.status === 'received'
+            ? `<span class="px-2.5 py-1 rounded-lg bg-statusPicked/15 border border-statusPicked/40 text-statusPicked font-black text-[11px]">تم الاستلام • ${totalMins} د</span>`
+            : o.status === 'onway'
+            ? `<span class="px-2.5 py-1 rounded-lg ${isOverdue ? 'bg-red-500/20 border-red-500 text-red-400 animate-pulse' : 'bg-statusOnway/15 border-statusOnway/40 text-statusOnway'} border font-black text-[11px]">في الطريق • ${totalMins} د</span>`
+            : `<span class="px-2.5 py-1 rounded-lg bg-statusDone/15 border border-statusDone/40 text-statusDone font-black text-[11px]">تم التسليم (${totalMins} د)</span>`;
+
+        const quickAction = o.status === 'received'
+            ? `<button type="button" data-action="move-onway" data-id="${o.id}" class="px-2.5 py-1.5 rounded-lg bg-statusOnway/20 hover:bg-statusOnway text-statusOnway hover:text-obsidian font-black text-[11px] transition-colors">تحرك ➔</button>`
+            : o.status === 'onway'
+            ? `<button type="button" data-action="move-delivered" data-id="${o.id}" class="px-2.5 py-1.5 rounded-lg bg-statusDone/20 hover:bg-statusDone text-statusDone hover:text-obsidian font-black text-[11px] transition-colors">✓ تسليم</button>`
+            : `<span class="text-statusDone font-bold text-[11px]">مكتمل</span>`;
+
+        return `
+            <tr data-action="open-drawer" data-id="${o.id}" class="hover:bg-slateCard/90 cursor-pointer transition-colors">
+                <td class="px-4 py-3.5">
+                    <div class="font-black text-wassalOrange">#${o.id}</div>
+                    <div class="text-[10px] text-slate-500">${o.dateStr || getTodayStr()}</div>
+                </td>
+                <td class="px-4 py-3.5">${statusPill}</td>
+                <td class="px-4 py-3.5 font-bold text-white">${st.name}</td>
+                <td class="px-4 py-3.5">
+                    <div class="font-bold text-slate-200">${o.customerName}</div>
+                    <div class="text-[11px] text-slate-400">${o.address}</div>
+                </td>
+                <td class="px-4 py-3.5 font-bold text-slate-200">${rd.name}</td>
+                <td class="px-4 py-3.5 text-[11px] text-slate-300">
+                    <div>استلام: <strong class="text-statusPicked">${formatTime12(o.receivedTs)}</strong></div>
+                    ${o.departedTs ? `<div>تحرك: <strong class="text-statusOnway">${formatTime12(o.departedTs)}</strong></div>` : ''}
+                </td>
+                <td class="px-4 py-3.5 font-black text-white">${Number(o.amount) + Number(o.fee)} ج.م</td>
+                <td class="px-4 py-3.5 text-center">
+                    <div class="flex items-center justify-center gap-1.5">
+                        ${quickAction}
+                        <button type="button" data-action="copy-whatsapp" data-id="${o.id}" class="px-2 py-1.5 rounded-lg bg-slateCard hover:bg-slateHover border border-slateBorder text-slate-300 text-[11px] font-bold">واتساب</button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function buildOrderCard(o) {
+    const store = getStore(o.storeId);
+    const rider = getRider(o.riderId);
+    const { totalMins, waitMins, roadMins } = getOrderDurations(o);
+    const isOverdue = o.status !== 'delivered' && totalMins > 35;
+    const isToday = (o.dateStr || getTodayStr()) === getTodayStr();
+
+    const timeBadge = o.status === 'delivered'
+        ? `<span class="px-2 py-0.5 rounded-lg bg-statusDone/15 border border-statusDone/30 text-statusDone font-black text-[10px]">✓ ${totalMins} د</span>`
+        : `<span class="px-2 py-0.5 rounded-lg ${isOverdue ? 'bg-red-500/20 border-red-500 text-red-400 animate-pulse' : 'bg-slateDark border-slateBorder text-slate-200'} border font-black text-[10px]">⏳ منذ ${totalMins} د</span>`;
+
+    let actionButton = '';
+    if (o.status === 'received') {
+        actionButton = `<button type="button" data-action="move-onway" data-id="${o.id}" class="w-full py-2.5 px-3 rounded-xl bg-statusOnway/20 hover:bg-statusOnway text-statusOnway hover:text-obsidian border border-statusOnway/40 font-black text-xs transition-all">تحرك للعميل ➔</button>`;
+    } else if (o.status === 'onway') {
+        actionButton = `<button type="button" data-action="move-delivered" data-id="${o.id}" class="w-full py-2.5 px-3 rounded-xl bg-statusDone/20 hover:bg-statusDone text-statusDone hover:text-obsidian border border-statusDone/40 font-black text-xs transition-all">✓ تم التسليم وتوريد الفلوس</button>`;
+    } else {
+        const detail = (waitMins !== null && roadMins !== null) ? ` (${waitMins}د انتظار + ${roadMins}د طريق)` : '';
+        actionButton = `<div class="w-full py-2 px-3 rounded-xl bg-statusDone/10 border border-statusDone/30 text-statusDone font-bold text-[11px] text-center">✓ تم التسليم${detail}</div>`;
+    }
+
+    return `
+        <div data-action="open-drawer" data-id="${o.id}" class="bg-slateCard hover:bg-slateHover border ${isOverdue ? 'border-red-500/70' : 'border-slateBorder hover:border-wassalOrange/50'} rounded-2xl p-4 space-y-3 cursor-pointer transition-all shadow-md">
+            <div class="flex items-center justify-between gap-1.5">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="px-2.5 py-0.5 rounded-lg bg-obsidian border border-wassalOrange/40 text-wassalOrange font-black text-xs">#${o.id}</span>
+                    ${timeBadge}
+                    ${!isToday ? `<span class="px-2 py-0.5 rounded-md bg-obsidian text-slate-400 border border-slateBorder text-[10px] font-bold">${o.dateStr}</span>` : ''}
+                </div>
+                <div class="flex items-center gap-1">
+                    <button type="button" data-action="copy-whatsapp" data-id="${o.id}" class="px-2.5 py-1 rounded-lg bg-obsidian hover:bg-statusDone/20 text-slate-300 hover:text-statusDone border border-slateBorder text-[11px] font-bold transition-colors">واتساب</button>
+                </div>
+            </div>
+
+            <div class="bg-obsidian/90 rounded-xl p-2 border border-slateBorder grid grid-cols-3 gap-1 text-center text-[11px]">
+                <div>
+                    <div class="text-[10px] text-statusPicked font-bold">استلام</div>
+                    <div class="font-black text-white">${formatTime12(o.receivedTs)}</div>
+                </div>
+                <div class="border-x border-slateBorder">
+                    <div class="text-[10px] text-statusOnway font-bold">تحرك</div>
+                    <div class="font-black ${o.departedTs ? 'text-white' : 'text-slate-600'}">${formatTime12(o.departedTs)}</div>
+                </div>
+                <div>
+                    <div class="text-[10px] text-statusDone font-bold">تسليم</div>
+                    <div class="font-black ${o.deliveredTs ? 'text-statusDone' : 'text-slate-600'}">${formatTime12(o.deliveredTs)}</div>
+                </div>
+            </div>
+
+            <div class="bg-slateDark/80 rounded-xl p-2.5 border border-slateBorder space-y-1 text-xs">
+                <div class="flex items-center justify-between">
+                    <span class="font-black text-white">${store.name}</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded bg-wassalOrange/15 text-wassalOrange font-bold">${store.category}</span>
+                </div>
+                <div class="flex items-center justify-between text-slate-300 text-[11px]">
+                    <span>المندوب: <strong class="text-white">${rider.name}</strong></span>
+                    <span class="text-slate-400">${rider.plate}</span>
+                </div>
+            </div>
+
+            <div class="text-xs space-y-1">
+                <div class="flex items-center justify-between">
+                    <span class="font-bold text-slate-100">${o.customerName}</span>
+                    <span class="text-wassalOrange font-mono font-bold text-[11px]">${o.phone}</span>
+                </div>
+                <p class="text-slate-400 text-[11px] truncate">📍 ${o.address}</p>
+            </div>
+
+            <div class="grid grid-cols-3 gap-1 bg-obsidian rounded-xl p-2 border border-slateBorder text-center text-xs">
+                <div>
+                    <div class="text-[10px] text-slate-400">للمتجر</div>
+                    <div class="font-extrabold text-white">${o.amount} ج.م</div>
+                </div>
+                <div class="border-x border-slateBorder">
+                    <div class="text-[10px] text-slate-400">التوصيل</div>
+                    <div class="font-extrabold text-wassalOrange">${o.fee} ج.م</div>
+                </div>
+                <div>
+                    <div class="text-[10px] text-slate-400">الإجمالي</div>
+                    <div class="font-black text-statusDone">${Number(o.amount) + Number(o.fee)} ج.م</div>
+                </div>
+            </div>
+
+            <div>
+                ${actionButton}
+            </div>
+        </div>
+    `;
+}
+
+function openOrderDrawer(orderId) {
+    const o = appState.orders.find(item => item.id === orderId);
+    if (!o) return;
+    uiState.selectedOrderId = orderId;
+
+    const st = getStore(o.storeId);
+    const rd = getRider(o.riderId);
+    const { totalMins, waitMins, roadMins } = getOrderDurations(o);
+
+    document.getElementById('drawer-order-id').textContent = `#${o.id}`;
+    const badge = document.getElementById('drawer-status-badge');
+    if (o.status === 'received') {
+        badge.className = 'px-2.5 py-1 rounded-lg bg-statusPicked/20 border border-statusPicked/40 text-statusPicked text-xs font-black';
+        badge.textContent = 'تم الاستلام من المتجر';
+    } else if (o.status === 'onway') {
+        badge.className = 'px-2.5 py-1 rounded-lg bg-statusOnway/20 border border-statusOnway/40 text-statusOnway text-xs font-black';
+        badge.textContent = 'في الطريق للعميل';
+    } else {
+        badge.className = 'px-2.5 py-1 rounded-lg bg-statusDone/20 border border-statusDone/40 text-statusDone text-xs font-black';
+        badge.textContent = 'تم التسليم وتوريد الفلوس';
+    }
+
+    const waMessage = buildWhatsAppMessage(o);
+
+    document.getElementById('drawer-content').innerHTML = `
+        <div class="bg-slateCard border border-slateBorder rounded-2xl p-4 space-y-4">
+            <div class="flex items-center justify-between">
+                <h4 class="text-xs font-black text-white">⏱️ الخط الزمني للطلب (${o.dateStr || getTodayStr()})</h4>
+                <span class="text-xs font-black text-wassalOrange">إجمالي المدة: ${totalMins} دقيقة</span>
+            </div>
+
+            <div class="relative pr-6 space-y-5 before:content-[''] before:absolute before:right-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slateBorder">
+                <div class="relative">
+                    <span class="absolute -right-6 top-1 w-3.5 h-3.5 rounded-full bg-statusPicked ring-4 ring-statusPicked/20"></span>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="font-black text-statusPicked">1. الاستلام من ${st.name}</span>
+                        <span class="font-black text-white">${formatTime12(o.receivedTs)}</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-0.5">تم استلام الأوردر وتعيين المندوب ${rd.name}</p>
+                </div>
+
+                <div class="relative">
+                    <span class="absolute -right-6 top-1 w-3.5 h-3.5 rounded-full ${o.departedTs ? 'bg-statusOnway ring-4 ring-statusOnway/20' : 'bg-slate-600'}"></span>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="font-black ${o.departedTs ? 'text-statusOnway' : 'text-slate-500'}">2. التحرك في الطريق للعميل</span>
+                        <span class="font-black ${o.departedTs ? 'text-white' : 'text-slate-500'}">${formatTime12(o.departedTs)}</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-0.5">${waitMins !== null ? `مدة التجهيز/الانتظار بالمتجر: ${waitMins} دقيقة` : 'في انتظار تحرك المندوب'}</p>
+                </div>
+
+                <div class="relative">
+                    <span class="absolute -right-6 top-1 w-3.5 h-3.5 rounded-full ${o.deliveredTs ? 'bg-statusDone ring-4 ring-statusDone/20' : 'bg-slate-600'}"></span>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="font-black ${o.deliveredTs ? 'text-statusDone' : 'text-slate-500'}">3. التسليم وتوريد الفلوس للمتجر</span>
+                        <span class="font-black ${o.deliveredTs ? 'text-statusDone' : 'text-slate-500'}">${formatTime12(o.deliveredTs)}</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-0.5">${roadMins !== null ? `مدة الطريق والتسليم: ${roadMins} دقيقة` : 'لم يتم التسليم بعد'}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-slateCard border border-slateBorder rounded-2xl p-4 space-y-3 text-xs">
+            <div>
+                <div class="text-[11px] text-slate-400">بيانات العميل</div>
+                <div class="font-black text-white text-sm mt-0.5">${o.customerName}</div>
+                <div class="text-wassalOrange font-bold mt-0.5">📞 ${o.phone}</div>
+                <div class="text-slate-300 mt-1">📍 ${o.address}</div>
+            </div>
+            <div class="pt-3 border-t border-slateBorder flex items-center justify-between">
+                <div>
+                    <div class="text-[11px] text-slate-400">المندوب المكلف</div>
+                    <div class="font-black text-white mt-0.5">${rd.name}</div>
+                </div>
+                <div class="text-left">
+                    <div class="text-[11px] text-slate-400">الموتوسيكل</div>
+                    <div class="font-bold text-wassalOrange mt-0.5">${rd.bike} (${rd.plate})</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-slateCard border border-slateBorder rounded-2xl p-4 space-y-2 text-xs">
+            <div class="flex justify-between text-slate-300">
+                <span>قيمة الأوردر المستحقة للمتجر:</span>
+                <span class="font-black text-white">${o.amount} ج.م</span>
+            </div>
+            <div class="flex justify-between text-slate-300">
+                <span>رسوم التوصيل (وصّل):</span>
+                <span class="font-black text-wassalOrange">${o.fee} ج.م</span>
+            </div>
+            <div class="pt-2 border-t border-slateBorder flex justify-between text-sm">
+                <span class="font-black text-white">إجمالي التحصيل من العميل:</span>
+                <span class="font-black text-statusDone">${Number(o.amount) + Number(o.fee)} ج.م</span>
+            </div>
+        </div>
+
+        <div class="bg-slateCard border border-statusDone/30 rounded-2xl p-3.5 space-y-2">
+            <div class="flex items-center justify-between text-xs">
+                <span class="font-black text-statusDone">💬 رسالة جروب الواتساب</span>
+                <a href="https://wa.me/?text=${encodeURIComponent(waMessage)}" target="_blank" rel="noopener" class="text-[11px] text-statusOnway underline font-bold">فتح واتساب ويب ↗</a>
+            </div>
+            <textarea readonly rows="6" class="w-full bg-obsidian border border-slateBorder rounded-xl p-2.5 text-[11px] text-slate-200 leading-relaxed focus:outline-none">${waMessage}</textarea>
+        </div>
+    `;
+
+    let primaryAction = '';
+    if (o.status === 'received') {
+        primaryAction = `<button type="button" data-action="move-onway" data-id="${o.id}" class="w-full py-3 rounded-xl bg-statusOnway text-obsidian font-black text-xs shadow-lg">تحرك للعميل الآن ➔</button>`;
+    } else if (o.status === 'onway') {
+        primaryAction = `<button type="button" data-action="move-delivered" data-id="${o.id}" class="w-full py-3 rounded-xl bg-statusDone text-obsidian font-black text-xs shadow-lg">✓ تأكيد التسليم وتوريد الفلوس للمتجر</button>`;
+    }
+
+    document.getElementById('drawer-footer').innerHTML = `
+        ${primaryAction}
+        <div class="flex gap-2">
+            <button type="button" data-action="copy-whatsapp" data-id="${o.id}" class="flex-1 py-2.5 rounded-xl wassal-grad text-obsidian font-black text-xs">📋 نسخ رسالة الواتساب</button>
+            <button type="button" data-action="delete-order" data-id="${o.id}" class="px-4 py-2.5 rounded-xl bg-red-500/15 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 font-black text-xs transition-colors">حذف</button>
+        </div>
+    `;
+
+    document.getElementById('order-drawer-backdrop').classList.remove('hidden');
+    document.getElementById('order-drawer').classList.remove('-translate-x-full');
+}
+
+function closeOrderDrawer() {
+    uiState.selectedOrderId = null;
+    document.getElementById('order-drawer-backdrop').classList.add('hidden');
+    document.getElementById('order-drawer').classList.add('-translate-x-full');
+}
+
+function renderRiders() {
+    const stats = getAnalyticsSummary(getCurrentMonthStr());
+    const topToday = [...stats.riderStats].sort((a, b) => b.todayCount - a.todayCount)[0];
+    const topMonth = stats.riderStats[0];
+
+    const headingEl = document.getElementById('riders-view-heading');
+    if (headingEl) {
+        headingEl.textContent = `أسطول المناديب والموتوسيكلات (${appState.riders.length} طيارين) — إحصائيات اليوم والشهر`;
+    }
+
+    document.getElementById('riders-top-today-badge').textContent = (topToday && topToday.todayCount > 0)
+        ? `⚡ نجم اليوم: ${topToday.rider.name} (${topToday.todayCount} أوردر)`
+        : `⚡ نجم اليوم: —`;
+    document.getElementById('riders-top-month-badge').textContent = (topMonth && topMonth.monthCount > 0)
+        ? `🏆 نجم الشهر: ${topMonth.rider.name} (${topMonth.monthCount} أوردر)`
+        : `🏆 نجم الشهر: —`;
+
+    const grid = document.getElementById('riders-grid');
+    if (appState.riders.length === 0) {
+        grid.innerHTML = `<div class="col-span-full bg-slateDark border border-dashed border-slateBorder rounded-2xl p-10 text-center text-slate-400 text-xs">لا يوجد مناديب مسجلون حالياً. اضغط على "+ إضافة مندوب جديد" للبدء.</div>`;
+        return;
+    }
+
+    grid.innerHTML = appState.riders.map((r, idx) => {
+        const rStat = stats.riderStats.find(item => item.rider.id === r.id) || { todayCount: 0, monthCount: 0, feeMonth: 0, avgMins: null };
+        const riderOrders = appState.orders.filter(o => o.riderId === r.id);
+        const activeOrder = riderOrders.find(o => o.status !== 'delivered');
+        const lastOrder = riderOrders[0];
+        const isTopMonth = topMonth && topMonth.rider.id === r.id && topMonth.monthCount > 0;
+
+        const statusMap = {
+            available: { label: 'متاح في المكتب', cls: 'bg-statusDone/15 border border-statusDone/40 text-statusDone' },
+            busy: { label: 'في مهمة', cls: 'bg-statusOnway/15 border border-statusOnway/40 text-statusOnway' },
+            off: { label: 'غير متاح', cls: 'bg-slateCard border border-slateBorder text-slate-400' }
+        };
+        const stObj = statusMap[r.status] || statusMap.available;
+
+        let destHTML = `<div class="text-xs text-slate-500 bg-obsidian rounded-xl p-2.5 border border-slateBorder">لا توجد رحلات نشطة حالياً</div>`;
+        if (activeOrder) {
+            const st = getStore(activeOrder.storeId);
+            const { totalMins } = getOrderDurations(activeOrder);
+            destHTML = `
+                <div class="text-xs bg-statusOnway/10 border border-statusOnway/30 rounded-xl p-2.5 space-y-1">
+                    <div class="flex justify-between font-black text-statusOnway">
+                        <span>الوجهة الحالية (#${activeOrder.id})</span>
+                        <span>منذ ${totalMins} د</span>
+                    </div>
+                    <div class="text-white font-bold">${st.name} ➔ ${activeOrder.address}</div>
+                </div>
+            `;
+        } else if (lastOrder) {
+            const st = getStore(lastOrder.storeId);
+            destHTML = `
+                <div class="text-xs bg-obsidian rounded-xl p-2.5 border border-slateBorder space-y-0.5">
+                    <div class="text-[11px] text-slate-400">آخر وجهة (${lastOrder.dateStr} • ${formatTime12(lastOrder.deliveredTs || lastOrder.receivedTs)}):</div>
+                    <div class="text-slate-200 font-bold">${st.name} ➔ ${lastOrder.address}</div>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="bg-slateDark border ${isTopMonth ? 'border-wassalOrange/70 shadow-lg shadow-orange-500/10' : 'border-slateBorder hover:border-wassalOrange/50'} transition-all rounded-2xl p-5 flex flex-col justify-between space-y-4">
+                <div class="space-y-3">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="flex items-center gap-3">
+                            <div class="w-11 h-11 rounded-xl wassal-grad text-obsidian font-black flex items-center justify-center text-sm shadow-md shrink-0">#${idx + 1}</div>
+                            <div>
+                                <div class="flex items-center gap-1.5">
+                                    <h3 class="font-black text-base text-white">${r.name}</h3>
+                                    ${isTopMonth ? `<span class="text-xs" title="الأكثر توصيلاً هذا الشهر">👑</span>` : ''}
+                                </div>
+                                <p class="text-xs text-slate-400">${r.bike} • <span class="text-wassalOrange font-bold">${r.plate}</span></p>
+                                ${r.phone ? `<p class="text-[11px] text-slate-400 font-mono mt-0.5">📞 ${r.phone}</p>` : ''}
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-lg text-[11px] font-black shrink-0 ${stObj.cls}">${stObj.label}</span>
+                    </div>
+                    ${destHTML}
+                </div>
+
+                <div class="pt-3 border-t border-slateBorder space-y-3">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
+                        <div class="bg-obsidian rounded-xl p-2 border border-statusDone/30">
+                            <div class="text-[10px] text-statusDone font-bold">أوردرات اليوم</div>
+                            <div class="font-black text-white text-base mt-0.5">${rStat.todayCount}</div>
+                        </div>
+                        <div class="bg-obsidian rounded-xl p-2 border border-wassalOrange/30">
+                            <div class="text-[10px] text-wassalOrange font-bold">أوردرات الشهر</div>
+                            <div class="font-black text-wassalOrange text-base mt-0.5">${rStat.monthCount}</div>
+                        </div>
+                        <div class="bg-obsidian rounded-xl p-2 border border-slateBorder">
+                            <div class="text-[10px] text-slate-400">توصيل الشهر</div>
+                            <div class="font-black text-white text-xs mt-1">${rStat.feeMonth} ج.م</div>
+                        </div>
+                        <div class="bg-obsidian rounded-xl p-2 border border-slateBorder">
+                            <div class="text-[10px] text-slate-400">متوسط السرعة</div>
+                            <div class="font-black text-statusOnway text-xs mt-1">${rStat.avgMins !== null ? rStat.avgMins + ' د' : '—'}</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" data-action="cycle-rider-status" data-id="${r.id}" class="flex-1 py-2 px-2 rounded-xl bg-slateCard hover:bg-slateHover border border-slateBorder text-xs font-bold text-slate-300 hover:text-white transition-colors">
+                            تغيير الحالة
+                        </button>
+                        <button type="button" data-action="edit-rider" data-id="${r.id}" class="px-3 py-2 rounded-xl bg-statusOnway/15 hover:bg-statusOnway text-statusOnway hover:text-obsidian border border-statusOnway/30 text-xs font-black transition-colors">
+                            تعديل
+                        </button>
+                        <button type="button" data-action="delete-rider" data-id="${r.id}" class="px-3 py-2 rounded-xl bg-red-500/15 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 text-xs font-black transition-colors">
+                            حذف
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderStores() {
+    const stats = getAnalyticsSummary(getCurrentMonthStr());
+    const ranked = stats.storeStats;
+    const top = ranked[0];
+
+    const banner = document.getElementById('top-merchant-banner');
+    if (top && top.monthCount > 0) {
+        banner.innerHTML = `
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 rounded-2xl wassal-grad text-obsidian flex items-center justify-center text-2xl shadow-lg shadow-orange-500/25 shrink-0">👑</div>
+                    <div>
+                        <div class="text-xs font-black text-statusPicked">أكثر تاجر / متجر عملاً مع وصّل هذا الشهر</div>
+                        <h3 class="text-xl font-black text-white mt-0.5">${top.store.name} <span class="text-xs px-2.5 py-0.5 rounded-full bg-wassalOrange/20 text-wassalOrange font-bold mr-1">${top.store.category}</span></h3>
+                        <p class="text-xs text-slate-400 mt-1">يستحوذ على <strong class="text-white">${top.sharePct}%</strong> من إجمالي أوردرات الشهر بمبيعات موردة قدرها <strong class="text-statusDone">${top.settledMonth.toLocaleString('ar-EG')} ج.م</strong></p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-3 text-center">
+                    <div class="bg-obsidian/90 border border-slateBorder rounded-xl px-4 py-2.5">
+                        <div class="text-[10px] text-slate-400 font-bold">أوردرات اليوم</div>
+                        <div class="text-lg font-black text-white">${top.todayCount}</div>
+                    </div>
+                    <div class="bg-obsidian/90 border border-wassalOrange/40 rounded-xl px-4 py-2.5">
+                        <div class="text-[10px] text-wassalOrange font-bold">أوردرات الشهر</div>
+                        <div class="text-lg font-black text-wassalOrange">${top.monthCount}</div>
+                    </div>
+                    <div class="bg-obsidian/90 border border-slateBorder rounded-xl px-4 py-2.5">
+                        <div class="text-[10px] text-slate-400 font-bold">إيراد التوصيل</div>
+                        <div class="text-lg font-black text-statusDone">${top.feeMonth} ج.م</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else {
+        banner.innerHTML = `<div class="text-xs text-slate-400 text-center py-2">لا توجد أوردرات مسجلة هذا الشهر لعرض ترتيب المتاجر</div>`;
+    }
+
+    const grid = document.getElementById('stores-grid');
+    grid.innerHTML = ranked.map((item, idx) => {
+        const s = item.store;
+        const isFirst = idx === 0 && item.monthCount > 0;
+        return `
+            <div class="bg-slateDark border ${isFirst ? 'border-statusPicked/70 shadow-lg shadow-amber-500/10' : 'border-slateBorder hover:border-wassalOrange/50'} transition-all rounded-2xl p-5 space-y-4">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 rounded-md ${isFirst ? 'bg-statusPicked text-obsidian font-black' : 'bg-obsidian text-slate-300 border border-slateBorder font-bold'} text-[11px]">#${idx + 1}</span>
+                            <span class="text-[10px] px-2.5 py-0.5 rounded-md bg-wassalOrange/15 border border-wassalOrange/30 text-wassalOrange font-black">${s.category}</span>
+                        </div>
+                        <h3 class="font-black text-base text-white mt-2">${s.name} ${isFirst ? '👑' : ''}</h3>
+                    </div>
+                    <span class="text-xs font-black text-wassalOrange bg-obsidian px-2.5 py-1 rounded-lg border border-wassalOrange/30">توصيل: ${s.fee} ج.م</span>
+                </div>
+
+                <div class="space-y-1">
+                    <div class="flex justify-between text-[11px]">
+                        <span class="text-slate-400">نسبة مساهمته في أوردرات الشهر</span>
+                        <span class="font-black text-white">${item.sharePct}%</span>
+                    </div>
+                    <div class="w-full h-2 bg-obsidian rounded-full overflow-hidden border border-slateBorder">
+                        <div class="h-full wassal-grad rounded-full transition-all duration-500" style="width:${item.sharePct}%"></div>
+                    </div>
+                </div>
+
+                <div class="text-xs text-slate-400 space-y-1">
+                    <p>📍 ${s.address}</p>
+                    <p>📞 ${s.phone}</p>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 text-center text-xs pt-2 border-t border-slateBorder">
+                    <div class="bg-obsidian rounded-xl p-2 border border-slateBorder">
+                        <div class="text-[10px] text-slate-400">اليوم</div>
+                        <div class="font-black text-white text-sm">${item.todayCount}</div>
+                    </div>
+                    <div class="bg-obsidian rounded-xl p-2 border border-wassalOrange/30">
+                        <div class="text-[10px] text-wassalOrange">الشهر</div>
+                        <div class="font-black text-wassalOrange text-sm">${item.monthCount}</div>
+                    </div>
+                    <div class="bg-obsidian rounded-xl p-2 border border-slateBorder">
+                        <div class="text-[10px] text-slate-400">مبيعات الشهر</div>
+                        <div class="font-black text-statusDone text-xs mt-0.5">${item.settledMonth} ج.م</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderAccounting() {
+    const targetMonth = uiState.reportMonth || getCurrentMonthStr();
+    const stats = getAnalyticsSummary(targetMonth);
+
+    document.getElementById('pnl-today-date').textContent = `تاريخ اليوم: ${stats.today}`;
+    document.getElementById('pnl-today-rev').textContent = `${stats.todayRev.toLocaleString('ar-EG')} ج.م`;
+    document.getElementById('pnl-today-exp').textContent = `${stats.todayExp.toLocaleString('ar-EG')} ج.م`;
+    const todayNetEl = document.getElementById('pnl-today-net');
+    todayNetEl.textContent = `${stats.todayProfit.toLocaleString('ar-EG')} ج.م`;
+    todayNetEl.className = `font-black text-lg ${stats.todayProfit >= 0 ? 'text-wassalOrange' : 'text-red-400'}`;
+    const todayMargin = stats.todayRev > 0 ? Math.round((stats.todayProfit / stats.todayRev) * 100) : 0;
+    document.getElementById('pnl-today-margin').textContent = `هامش الربح: ${todayMargin}%`;
+    document.getElementById('pnl-today-settled').textContent = `${stats.todaySettled.toLocaleString('ar-EG')} ج.م`;
+
+    document.getElementById('pnl-month-label').textContent = `الفترة المحاسبية: ${targetMonth}`;
+    document.getElementById('pnl-month-orders-count').textContent = stats.monthDelivered.length;
+    document.getElementById('pnl-month-exp-count').textContent = stats.monthExpensesList.length;
+    document.getElementById('pnl-month-rev').textContent = `${stats.monthRev.toLocaleString('ar-EG')} ج.م`;
+    document.getElementById('pnl-month-exp').textContent = `${stats.monthExp.toLocaleString('ar-EG')} ج.م`;
+    const monthNetEl = document.getElementById('pnl-month-net');
+    monthNetEl.textContent = `${stats.monthProfit.toLocaleString('ar-EG')} ج.م`;
+    monthNetEl.className = `font-black text-lg ${stats.monthProfit >= 0 ? 'text-statusDone' : 'text-red-400'}`;
+    const monthMargin = stats.monthRev > 0 ? Math.round((stats.monthProfit / stats.monthRev) * 100) : 0;
+    document.getElementById('pnl-month-margin').textContent = `هامش الربح: ${monthMargin}%`;
+    document.getElementById('pnl-month-settled').textContent = `${stats.monthSettled.toLocaleString('ar-EG')} ج.م`;
+
+    const catTotals = {};
+    stats.monthExpensesList.forEach(e => {
+        catTotals[e.category] = (catTotals[e.category] || 0) + Number(e.amount);
+    });
+    const catEntries = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
+    const barsContainer = document.getElementById('expense-categories-bars');
+    if (catEntries.length === 0) {
+        barsContainer.innerHTML = `<div class="col-span-full text-center text-xs text-slate-500 py-1">لا توجد مصروفات مسجلة في شهر ${targetMonth}</div>`;
+    } else {
+        barsContainer.innerHTML = catEntries.map(([cat, val]) => {
+            const pct = stats.monthExp > 0 ? Math.round((val / stats.monthExp) * 100) : 0;
+            return `
+                <div class="bg-slateDark border border-slateBorder rounded-xl p-2.5 space-y-1.5">
+                    <div class="flex justify-between text-[11px]">
+                        <span class="font-bold text-slate-200 truncate">${cat}</span>
+                        <span class="font-black text-red-400">${val} ج.م (${pct}%)</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-obsidian rounded-full overflow-hidden">
+                        <div class="h-full bg-red-500 rounded-full" style="width:${pct}%"></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    const filteredExpenses = stats.monthExpensesList.filter(e => uiState.expenseCatFilter === 'all' || e.category === uiState.expenseCatFilter);
+    const expTbody = document.getElementById('expenses-table-body');
+    if (filteredExpenses.length === 0) {
+        expTbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-500">لا توجد مصروفات مطابقة</td></tr>`;
+    } else {
+        expTbody.innerHTML = filteredExpenses.map(e => {
+            const rdName = e.riderId ? getRider(e.riderId).name : 'مصروف إداري عام';
+            return `
+                <tr class="hover:bg-slateCard/80">
+                    <td class="px-3.5 py-3 text-slate-400 font-mono">${e.dateStr}</td>
+                    <td class="px-3.5 py-3">
+                        <div class="font-bold text-white">${e.title}</div>
+                        ${e.notes ? `<div class="text-[10px] text-slate-400">${e.notes}</div>` : ''}
+                    </td>
+                    <td class="px-3.5 py-3"><span class="px-2 py-0.5 rounded bg-obsidian border border-slateBorder text-[11px] text-slate-300">${e.category}</span></td>
+                    <td class="px-3.5 py-3 text-slate-300 font-bold">${rdName}</td>
+                    <td class="px-3.5 py-3 font-black text-red-400">${Number(e.amount).toLocaleString('ar-EG')} ج.م</td>
+                    <td class="px-3.5 py-3 text-center">
+                        <button type="button" data-action="delete-expense" data-id="${e.id}" class="px-2 py-1 rounded-lg bg-red-500/15 hover:bg-red-500 text-red-400 hover:text-white text-[11px] font-bold transition-colors">✕</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    const storesBody = document.getElementById('stores-accounting-body');
+    storesBody.innerHTML = stats.storeStats.map((item, idx) => {
+        const s = item.store;
+        const rankBadge = idx === 0 && item.monthCount > 0 ? '👑 #1' : `#${idx + 1}`;
+        return `
+            <tr class="hover:bg-slateCard/80 ${idx === 0 && item.monthCount > 0 ? 'bg-statusPicked/5' : ''}">
+                <td class="px-4 py-3 font-black ${idx === 0 && item.monthCount > 0 ? 'text-statusPicked' : 'text-slate-400'}">${rankBadge}</td>
+                <td class="px-4 py-3 font-black text-white">${s.name}</td>
+                <td class="px-4 py-3 text-slate-400">${s.category}</td>
+                <td class="px-4 py-3 font-bold text-white">${item.todayCount}</td>
+                <td class="px-4 py-3 font-black text-wassalOrange text-sm">${item.monthCount}</td>
+                <td class="px-4 py-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-16 h-1.5 bg-obsidian rounded-full overflow-hidden">
+                            <div class="h-full wassal-grad" style="width:${item.sharePct}%"></div>
+                        </div>
+                        <span class="font-bold text-slate-200">${item.sharePct}%</span>
+                    </div>
+                </td>
+                <td class="px-4 py-3 font-black text-statusDone">${item.settledMonth.toLocaleString('ar-EG')} ج.م</td>
+                <td class="px-4 py-3 font-black text-white">${item.feeMonth.toLocaleString('ar-EG')} ج.م</td>
+            </tr>
+        `;
+    }).join('');
+
+    const ridersBody = document.getElementById('riders-accounting-body');
+    ridersBody.innerHTML = stats.riderStats.map((item, idx) => {
+        const r = item.rider;
+        const rankBadge = idx === 0 && item.monthCount > 0 ? '🏆 #1' : `#${idx + 1}`;
+        return `
+            <tr class="hover:bg-slateCard/80">
+                <td class="px-4 py-3 font-black ${idx === 0 && item.monthCount > 0 ? 'text-wassalOrange' : 'text-slate-400'}">${rankBadge}</td>
+                <td class="px-4 py-3 font-black text-white">${r.name}</td>
+                <td class="px-4 py-3 text-slate-400">${r.bike} (${r.plate})</td>
+                <td class="px-4 py-3 font-black text-statusDone text-sm">${item.todayCount}</td>
+                <td class="px-4 py-3 font-black text-wassalOrange text-sm">${item.monthCount}</td>
+                <td class="px-4 py-3 font-bold text-statusOnway">${item.avgMins !== null ? item.avgMins + ' دقيقة' : '—'}</td>
+                <td class="px-4 py-3 font-bold text-white">${item.settledMonth.toLocaleString('ar-EG')} ج.م</td>
+                <td class="px-4 py-3 font-black text-wassalOrange">${item.feeMonth.toLocaleString('ar-EG')} ج.م</td>
+            </tr>
+        `;
+    }).join('');
+
+    const auditBody = document.getElementById('audit-table-body');
+    auditBody.innerHTML = stats.monthOrders.map(o => {
+        const st = getStore(o.storeId);
+        const rd = getRider(o.riderId);
+        const { totalMins } = getOrderDurations(o);
+        return `
+            <tr class="hover:bg-slateCard/80">
+                <td class="px-3 py-3 font-black text-wassalOrange">#${o.id}</td>
+                <td class="px-3 py-3 text-slate-400 font-mono">${o.dateStr || getTodayStr()}</td>
+                <td class="px-3 py-3 font-bold text-white">${st.name}</td>
+                <td class="px-3 py-3 text-slate-200">${o.customerName} — <span class="text-slate-400">${o.address}</span></td>
+                <td class="px-3 py-3 font-bold text-slate-200">${rd.name}</td>
+                <td class="px-3 py-3 font-bold text-statusPicked">${formatTime12(o.receivedTs)}</td>
+                <td class="px-3 py-3 font-bold text-statusOnway">${formatTime12(o.departedTs)}</td>
+                <td class="px-3 py-3 font-bold text-statusDone">${formatTime12(o.deliveredTs)}</td>
+                <td class="px-3 py-3 font-black text-white">${totalMins} د</td>
+                <td class="px-3 py-3 font-black text-statusDone">${Number(o.amount) + Number(o.fee)} ج.م</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function exportMonthlyCSV() {
+    const targetMonth = uiState.reportMonth || getCurrentMonthStr();
+    const stats = getAnalyticsSummary(targetMonth);
+    const lines = [];
+    lines.push('\uFEFFتقرير شركة وصّل - WASSAL لشهر ' + targetMonth);
+    lines.push(`إجمالي أوردرات الشهر,${stats.monthOrders.length},إيرادات التوصيل,${stats.monthRev},المصروفات,${stats.monthExp},صافي الربح,${stats.monthProfit}`);
+    lines.push('');
+    lines.push('--- أداء المناديب ---');
+    lines.push('المندوب,أوردرات اليوم,أوردرات الشهر,إيراد التوصيل الشهري,مبالغ موردة للتجار');
+    stats.riderStats.forEach(r => {
+        lines.push(`${r.rider.name},${r.todayCount},${r.monthCount},${r.feeMonth},${r.settledMonth}`);
+    });
+    lines.push('');
+    lines.push('--- ترتيب المتاجر ---');
+    lines.push('المتجر,التصنيف,أوردرات اليوم,أوردرات الشهر,نسبة المساهمة %,مبيعات موردة');
+    stats.storeStats.forEach(s => {
+        lines.push(`${s.store.name},${s.store.category},${s.todayCount},${s.monthCount},${s.sharePct}%,${s.settledMonth}`);
+    });
+    lines.push('');
+    lines.push('--- سجل المصروفات ---');
+    lines.push('التاريخ,البيان,التصنيف,المبلغ,ملاحظات');
+    stats.monthExpensesList.forEach(e => {
+        lines.push(`${e.dateStr},"${e.title}",${e.category},${e.amount},"${e.notes || ''}"`);
+    });
+
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `WASSAL_Report_${targetMonth}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast(`📊 تم تصدير تقرير شهر ${targetMonth} بصيغة CSV`);
+}
+
+function populateExpenseFormDefaults() {
+    const expRiderSel = document.getElementById('exp-rider');
+    if (expRiderSel) {
+        expRiderSel.innerHTML = `<option value="">— مصروف عام للإدارة —</option>` +
+            appState.riders.map(r => `<option value="${r.id}">${r.name} (${r.plate})</option>`).join('');
+    }
+    const expDateInput = document.getElementById('exp-date');
+    if (expDateInput && !expDateInput.value) {
+        expDateInput.value = getTodayStr();
+    }
+    const monthPicker = document.getElementById('report-month-picker');
+    if (monthPicker && !monthPicker.value) {
+        monthPicker.value = uiState.reportMonth;
+    }
+}
+
+function renderAll() {
+    populateExpenseFormDefaults();
+    renderKPIs();
+    renderFleetRibbon();
+    renderOrdersBoardAndTable();
+    renderRiders();
+    renderStores();
+    renderAccounting();
+    if (uiState.selectedOrderId) {
+        const stillExists = appState.orders.some(o => o.id === uiState.selectedOrderId);
+        if (stillExists) openOrderDrawer(uiState.selectedOrderId);
+        else closeOrderDrawer();
+    }
+}
+
+function switchTab(tabName) {
+    uiState.activeTab = tabName;
+    document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
+    const target = document.getElementById(`view-${tabName}`);
+    if (target) target.classList.remove('hidden');
+
+    document.querySelectorAll('.nav-tab').forEach(btn => {
+        btn.classList.remove('wassal-grad', 'text-obsidian', 'font-extrabold', 'shadow-lg', 'shadow-orange-500/20');
+        btn.classList.add('text-slate-300', 'font-bold', 'hover:text-white', 'hover:bg-slateCard');
+    });
+    const activeTabBtn = document.getElementById(`tab-btn-${tabName}`);
+    if (activeTabBtn) {
+        activeTabBtn.classList.remove('text-slate-300', 'font-bold', 'hover:text-white', 'hover:bg-slateCard');
+        activeTabBtn.classList.add('wassal-grad', 'text-obsidian', 'font-extrabold', 'shadow-lg', 'shadow-orange-500/20');
+    }
+
+    const titles = {
+        operations: ['غرفة العمليات ومتابعة الطلبات الحية', 'تتبع لحظي لحركة المناديب وأوقات الاستلام والتحرك والتسليم وتوريد المبالغ للمتاجر'],
+        riders: [`أسطول المناديب والموتوسيكلات (${appState.riders.length} طيارين)`, 'إحصائيات أوردرات اليوم وأوردرات الشهر ومتوسط السرعة لكل مندوب'],
+        stores: ['المتاجر المتعاقدة وترتيب الأكثر عملاً', 'تصنيف المتاجر حسب حجم الأوردرات اليومية والشهرية ونسبة المساهمة'],
+        accounting: ['المحاسبة والمصروفات وتقارير الإدارة', 'قائمة الدخل اليومية والشهرية، إدارة المصروفات، وتقارير التقفيل والطباعة']
+    };
+    if (titles[tabName]) {
+        document.getElementById('header-title').textContent = titles[tabName][0];
+        document.getElementById('header-subtitle').textContent = titles[tabName][1];
+    }
+
+    const sidebar = document.getElementById('sidebar');
+    if (!sidebar.classList.contains('translate-x-full') && window.innerWidth < 1024) {
+        sidebar.classList.add('translate-x-full');
+        document.getElementById('sidebar-backdrop').classList.add('hidden');
+    }
+    renderAll();
+}
+
+function setViewMode(mode) {
+    uiState.viewMode = mode;
+    const kanbanEl = document.getElementById('operations-kanban-container');
+    const tableEl = document.getElementById('operations-table-container');
+    const btnK = document.getElementById('view-btn-kanban');
+    const btnT = document.getElementById('view-btn-table');
+
+    if (mode === 'kanban') {
+        kanbanEl.classList.remove('hidden');
+        tableEl.classList.add('hidden');
+        btnK.className = 'px-3 py-1.5 rounded-lg text-xs font-black wassal-grad text-obsidian flex items-center gap-1.5 transition-all';
+        btnT.className = 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white flex items-center gap-1.5 transition-all';
+    } else {
+        kanbanEl.classList.add('hidden');
+        tableEl.classList.remove('hidden');
+        btnT.className = 'px-3 py-1.5 rounded-lg text-xs font-black wassal-grad text-obsidian flex items-center gap-1.5 transition-all';
+        btnK.className = 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white flex items-center gap-1.5 transition-all';
+    }
+}
+
+function openNewOrderModal() {
+    const storeSel = document.getElementById('input-order-store');
+    storeSel.innerHTML = appState.stores.map(s => `<option value="${s.id}">${s.name} (${s.category}) - توصيل ${s.fee} ج.م</option>`).join('');
+    if (appState.stores.length > 0) {
+        document.getElementById('input-order-fee').value = appState.stores[0].fee;
+    }
+
+    const riderSel = document.getElementById('input-order-rider');
+    const sortedRiders = [...appState.riders].sort((a, b) => (a.status === 'available' ? -1 : 1));
+    riderSel.innerHTML = sortedRiders.map(r => {
+        const tag = r.status === 'available' ? '🟢 متاح في المكتب' : (r.status === 'busy' ? '🔵 في مهمة' : '⚪ غير متاح');
+        return `<option value="${r.id}">${r.name} — ${tag} (${r.plate})</option>`;
+    }).join('');
+
+    document.getElementById('input-order-time').value = '';
+    const modal = document.getElementById('modal-new-order');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function openRiderModal(riderId = null) {
+    const modal = document.getElementById('modal-rider');
+    const titleEl = document.getElementById('modal-rider-title');
+    const idInput = document.getElementById('input-rider-id');
+    const nameInput = document.getElementById('input-rider-name');
+    const bikeInput = document.getElementById('input-rider-bike');
+    const plateInput = document.getElementById('input-rider-plate');
+    const phoneInput = document.getElementById('input-rider-phone');
+
+    if (riderId) {
+        const r = appState.riders.find(item => item.id === riderId);
+        if (!r) return;
+        titleEl.textContent = `✏️ تعديل بيانات المندوب: ${r.name}`;
+        idInput.value = r.id;
+        nameInput.value = r.name;
+        bikeInput.value = r.bike;
+        plateInput.value = r.plate;
+        phoneInput.value = r.phone || '';
+    } else {
+        titleEl.textContent = '+ إضافة مندوب جديد';
+        idInput.value = '';
+        document.getElementById('form-rider').reset();
+    }
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+// ==================== EVENT DELEGATION ====================
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const action = btn.getAttribute('data-action');
+    const id = btn.getAttribute('data-id');
+
+    if (action === 'toggle-sidebar') {
+        document.getElementById('sidebar').classList.toggle('translate-x-full');
+        document.getElementById('sidebar-backdrop').classList.toggle('hidden');
+    } else if (action === 'switch-tab') {
+        switchTab(btn.getAttribute('data-tab'));
+    } else if (action === 'set-view-mode') {
+        setViewMode(btn.getAttribute('data-mode'));
+    } else if (action === 'set-status-filter') {
+        uiState.statusFilter = btn.getAttribute('data-status');
+        document.querySelectorAll('.status-chip').forEach(chip => {
+            if (chip.getAttribute('data-status') === uiState.statusFilter) {
+                chip.className = 'status-chip px-3 py-1.5 rounded-lg text-xs font-black bg-slateCard text-white transition-all';
+            } else {
+                chip.className = 'status-chip px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all';
+            }
+        });
+        renderOrdersBoardAndTable();
+    } else if (action === 'filter-by-rider-pill') {
+        uiState.riderFilter = (uiState.riderFilter === id) ? 'all' : id;
+        renderFleetRibbon();
+        renderOrdersBoardAndTable();
+    } else if (action === 'open-drawer') {
+        openOrderDrawer(id);
+    } else if (action === 'close-drawer') {
+        closeOrderDrawer();
+    } else if (action === 'open-new-order') {
+        openNewOrderModal();
+    } else if (action === 'open-new-store') {
+        const m = document.getElementById('modal-new-store');
+        m.classList.remove('hidden');
+        m.classList.add('flex');
+    } else if (action === 'open-rider-modal') {
+        openRiderModal(null);
+    } else if (action === 'edit-rider') {
+        openRiderModal(id);
+    } else if (action === 'delete-rider') {
+        const rider = appState.riders.find(r => r.id === id);
+        if (!rider) return;
+        const hasActive = appState.orders.some(o => o.riderId === id && o.status !== 'delivered');
+        if (hasActive) {
+            showToast(`⚠️ لا يمكن حذف ${rider.name} لوجود طلب جاري مكلف به حالياً`);
+            return;
+        }
+        appState.riders = appState.riders.filter(r => r.id !== id);
+        if (uiState.riderFilter === id) uiState.riderFilter = 'all';
+        saveData();
+        renderAll();
+        showToast(`تم حذف المندوب ${rider.name} من الأسطول`);
+    } else if (action === 'close-modal') {
+        const modalId = btn.getAttribute('data-modal');
+        const m = document.getElementById(modalId);
+        if (m) {
+            m.classList.add('hidden');
+            m.classList.remove('flex');
+        }
+    } else if (action === 'reset-demo') {
+        resetDemoData(true);
+    } else if (action === 'print-report') {
+        window.print();
+    } else if (action === 'export-csv') {
+        exportMonthlyCSV();
+    } else if (action === 'delete-expense') {
+        appState.expenses = appState.expenses.filter(ex => ex.id !== id);
+        saveData();
+        renderAll();
+        showToast('تم حذف بند المصروف وتحديث صافي الأرباح');
+    } else if (action === 'move-onway') {
+        const order = appState.orders.find(o => o.id === id);
+        if (order) {
+            order.status = 'onway';
+            order.departedTs = Date.now();
+            syncRidersAvailability();
+            saveData();
+            renderAll();
+            showToast(`🔵 تحرك المندوب بالطلب #${order.id} الساعة ${formatTime12(order.departedTs)}`);
+        }
+    } else if (action === 'move-delivered') {
+        const order = appState.orders.find(o => o.id === id);
+        if (order) {
+            const now = Date.now();
+            if (!order.departedTs) order.departedTs = now;
+            order.status = 'delivered';
+            order.deliveredTs = now;
+            syncRidersAvailability();
+            saveData();
+            renderAll();
+            const { totalMins } = getOrderDurations(order);
+            showToast(`🟢 تم تسليم #${order.id} في ${totalMins} دقيقة وعاد المندوب للمكتب`);
+        }
+    } else if (action === 'delete-order') {
+        appState.orders = appState.orders.filter(o => o.id !== id);
+        syncRidersAvailability();
+        saveData();
+        renderAll();
+        showToast(`تم حذف الطلب #${id}`);
+    } else if (action === 'copy-whatsapp') {
+        const order = appState.orders.find(o => o.id === id);
+        if (order) {
+            copyToClipboardSafe(buildWhatsAppMessage(order));
+            showToast(`💬 تم نسخ رسالة واتساب للطلب #${order.id}`);
+        }
+    } else if (action === 'cycle-rider-status') {
+        const rider = appState.riders.find(r => r.id === id);
+        if (rider) {
+            const hasActive = appState.orders.some(o => o.riderId === id && o.status !== 'delivered');
+            if (hasActive) {
+                showToast(`المندوب ${rider.name} لديه طلب جاري حالياً`);
+                return;
+            }
+            const orderCycle = ['available', 'busy', 'off'];
+            const nextIdx = (orderCycle.indexOf(rider.status) + 1) % orderCycle.length;
+            rider.status = orderCycle[nextIdx];
+            saveData();
+            renderAll();
+        }
+    }
+});
+
+// ==================== FORM & SEARCH LISTENERS ====================
+document.getElementById('input-order-store').addEventListener('change', (e) => {
+    const st = getStore(e.target.value);
+    document.getElementById('input-order-fee').value = st.fee;
+});
+
+document.getElementById('form-new-order').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const storeId = document.getElementById('input-order-store').value;
+    const customerName = document.getElementById('input-order-customer').value.trim();
+    const phone = document.getElementById('input-order-phone').value.trim();
+    const address = document.getElementById('input-order-address').value.trim();
+    const amount = Number(document.getElementById('input-order-amount').value) || 0;
+    const fee = Number(document.getElementById('input-order-fee').value) || 0;
+    const riderId = document.getElementById('input-order-rider').value;
+    const manualTime = document.getElementById('input-order-time').value;
+
+    let receivedTs = Date.now();
+    if (manualTime) {
+        const [hh, mm] = manualTime.split(':').map(Number);
+        const d = new Date();
+        d.setHours(hh, mm, 0, 0);
+        receivedTs = d.getTime();
+    }
+
+    const newOrder = {
+        id: `W-${appState.nextOrderNum++}`,
+        dateStr: getTodayStr(),
+        storeId,
+        customerName,
+        address,
+        phone,
+        amount,
+        fee,
+        riderId,
+        status: 'received',
+        receivedTs,
+        departedTs: null,
+        deliveredTs: null
+    };
+
+    appState.orders.unshift(newOrder);
+    syncRidersAvailability();
+    saveData();
+    renderAll();
+
+    e.target.reset();
+    const modal = document.getElementById('modal-new-order');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    showToast(`🟡 تم تسجيل استلام الطلب #${newOrder.id} الساعة ${formatTime12(receivedTs)}`);
+});
+
+document.getElementById('form-new-expense').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const title = document.getElementById('exp-title').value.trim();
+    const category = document.getElementById('exp-category').value;
+    const amount = Number(document.getElementById('exp-amount').value) || 0;
+    const riderId = document.getElementById('exp-rider').value;
+    const dateStr = document.getElementById('exp-date').value || getTodayStr();
+    const notes = document.getElementById('exp-notes').value.trim();
+
+    appState.expenses.unshift({
+        id: 'EXP-' + Date.now(),
+        dateStr,
+        title,
+        category,
+        amount,
+        riderId,
+        notes
+    });
+    saveData();
+    renderAll();
+
+    document.getElementById('exp-title').value = '';
+    document.getElementById('exp-amount').value = '';
+    document.getElementById('exp-notes').value = '';
+    showToast(`💸 تم تسجيل مصروف "${title}" بقيمة ${amount} ج.م`);
+});
+
+document.getElementById('report-month-picker').addEventListener('change', (e) => {
+    uiState.reportMonth = e.target.value || getCurrentMonthStr();
+    renderAccounting();
+});
+
+document.getElementById('filter-expense-cat').addEventListener('change', (e) => {
+    uiState.expenseCatFilter = e.target.value;
+    renderAccounting();
+});
+
+document.getElementById('form-new-store').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = document.getElementById('input-store-name').value.trim();
+    const category = document.getElementById('input-store-category').value;
+    const fee = Number(document.getElementById('input-store-fee').value) || 25;
+    const phone = document.getElementById('input-store-phone').value.trim();
+    const address = document.getElementById('input-store-address').value.trim();
+
+    appState.stores.push({
+        id: 'S' + Date.now(),
+        name,
+        category,
+        fee,
+        phone,
+        address
+    });
+    saveData();
+    renderAll();
+
+    e.target.reset();
+    const modal = document.getElementById('modal-new-store');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    showToast(`تمت إضافة ${name} إلى المتاجر المتعاقدة`);
+});
+
+document.getElementById('form-rider').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const editId = document.getElementById('input-rider-id').value;
+    const name = document.getElementById('input-rider-name').value.trim();
+    const bike = document.getElementById('input-rider-bike').value.trim();
+    const plate = document.getElementById('input-rider-plate').value.trim();
+    const phone = document.getElementById('input-rider-phone').value.trim();
+
+    if (editId) {
+        const rider = appState.riders.find(r => r.id === editId);
+        if (rider) {
+            rider.name = name;
+            rider.bike = bike;
+            rider.plate = plate;
+            rider.phone = phone;
+            showToast(`✅ تم تحديث بيانات المندوب ${name}`);
+        }
+    } else {
+        appState.riders.push({
+            id: 'R' + Date.now(),
+            name,
+            bike,
+            plate,
+            phone,
+            status: 'available'
+        });
+        showToast(`🏍️ تمت إضافة المندوب ${name} إلى الأسطول`);
+    }
+
+    saveData();
+    renderAll();
+
+    e.target.reset();
+    const modal = document.getElementById('modal-rider');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+});
+
+document.getElementById('search-input').addEventListener('input', renderOrdersBoardAndTable);
+
+// ==================== INIT & LIVE TIMER ====================
+renderAll();
+initCloudSync();
+
+let seconds = 0;
+const tick = () => {
+    const clock = document.getElementById('live-clock');
+    if (clock) clock.textContent = formatTime12(Date.now());
+    seconds++;
+    if (seconds % 30 === 0) {
+        renderFleetRibbon();
+        renderOrdersBoardAndTable();
+        renderRiders();
+    }
+};
+tick();
+setInterval(tick, 1000);

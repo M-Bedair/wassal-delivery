@@ -3,16 +3,16 @@ import { stateRef, connectedRef, set, onValue } from './firebase-config.js';
 const STORAGE_KEY = 'wassal_modern_ops_v2';
 
 const INITIAL_RIDERS = [
-    { id: 'R1', name: 'أحمد محمود', bike: 'بجاج بوكسر 150', plate: 'ق هـ 412', status: 'available' },
-    { id: 'R2', name: 'كريم عادل', bike: 'هوجن 3', plate: 'س ب 893', status: 'available' },
-    { id: 'R3', name: 'مصطفى حسن', bike: 'دايون 4', plate: 'م ر 551', status: 'available' },
-    { id: 'R4', name: 'إسلام طارق', bike: 'بجاج بولسار 180', plate: 'ط ل 129', status: 'available' },
-    { id: 'R5', name: 'محمود سعيد', bike: 'هوجن F250', plate: 'ع ن 774', status: 'available' },
-    { id: 'R6', name: 'عمر خالد', bike: 'بجاج بوكسر 150', plate: 'و ص 308', status: 'available' },
-    { id: 'R7', name: 'يوسف إبراهيم', bike: 'دايون 40', plate: 'ك م 615', status: 'available' },
-    { id: 'R8', name: 'حسام الدين', bike: 'هوجن 3', plate: 'أ د 940', status: 'available' },
-    { id: 'R9', name: 'طارق نبيل', bike: 'بجاج بوكسر 150', plate: 'ف ق 217', status: 'available' },
-    { id: 'R10', name: 'محمد فتحي', bike: 'بينيللي VLR', plate: 'ر ت 832', status: 'available' }
+    { id: 'R1', name: 'أحمد محمود', bike: 'بجاج بوكسر 150', plate: 'ق هـ 412', phone: '', status: 'available' },
+    { id: 'R2', name: 'كريم عادل', bike: 'هوجن 3', plate: 'س ب 893', phone: '', status: 'available' },
+    { id: 'R3', name: 'مصطفى حسن', bike: 'دايون 4', plate: 'م ر 551', phone: '', status: 'available' },
+    { id: 'R4', name: 'إسلام طارق', bike: 'بجاج بولسار 180', plate: 'ط ل 129', phone: '', status: 'available' },
+    { id: 'R5', name: 'محمود سعيد', bike: 'هوجن F250', plate: 'ع ن 774', phone: '', status: 'available' },
+    { id: 'R6', name: 'عمر خالد', bike: 'بجاج بوكسر 150', plate: 'و ص 308', phone: '', status: 'available' },
+    { id: 'R7', name: 'يوسف إبراهيم', bike: 'دايون 40', plate: 'ك م 615', phone: '', status: 'available' },
+    { id: 'R8', name: 'حسام الدين', bike: 'هوجن 3', plate: 'أ د 940', phone: '', status: 'available' },
+    { id: 'R9', name: 'طارق نبيل', bike: 'بجاج بوكسر 150', plate: 'ف ق 217', phone: '', status: 'available' },
+    { id: 'R10', name: 'محمد فتحي', bike: 'بينيللي VLR', plate: 'ر ت 832', phone: '', status: 'available' }
 ];
 
 const INITIAL_STORES = [
@@ -249,7 +249,7 @@ function getStore(id) {
 }
 
 function getRider(id) {
-    return appState.riders.find(r => r.id === id) || { name: 'مندوب', bike: '', plate: '', status: 'available' };
+    return appState.riders.find(r => r.id === id) || { name: 'مندوب', bike: '', plate: '', phone: '', status: 'available' };
 }
 
 function getOrderDurations(order) {
@@ -380,6 +380,7 @@ function renderKPIs() {
     const pickedCount = appState.orders.filter(o => o.status === 'received').length;
     const onwayCount = appState.orders.filter(o => o.status === 'onway').length;
     const active = pickedCount + onwayCount;
+    const totalRidersCount = appState.riders.length;
     const availRiders = appState.riders.filter(r => r.status === 'available').length;
     const busyRiders = appState.riders.filter(r => r.status === 'busy').length;
 
@@ -404,6 +405,9 @@ function renderKPIs() {
     }
 
     document.getElementById('kpi-riders-avail').textContent = availRiders;
+    const kpiRidersTotalEl = document.getElementById('kpi-riders-total');
+    if (kpiRidersTotalEl) kpiRidersTotalEl.textContent = ` / ${totalRidersCount}`;
+
     const topR = currentStats.riderStats[0];
     document.getElementById('kpi-top-rider-mini').textContent = (topR && topR.monthCount > 0) ? `${topR.rider.name} (${topR.monthCount})` : '—';
 
@@ -412,12 +416,16 @@ function renderKPIs() {
     document.getElementById('kpi-today-expense').textContent = currentStats.todayExp.toLocaleString('ar-EG');
 
     document.getElementById('nav-badge-active').textContent = active;
-    document.getElementById('nav-badge-riders').textContent = `${availRiders}/10`;
+    const navLabelRiders = document.getElementById('nav-label-riders');
+    if (navLabelRiders) navLabelRiders.textContent = `المناديب والموتوسيكلات (${totalRidersCount})`;
+    document.getElementById('nav-badge-riders').textContent = `${availRiders}/${totalRidersCount}`;
     document.getElementById('nav-badge-stores').textContent = appState.stores.length;
     const profitSign = currentStats.todayProfit >= 0 ? '+' : '';
     document.getElementById('nav-badge-profit').textContent = `${profitSign}${currentStats.todayProfit} ج.م`;
 
-    const pct = Math.round((availRiders / Math.max(1, appState.riders.length)) * 100);
+    const pct = Math.round((availRiders / Math.max(1, totalRidersCount)) * 100);
+    const sidebarFleetTitle = document.getElementById('sidebar-fleet-title');
+    if (sidebarFleetTitle) sidebarFleetTitle.textContent = `جاهزية الأسطول (${totalRidersCount})`;
     document.getElementById('sidebar-fleet-pct').textContent = `${pct}%`;
     document.getElementById('sidebar-fleet-bar').style.width = `${pct}%`;
     document.getElementById('sidebar-office-txt').textContent = `● ${availRiders} بالمكتب`;
@@ -779,6 +787,11 @@ function renderRiders() {
     const topToday = [...stats.riderStats].sort((a, b) => b.todayCount - a.todayCount)[0];
     const topMonth = stats.riderStats[0];
 
+    const headingEl = document.getElementById('riders-view-heading');
+    if (headingEl) {
+        headingEl.textContent = `أسطول المناديب والموتوسيكلات (${appState.riders.length} طيارين) — إحصائيات اليوم والشهر`;
+    }
+
     document.getElementById('riders-top-today-badge').textContent = (topToday && topToday.todayCount > 0)
         ? `⚡ نجم اليوم: ${topToday.rider.name} (${topToday.todayCount} أوردر)`
         : `⚡ نجم اليوم: —`;
@@ -787,6 +800,11 @@ function renderRiders() {
         : `🏆 نجم الشهر: —`;
 
     const grid = document.getElementById('riders-grid');
+    if (appState.riders.length === 0) {
+        grid.innerHTML = `<div class="col-span-full bg-slateDark border border-dashed border-slateBorder rounded-2xl p-10 text-center text-slate-400 text-xs">لا يوجد مناديب مسجلون حالياً. اضغط على "+ إضافة مندوب جديد" للبدء.</div>`;
+        return;
+    }
+
     grid.innerHTML = appState.riders.map((r, idx) => {
         const rStat = stats.riderStats.find(item => item.rider.id === r.id) || { todayCount: 0, monthCount: 0, feeMonth: 0, avgMins: null };
         const riderOrders = appState.orders.filter(o => o.riderId === r.id);
@@ -829,16 +847,17 @@ function renderRiders() {
                 <div class="space-y-3">
                     <div class="flex items-start justify-between gap-2">
                         <div class="flex items-center gap-3">
-                            <div class="w-11 h-11 rounded-xl wassal-grad text-obsidian font-black flex items-center justify-center text-sm shadow-md">#${idx + 1}</div>
+                            <div class="w-11 h-11 rounded-xl wassal-grad text-obsidian font-black flex items-center justify-center text-sm shadow-md shrink-0">#${idx + 1}</div>
                             <div>
                                 <div class="flex items-center gap-1.5">
                                     <h3 class="font-black text-base text-white">${r.name}</h3>
                                     ${isTopMonth ? `<span class="text-xs" title="الأكثر توصيلاً هذا الشهر">👑</span>` : ''}
                                 </div>
                                 <p class="text-xs text-slate-400">${r.bike} • <span class="text-wassalOrange font-bold">${r.plate}</span></p>
+                                ${r.phone ? `<p class="text-[11px] text-slate-400 font-mono mt-0.5">📞 ${r.phone}</p>` : ''}
                             </div>
                         </div>
-                        <span class="px-2.5 py-1 rounded-lg text-[11px] font-black ${stObj.cls}">${stObj.label}</span>
+                        <span class="px-2.5 py-1 rounded-lg text-[11px] font-black shrink-0 ${stObj.cls}">${stObj.label}</span>
                     </div>
                     ${destHTML}
                 </div>
@@ -862,9 +881,17 @@ function renderRiders() {
                             <div class="font-black text-statusOnway text-xs mt-1">${rStat.avgMins !== null ? rStat.avgMins + ' د' : '—'}</div>
                         </div>
                     </div>
-                    <button type="button" data-action="cycle-rider-status" data-id="${r.id}" class="w-full py-2 rounded-xl bg-slateCard hover:bg-slateHover border border-slateBorder text-xs font-bold text-slate-300 hover:text-white transition-colors">
-                        تغيير الحالة (متاح / في مهمة / غير متاح)
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <button type="button" data-action="cycle-rider-status" data-id="${r.id}" class="flex-1 py-2 px-2 rounded-xl bg-slateCard hover:bg-slateHover border border-slateBorder text-xs font-bold text-slate-300 hover:text-white transition-colors">
+                            تغيير الحالة
+                        </button>
+                        <button type="button" data-action="edit-rider" data-id="${r.id}" class="px-3 py-2 rounded-xl bg-statusOnway/15 hover:bg-statusOnway text-statusOnway hover:text-obsidian border border-statusOnway/30 text-xs font-black transition-colors">
+                            تعديل
+                        </button>
+                        <button type="button" data-action="delete-rider" data-id="${r.id}" class="px-3 py-2 rounded-xl bg-red-500/15 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 text-xs font-black transition-colors">
+                            حذف
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
@@ -1185,8 +1212,8 @@ function switchTab(tabName) {
     }
 
     const titles = {
-        operations: ['غرفة العمليات ومتابعة الطلبات الحية', 'تتبع لحظي لحركة الـ 10 مناديب وأوقات الاستلام والتحرك والتسليم وتوريد المبالغ للمتاجر'],
-        riders: ['أسطول المناديب والموتوسيكلات (10 طيارين)', 'إحصائيات أوردرات اليوم وأوردرات الشهر ومتوسط السرعة لكل مندوب'],
+        operations: ['غرفة العمليات ومتابعة الطلبات الحية', 'تتبع لحظي لحركة المناديب وأوقات الاستلام والتحرك والتسليم وتوريد المبالغ للمتاجر'],
+        riders: [`أسطول المناديب والموتوسيكلات (${appState.riders.length} طيارين)`, 'إحصائيات أوردرات اليوم وأوردرات الشهر ومتوسط السرعة لكل مندوب'],
         stores: ['المتاجر المتعاقدة وترتيب الأكثر عملاً', 'تصنيف المتاجر حسب حجم الأوردرات اليومية والشهرية ونسبة المساهمة'],
         accounting: ['المحاسبة والمصروفات وتقارير الإدارة', 'قائمة الدخل اليومية والشهرية، إدارة المصروفات، وتقارير التقفيل والطباعة']
     };
@@ -1243,6 +1270,34 @@ function openNewOrderModal() {
     modal.classList.add('flex');
 }
 
+function openRiderModal(riderId = null) {
+    const modal = document.getElementById('modal-rider');
+    const titleEl = document.getElementById('modal-rider-title');
+    const idInput = document.getElementById('input-rider-id');
+    const nameInput = document.getElementById('input-rider-name');
+    const bikeInput = document.getElementById('input-rider-bike');
+    const plateInput = document.getElementById('input-rider-plate');
+    const phoneInput = document.getElementById('input-rider-phone');
+
+    if (riderId) {
+        const r = appState.riders.find(item => item.id === riderId);
+        if (!r) return;
+        titleEl.textContent = `✏️ تعديل بيانات المندوب: ${r.name}`;
+        idInput.value = r.id;
+        nameInput.value = r.name;
+        bikeInput.value = r.bike;
+        plateInput.value = r.plate;
+        phoneInput.value = r.phone || '';
+    } else {
+        titleEl.textContent = '+ إضافة مندوب جديد';
+        idInput.value = '';
+        document.getElementById('form-rider').reset();
+    }
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
 // ==================== EVENT DELEGATION ====================
 document.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-action]');
@@ -1281,6 +1336,23 @@ document.addEventListener('click', (e) => {
         const m = document.getElementById('modal-new-store');
         m.classList.remove('hidden');
         m.classList.add('flex');
+    } else if (action === 'open-rider-modal') {
+        openRiderModal(null);
+    } else if (action === 'edit-rider') {
+        openRiderModal(id);
+    } else if (action === 'delete-rider') {
+        const rider = appState.riders.find(r => r.id === id);
+        if (!rider) return;
+        const hasActive = appState.orders.some(o => o.riderId === id && o.status !== 'delivered');
+        if (hasActive) {
+            showToast(`⚠️ لا يمكن حذف ${rider.name} لوجود طلب جاري مكلف به حالياً`);
+            return;
+        }
+        appState.riders = appState.riders.filter(r => r.id !== id);
+        if (uiState.riderFilter === id) uiState.riderFilter = 'all';
+        saveData();
+        renderAll();
+        showToast(`تم حذف المندوب ${rider.name} من الأسطول`);
     } else if (action === 'close-modal') {
         const modalId = btn.getAttribute('data-modal');
         const m = document.getElementById(modalId);
@@ -1465,6 +1537,44 @@ document.getElementById('form-new-store').addEventListener('submit', (e) => {
     modal.classList.add('hidden');
     modal.classList.remove('flex');
     showToast(`تمت إضافة ${name} إلى المتاجر المتعاقدة`);
+});
+
+document.getElementById('form-rider').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const editId = document.getElementById('input-rider-id').value;
+    const name = document.getElementById('input-rider-name').value.trim();
+    const bike = document.getElementById('input-rider-bike').value.trim();
+    const plate = document.getElementById('input-rider-plate').value.trim();
+    const phone = document.getElementById('input-rider-phone').value.trim();
+
+    if (editId) {
+        const rider = appState.riders.find(r => r.id === editId);
+        if (rider) {
+            rider.name = name;
+            rider.bike = bike;
+            rider.plate = plate;
+            rider.phone = phone;
+            showToast(`✅ تم تحديث بيانات المندوب ${name}`);
+        }
+    } else {
+        appState.riders.push({
+            id: 'R' + Date.now(),
+            name,
+            bike,
+            plate,
+            phone,
+            status: 'available'
+        });
+        showToast(`🏍️ تمت إضافة المندوب ${name} إلى الأسطول`);
+    }
+
+    saveData();
+    renderAll();
+
+    e.target.reset();
+    const modal = document.getElementById('modal-rider');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
 });
 
 document.getElementById('search-input').addEventListener('input', renderOrdersBoardAndTable);

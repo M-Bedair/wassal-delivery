@@ -26,10 +26,7 @@ let cloudBridge = null;
 
 function getSystemTodayStr() {
     const d = new Date();
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 function getActiveShiftDate() {
@@ -50,10 +47,7 @@ function getPastDateInCurrentMonth(daysBack) {
     const d = new Date();
     const targetDay = Math.max(1, d.getDate() - daysBack);
     d.setDate(targetDay);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 function formatTime12(ts) {
@@ -146,11 +140,18 @@ function setSyncStatus(status) {
     });
 }
 
+// الطلبات الجارية في غرفة العمليات (تشمل المرتجع الذي لم يُعد للمتجر بعد)
 function isOrderActiveInRoom(o) {
-    return o.status === 'received' || o.status === 'onway' || o.status === 'delivered';
+    return o.status === 'received' || o.status === 'onway' || o.status === 'delivered' || o.status === 'returning';
 }
 
-function isOrderCompleted(o) {
+// الطلبات المنتهية في الأرشيف (سواء تم توريدها بنجاح أو مرتجع أُعيد للمتجر)
+function isOrderArchived(o) {
+    return o.status === 'settled' || o.status === 'returned';
+}
+
+// الطلبات الناجحة فقط لاحتساب مبيعات التجار
+function isOrderSuccessfullySettled(o) {
     return o.status === 'settled';
 }
 
@@ -244,9 +245,7 @@ loadLocalOrDefaultData();
 
 async function initCloudSync() {
     const fallbackTimer = setTimeout(() => {
-        if (!isInitialCloudLoaded) {
-            setSyncStatus('offline');
-        }
+        if (!isInitialCloudLoaded) setSyncStatus('offline');
     }, 5000);
 
     try {
@@ -323,15 +322,21 @@ function getAnalyticsSummary(targetMonth) {
     const todayOrders = appState.orders.filter(o => o.dateStr === today);
     const monthOrders = appState.orders.filter(o => (o.dateStr || '').startsWith(month));
 
-    const todaySettledOrders = todayOrders.filter(o => isOrderCompleted(o));
-    const monthSettledOrders = monthOrders.filter(o => isOrderCompleted(o));
+    const todaySettledOrders = todayOrders.filter(o => isOrderSuccessfullySettled(o));
+    const monthSettledOrders = monthOrders.filter(o => isOrderSuccessfullySettled(o));
+    const todayReturnedOrders = todayOrders.filter(o => o.status === 'returned' || o.status === 'returning');
+    const monthReturnedOrders = monthOrders.filter(o => o.status === 'returned' || o.status === 'returning');
 
-    const todayRev = todaySettledOrders.reduce((s, o) => s + Number(o.fee), 0);
+    // الإيرادات تشمل الطلبات الموردة + رسوم التوصيل المحتسبة على المرتجعات المقفلة
+    const todayArchived = todayOrders.filter(o => isOrderArchived(o));
+    const monthArchived = monthOrders.filter(o => isOrderArchived(o));
+
+    const todayRev = todayArchived.reduce((s, o) => s + Number(o.fee), 0);
     const todaySettled = todaySettledOrders.reduce((s, o) => s + Number(o.amount), 0);
     const todayExp = appState.expenses.filter(e => e.dateStr === today).reduce((s, e) => s + Number(e.amount), 0);
     const todayProfit = todayRev - todayExp;
 
-    const monthRev = monthSettledOrders.reduce((s, o) => s + Number(o.fee), 0);
+    const monthRev = monthArchived.reduce((s, o) => s + Number(o.fee), 0);
     const monthSettled = monthSettledOrders.reduce((s, o) => s + Number(o.amount), 0);
     const monthExpensesList = appState.expenses.filter(e => (e.dateStr || '').startsWith(month));
     const monthExp = monthExpensesList.reduce((s, e) => s + Number(e.amount), 0);
@@ -340,9 +345,10 @@ function getAnalyticsSummary(targetMonth) {
     const storeStats = appState.stores.map(s => {
         const sToday = todayOrders.filter(o => o.storeId === s.id);
         const sMonth = monthOrders.filter(o => o.storeId === s.id);
-        const sMonthDone = sMonth.filter(o => isOrderCompleted(o));
-        const settledMonth = sMonthDone.reduce((sum, o) => sum + Number(o.amount), 0);
-        const feeMonth = sMonthDone.reduce((sum, o) => sum + Number(o.fee), 0);
+        const sMonthSuccess = sMonth.filter(o => isOrderSuccessfullySettled(o));
+        const sMonthArchived = sMonth.filter(o => isOrderArchived(o));
+        const settledMonth = sMonthSuccess.reduce((sum, o) => sum + Number(o.amount), 0);
+        const feeMonth = sMonthArchived.reduce((sum, o) => sum + Number(o.fee), 0);
         const sharePct = monthOrders.length > 0 ? Math.round((sMonth.length / monthOrders.length) * 100) : 0;
         return { store: s, todayCount: sToday.length, monthCount: sMonth.length, settledMonth, feeMonth, sharePct };
     }).sort((a, b) => b.monthCount - a.monthCount || b.todayCount - a.todayCount);
@@ -351,11 +357,12 @@ function getAnalyticsSummary(targetMonth) {
         const rToday = todayOrders.filter(o => o.riderId === r.id);
         const rMonth = monthOrders.filter(o => o.riderId === r.id);
         const rAll = appState.orders.filter(o => o.riderId === r.id);
-        const rMonthDone = rMonth.filter(o => isOrderCompleted(o));
-        const rAllDone = rAll.filter(o => o.status === 'delivered' || isOrderCompleted(o));
+        const rMonthSuccess = rMonth.filter(o => isOrderSuccessfullySettled(o));
+        const rMonthArchived = rMonth.filter(o => isOrderArchived(o));
+        const rAllDone = rAll.filter(o => o.status === 'delivered' || isOrderSuccessfullySettled(o));
 
-        const settledMonth = rMonthDone.reduce((sum, o) => sum + Number(o.amount), 0);
-        const feeMonth = rMonthDone.reduce((sum, o) => sum + Number(o.fee), 0);
+        const settledMonth = rMonthSuccess.reduce((sum, o) => sum + Number(o.amount), 0);
+        const feeMonth = rMonthArchived.reduce((sum, o) => sum + Number(o.fee), 0);
         const avgMins = rAllDone.length > 0
             ? Math.round(rAllDone.reduce((sum, o) => sum + getOrderDurations(o).deliveryMins, 0) / rAllDone.length)
             : null;
@@ -363,7 +370,7 @@ function getAnalyticsSummary(targetMonth) {
         return { rider: r, todayCount: rToday.length, monthCount: rMonth.length, settledMonth, feeMonth, avgMins };
     }).sort((a, b) => b.monthCount - a.monthCount || b.todayCount - a.todayCount);
 
-    return { today, month, todayOrders, monthOrders, todaySettledOrders, monthSettledOrders, todayRev, todaySettled, todayExp, todayProfit, monthRev, monthSettled, monthExpensesList, monthExp, monthProfit, storeStats, riderStats };
+    return { today, month, todayOrders, monthOrders, todaySettledOrders, monthSettledOrders, todayReturnedOrders, monthReturnedOrders, todayRev, todaySettled, todayExp, todayProfit, monthRev, monthSettled, monthExpensesList, monthExp, monthProfit, storeStats, riderStats };
 }
 
 function buildWhatsAppMessage(o) {
@@ -375,13 +382,15 @@ function buildWhatsAppMessage(o) {
         received: '🟡 تم الاستلام من المتجر',
         onway: '🔵 في الطريق للعميل',
         delivered: '🟢 تم التسليم للعميل (جاري التوريد)',
-        settled: '✅ تم التوريد للمتجر والعودة للمكتب'
+        settled: '✅ تم التوريد للمتجر والعودة للمكتب',
+        returning: `🔴 مرتجع (جاري إعادته للمتجر) — السبب: ${o.returnReason || 'لم يستلم'}`,
+        returned: `↩️ مرتجع (تمت إعادته للمتجر) — السبب: ${o.returnReason || 'لم يستلم'}`
     };
 
     return [
         `🟠 *تحديث أوردر وصّل - WASSAL*`,
         `• رقم الطلب: *#${o.id}* (${o.dateStr || getActiveShiftDate()})`,
-        `• الحالة: *${statusArabic[o.status]}*`,
+        `• الحالة: *${statusArabic[o.status] || o.status}*`,
         `• المتجر: ${st.name} (${st.category})`,
         `• المندوب: ${rd.name} (${rd.plate})`,
         `• العميل: ${o.customerName} (${o.phone})`,
@@ -389,8 +398,10 @@ function buildWhatsAppMessage(o) {
         `• وقت الاستلام: ${formatTime12(o.receivedTs)}`,
         o.departedTs ? `• وقت التحرك: ${formatTime12(o.departedTs)}` : null,
         o.deliveredTs ? `• وقت التسليم: ${formatTime12(o.deliveredTs)} (مدة التوصيل: ${deliveryMins} دقيقة)` : null,
-        o.settledTs ? `• وقت التوريد والعودة: ${formatTime12(o.settledTs)}` : null,
-        `• المطلوب تحصيله: *${Number(o.amount) + Number(o.fee)} ج.م*`,
+        o.settledTs ? `• وقت الإغلاق والعودة: ${formatTime12(o.settledTs)}` : null,
+        (o.status === 'returning' || o.status === 'returned')
+            ? `• رسوم التوصيل للمرتجع: *${o.fee} ج.م*`
+            : `• المطلوب تحصيله: *${Number(o.amount) + Number(o.fee)} ج.م*`,
         `_وصّل .. هتشوف الفرق_`
     ].filter(Boolean).join('\n');
 }
@@ -437,9 +448,9 @@ function renderKPIs() {
     const activeOrdersList = appState.orders.filter(o => isOrderActiveInRoom(o));
     const pickedCount = activeOrdersList.filter(o => o.status === 'received').length;
     const onwayCount = activeOrdersList.filter(o => o.status === 'onway').length;
-    const delivWaitCount = activeOrdersList.filter(o => o.status === 'delivered').length;
+    const delivWaitCount = activeOrdersList.filter(o => o.status === 'delivered' || o.status === 'returning').length;
     const activeTotal = activeOrdersList.length;
-    const settledTotalCount = appState.orders.filter(o => isOrderCompleted(o)).length;
+    const archivedTotalCount = appState.orders.filter(o => isOrderArchived(o)).length;
 
     const totalRidersCount = appState.riders.length;
     const availRiders = appState.riders.filter(r => r.status === 'available').length;
@@ -447,14 +458,14 @@ function renderKPIs() {
 
     document.getElementById('kpi-today-orders').textContent = currentStats.todayOrders.length;
     document.getElementById('kpi-month-orders').textContent = currentStats.monthOrders.length;
-    document.getElementById('kpi-delivered-sub').textContent = currentStats.todaySettledOrders.length;
+    document.getElementById('kpi-delivered-sub').textContent = `${currentStats.todaySettledOrders.length} (مرتجع: ${currentStats.todayReturnedOrders.length})`;
     document.getElementById('kpi-total').textContent = appState.orders.length;
 
     document.getElementById('kpi-active').textContent = activeTotal;
     document.getElementById('kpi-picked-count').textContent = `${pickedCount} استلام`;
     document.getElementById('kpi-onway-count').textContent = `${onwayCount} طريق`;
     const delivWaitEl = document.getElementById('kpi-deliv-wait-count');
-    if (delivWaitEl) delivWaitEl.textContent = `${delivWaitCount} توريد`;
+    if (delivWaitEl) delivWaitEl.textContent = `${delivWaitCount} توريد/مرتجع`;
 
     const topM = currentStats.storeStats[0];
     if (topM && topM.monthCount > 0) {
@@ -480,7 +491,7 @@ function renderKPIs() {
 
     document.getElementById('nav-badge-active').textContent = activeTotal;
     const settledBadge = document.getElementById('nav-badge-settled');
-    if (settledBadge) settledBadge.textContent = settledTotalCount;
+    if (settledBadge) settledBadge.textContent = archivedTotalCount;
     const navLabelRiders = document.getElementById('nav-label-riders');
     if (navLabelRiders) navLabelRiders.textContent = `المناديب والموتوسيكلات (${totalRidersCount})`;
     document.getElementById('nav-badge-riders').textContent = `${availRiders}/${totalRidersCount}`;
@@ -519,7 +530,10 @@ function renderFleetRibbon() {
         if (activeOrder) {
             const { totalMins } = getOrderDurations(activeOrder);
             const st = getStore(activeOrder.storeId);
-            if (activeOrder.status === 'delivered') {
+            if (activeOrder.status === 'returning') {
+                dotClass = 'bg-red-500 animate-pulse';
+                subText = `مرتجع لـ ${st.name} (${totalMins}د)`;
+            } else if (activeOrder.status === 'delivered') {
                 dotClass = 'bg-statusDone animate-pulse';
                 subText = `توريد لـ ${st.name} (${totalMins}د)`;
             } else if (activeOrder.status === 'onway') {
@@ -560,7 +574,8 @@ function getFilteredActiveOrders() {
             st.name.toLowerCase().includes(q) ||
             rd.name.toLowerCase().includes(q);
         const matchRider = uiState.riderFilter === 'all' || o.riderId === uiState.riderFilter;
-        const matchStatus = uiState.statusFilter === 'all' || o.status === uiState.statusFilter;
+        const matchStatus = uiState.statusFilter === 'all' ||
+            (uiState.statusFilter === 'delivered' ? (o.status === 'delivered' || o.status === 'returning') : o.status === uiState.statusFilter);
         return matchText && matchRider && matchStatus;
     });
 }
@@ -568,14 +583,21 @@ function getFilteredActiveOrders() {
 function renderOrdersBoardAndTable() {
     const filtered = getFilteredActiveOrders();
 
+    // العمود 1: received | العمود 2: onway | العمود 3: delivered + returning
+    const colLists = {
+        received: filtered.filter(o => o.status === 'received'),
+        onway: filtered.filter(o => o.status === 'onway'),
+        delivered: filtered.filter(o => o.status === 'delivered' || o.status === 'returning')
+    };
+
     ['received', 'onway', 'delivered'].forEach(stage => {
-        const list = filtered.filter(o => o.status === stage);
+        const list = colLists[stage];
         document.getElementById(`col-count-${stage}`).textContent = list.length;
         const container = document.getElementById(`col-list-${stage}`);
 
         if (list.length === 0) {
             const emptyMsg = stage === 'delivered'
-                ? 'لا توجد طلبات بانتظار التوريد للمتجر'
+                ? 'لا توجد طلبات بانتظار التوريد أو إرجاعها للمتجر'
                 : 'لا توجد طلبات جارية في هذه المرحلة';
             container.innerHTML = `<div class="h-44 border border-dashed border-slateBorder rounded-2xl flex items-center justify-center text-slate-500 text-xs text-center px-3">${emptyMsg}</div>`;
             return;
@@ -585,26 +607,33 @@ function renderOrdersBoardAndTable() {
 
     const tbody = document.getElementById('quick-table-body');
     if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="py-10 text-center text-slate-500">لا توجد طلبات جارية مطابقة (الطلبات الموردة تنتقل تلقائياً للأرشيف)</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="py-10 text-center text-slate-500">لا توجد طلبات جارية مطابقة (الطلبات الموردة والمرتجعات المنتهية تنتقل للأرشيف)</td></tr>`;
         return;
     }
     tbody.innerHTML = filtered.map(o => {
         const st = getStore(o.storeId);
         const rd = getRider(o.riderId);
         const { totalMins } = getOrderDurations(o);
-        const isOverdue = o.status !== 'delivered' && totalMins > 35;
+        const isOverdue = o.status !== 'delivered' && o.status !== 'returning' && totalMins > 35;
 
         const statusPill = o.status === 'received'
             ? `<span class="px-2.5 py-1 rounded-lg bg-statusPicked/15 border border-statusPicked/40 text-statusPicked font-black text-[11px]">1. تم الاستلام • ${totalMins} د</span>`
             : o.status === 'onway'
             ? `<span class="px-2.5 py-1 rounded-lg ${isOverdue ? 'bg-red-500/20 border-red-500 text-red-400 animate-pulse' : 'bg-statusOnway/15 border-statusOnway/40 text-statusOnway'} border font-black text-[11px]">2. في الطريق • ${totalMins} د</span>`
+            : o.status === 'returning'
+            ? `<span class="px-2.5 py-1 rounded-lg bg-red-500/20 border border-red-500/50 text-red-400 font-black text-[11px]">↩️ مرتجع (${o.returnReason || ''})</span>`
             : `<span class="px-2.5 py-1 rounded-lg bg-statusDone/15 border border-statusDone/40 text-statusDone font-black text-[11px]">3. تم التسليم (توريد)</span>`;
 
         const quickAction = o.status === 'received'
             ? `<button type="button" data-action="move-onway" data-id="${o.id}" class="px-2.5 py-1.5 rounded-lg bg-statusOnway/20 hover:bg-statusOnway text-statusOnway hover:text-obsidian font-black text-[11px] transition-colors">تحرك للعميل ➔</button>`
             : o.status === 'onway'
-            ? `<button type="button" data-action="move-delivered" data-id="${o.id}" class="px-2.5 py-1.5 rounded-lg bg-statusDone/20 hover:bg-statusDone text-statusDone hover:text-obsidian font-black text-[11px] transition-colors">✓ تم التسليم</button>`
-            : `<button type="button" data-action="move-settled" data-id="${o.id}" class="px-2.5 py-1.5 rounded-lg wassal-grad text-obsidian font-black text-[11px] transition-colors">💰 تم التوريد والعودة</button>`;
+            ? `<div class="flex items-center gap-1">
+                <button type="button" data-action="move-delivered" data-id="${o.id}" class="px-2 py-1.5 rounded-lg bg-statusDone/20 hover:bg-statusDone text-statusDone hover:text-obsidian font-black text-[11px]">✓ تسليم</button>
+                <button type="button" data-action="open-return-modal" data-id="${o.id}" class="px-2 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white font-black text-[11px]">↩️ مرتجع</button>
+               </div>`
+            : o.status === 'returning'
+            ? `<button type="button" data-action="move-returned-done" data-id="${o.id}" class="px-2.5 py-1.5 rounded-lg bg-red-500 text-white font-black text-[11px]">📦 تسليم المرتجع للمتجر</button>`
+            : `<button type="button" data-action="move-settled" data-id="${o.id}" class="px-2.5 py-1.5 rounded-lg wassal-grad text-obsidian font-black text-[11px]">💰 تم التوريد والعودة</button>`;
 
         return `
             <tr data-action="open-drawer" data-id="${o.id}" class="hover:bg-slateCard/90 cursor-pointer transition-colors">
@@ -624,7 +653,7 @@ function renderOrdersBoardAndTable() {
                     ${o.departedTs ? `<div>تحرك: <strong class="text-statusOnway">${formatTime12(o.departedTs)}</strong></div>` : ''}
                     ${o.deliveredTs ? `<div>تسليم: <strong class="text-statusDone">${formatTime12(o.deliveredTs)}</strong></div>` : ''}
                 </td>
-                <td class="px-4 py-3.5 font-black text-white">${Number(o.amount) + Number(o.fee)} ج.م</td>
+                <td class="px-4 py-3.5 font-black text-white">${o.status === 'returning' ? o.fee + ' ج.م (توصيل)' : (Number(o.amount) + Number(o.fee)) + ' ج.م'}</td>
                 <td class="px-4 py-3.5 text-center">
                     <div class="flex items-center justify-center gap-1.5">
                         ${quickAction}
@@ -640,9 +669,12 @@ function buildOrderCard(o) {
     const store = getStore(o.storeId);
     const rider = getRider(o.riderId);
     const { totalMins, deliveryMins } = getOrderDurations(o);
-    const isOverdue = o.status !== 'delivered' && totalMins > 35;
+    const isReturning = o.status === 'returning';
+    const isOverdue = o.status !== 'delivered' && !isReturning && totalMins > 35;
 
-    const timeBadge = o.status === 'delivered'
+    const timeBadge = isReturning
+        ? `<span class="px-2 py-0.5 rounded-lg bg-red-500/20 border border-red-500/50 text-red-400 font-black text-[10px]">↩️ مرتجع</span>`
+        : o.status === 'delivered'
         ? `<span class="px-2 py-0.5 rounded-lg bg-statusDone/15 border border-statusDone/30 text-statusDone font-black text-[10px]">✓ سُلّم في ${deliveryMins} د</span>`
         : `<span class="px-2 py-0.5 rounded-lg ${isOverdue ? 'bg-red-500/20 border-red-500 text-red-400 animate-pulse' : 'bg-slateDark border-slateBorder text-slate-200'} border font-black text-[10px]">⏳ منذ ${totalMins} د</span>`;
 
@@ -650,13 +682,26 @@ function buildOrderCard(o) {
     if (o.status === 'received') {
         actionButton = `<button type="button" data-action="move-onway" data-id="${o.id}" class="w-full py-2.5 px-3 rounded-xl bg-statusOnway/20 hover:bg-statusOnway text-statusOnway hover:text-obsidian border border-statusOnway/40 font-black text-xs transition-all">تحرك للعميل ➔</button>`;
     } else if (o.status === 'onway') {
-        actionButton = `<button type="button" data-action="move-delivered" data-id="${o.id}" class="w-full py-2.5 px-3 rounded-xl bg-statusDone/20 hover:bg-statusDone text-statusDone hover:text-obsidian border border-statusDone/40 font-black text-xs transition-all">✓ تم التسليم للعميل</button>`;
+        actionButton = `
+            <div class="grid grid-cols-3 gap-1.5">
+                <button type="button" data-action="move-delivered" data-id="${o.id}" class="col-span-2 py-2.5 px-2 rounded-xl bg-statusDone/20 hover:bg-statusDone text-statusDone hover:text-obsidian border border-statusDone/40 font-black text-xs transition-all">✓ تم التسليم</button>
+                <button type="button" data-action="open-return-modal" data-id="${o.id}" class="py-2.5 px-2 rounded-xl bg-red-500/15 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/40 font-black text-xs transition-all">↩️ مرتجع</button>
+            </div>
+        `;
     } else if (o.status === 'delivered') {
         actionButton = `<button type="button" data-action="move-settled" data-id="${o.id}" class="w-full py-2.5 px-3 rounded-xl wassal-grad wassal-grad-hover text-obsidian font-black text-xs shadow-md shadow-orange-500/20 transition-all">💰 تم التوريد والعودة للمكتب</button>`;
+    } else if (isReturning) {
+        actionButton = `<button type="button" data-action="move-returned-done" data-id="${o.id}" class="w-full py-2.5 px-3 rounded-xl bg-red-500 hover:bg-red-600 text-white font-black text-xs shadow-md shadow-red-500/20 transition-all">📦 تم تسليم المرتجع للمتجر والعودة</button>`;
     }
 
+    const returnReasonBox = isReturning ? `
+        <div class="bg-red-500/15 border border-red-500/40 rounded-xl p-2 text-[11px] text-red-300 font-bold">
+            ⚠️ سبب الإرجاع: ${o.returnReason || 'العميل لم يستلم'}
+        </div>
+    ` : '';
+
     return `
-        <div data-action="open-drawer" data-id="${o.id}" class="bg-slateCard hover:bg-slateHover border ${isOverdue ? 'border-red-500/70' : 'border-slateBorder hover:border-wassalOrange/50'} rounded-2xl p-4 space-y-3 cursor-pointer transition-all shadow-md">
+        <div data-action="open-drawer" data-id="${o.id}" class="bg-slateCard hover:bg-slateHover border ${isReturning || isOverdue ? 'border-red-500/70' : 'border-slateBorder hover:border-wassalOrange/50'} rounded-2xl p-4 space-y-3 cursor-pointer transition-all shadow-md">
             <div class="flex items-center justify-between gap-1.5">
                 <div class="flex items-center gap-1.5 flex-wrap">
                     <span class="px-2.5 py-0.5 rounded-lg bg-obsidian border border-wassalOrange/40 text-wassalOrange font-black text-xs">#${o.id}</span>
@@ -666,6 +711,8 @@ function buildOrderCard(o) {
                     <button type="button" data-action="copy-whatsapp" data-id="${o.id}" class="px-2.5 py-1 rounded-lg bg-obsidian hover:bg-statusDone/20 text-slate-300 hover:text-statusDone border border-slateBorder text-[11px] font-bold transition-colors">واتساب</button>
                 </div>
             </div>
+
+            ${returnReasonBox}
 
             <div class="bg-obsidian/90 rounded-xl p-2 border border-slateBorder grid grid-cols-3 gap-1 text-center text-[11px]">
                 <div>
@@ -677,8 +724,8 @@ function buildOrderCard(o) {
                     <div class="font-black ${o.departedTs ? 'text-white' : 'text-slate-600'}">${formatTime12(o.departedTs)}</div>
                 </div>
                 <div>
-                    <div class="text-[10px] text-statusDone font-bold">3. تسليم</div>
-                    <div class="font-black ${o.deliveredTs ? 'text-statusDone' : 'text-slate-600'}">${formatTime12(o.deliveredTs)}</div>
+                    <div class="text-[10px] ${isReturning ? 'text-red-400' : 'text-statusDone'} font-bold">${isReturning ? 'مرتجع' : '3. تسليم'}</div>
+                    <div class="font-black ${isReturning ? 'text-red-400' : (o.deliveredTs ? 'text-statusDone' : 'text-slate-600')}">${isReturning ? formatTime12(o.returnedTs) : formatTime12(o.deliveredTs)}</div>
                 </div>
             </div>
 
@@ -704,15 +751,15 @@ function buildOrderCard(o) {
             <div class="grid grid-cols-3 gap-1 bg-obsidian rounded-xl p-2 border border-slateBorder text-center text-xs">
                 <div>
                     <div class="text-[10px] text-slate-400">توريد للمتجر</div>
-                    <div class="font-extrabold text-white">${o.amount} ج.م</div>
+                    <div class="font-extrabold ${isReturning ? 'line-through text-slate-500' : 'text-white'}">${o.amount} ج.م</div>
                 </div>
                 <div class="border-x border-slateBorder">
                     <div class="text-[10px] text-slate-400">التوصيل</div>
                     <div class="font-extrabold text-wassalOrange">${o.fee} ج.م</div>
                 </div>
                 <div>
-                    <div class="text-[10px] text-slate-400">الإجمالي</div>
-                    <div class="font-black text-statusDone">${Number(o.amount) + Number(o.fee)} ج.م</div>
+                    <div class="text-[10px] text-slate-400">المطلوب</div>
+                    <div class="font-black ${isReturning ? 'text-red-400' : 'text-statusDone'}">${isReturning ? o.fee : (Number(o.amount) + Number(o.fee))} ج.م</div>
                 </div>
             </div>
 
@@ -734,7 +781,6 @@ function renderArchive() {
         datePicker.value = uiState.archiveDateFilter;
     }
 
-    // Collect unique dates sorted desc
     const dateSet = new Set([activeD, ...appState.orders.map(o => o.dateStr).filter(Boolean)]);
     const sortedDates = Array.from(dateSet).sort((a, b) => b.localeCompare(a));
 
@@ -756,12 +802,13 @@ function renderArchive() {
         ? appState.orders.filter(o => o.dateStr === uiState.archiveDateFilter)
         : appState.orders;
 
-    const settledOnly = filteredOrders.filter(o => isOrderCompleted(o));
+    const settledOnly = filteredOrders.filter(o => isOrderSuccessfullySettled(o));
+    const archivedAll = filteredOrders.filter(o => isOrderArchived(o));
     const merchantCash = settledOnly.reduce((s, o) => s + Number(o.amount), 0);
-    const feesCash = settledOnly.reduce((s, o) => s + Number(o.fee), 0);
+    const feesCash = archivedAll.reduce((s, o) => s + Number(o.fee), 0);
 
     document.getElementById('arch-stat-count').textContent = filteredOrders.length;
-    document.getElementById('arch-stat-settled-count').textContent = settledOnly.length;
+    document.getElementById('arch-stat-settled-count').textContent = `${settledOnly.length} (مرتجع: ${filteredOrders.filter(o => o.status === 'returned' || o.status === 'returning').length})`;
     document.getElementById('arch-stat-merchant-cash').textContent = `${merchantCash.toLocaleString('ar-EG')} ج.م`;
     document.getElementById('arch-stat-fees').textContent = `${feesCash.toLocaleString('ar-EG')} ج.م`;
 
@@ -775,15 +822,22 @@ function renderArchive() {
             const statusMap = {
                 received: `<span class="px-2 py-0.5 rounded bg-statusPicked/20 text-statusPicked font-black text-[11px]">تم الاستلام</span>`,
                 onway: `<span class="px-2 py-0.5 rounded bg-statusOnway/20 text-statusOnway font-black text-[11px]">في الطريق</span>`,
-                delivered: `<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-black text-[11px]">تم التسليم (بانتظار التوريد)</span>`,
-                settled: `<span class="px-2 py-0.5 rounded bg-statusDone/20 text-statusDone font-black text-[11px]">✓ تم التوريد والعودة</span>`
+                delivered: `<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-black text-[11px]">تم التسليم (توريد)</span>`,
+                settled: `<span class="px-2 py-0.5 rounded bg-statusDone/20 text-statusDone font-black text-[11px]">✓ تم التوريد والعودة</span>`,
+                returning: `<span class="px-2 py-0.5 rounded bg-red-500/20 text-red-400 font-black text-[11px]">↩️ مرتجع (بالطريق للمتجر)</span>`,
+                returned: `<span class="px-2 py-0.5 rounded bg-red-500/20 text-red-300 font-black text-[11px]">↩️ مرتجع أُعيد للمتجر</span>`
             };
+
+            const isRet = o.status === 'returning' || o.status === 'returned';
 
             return `
                 <tr data-action="open-drawer" data-id="${o.id}" class="hover:bg-slateCard/80 cursor-pointer">
                     <td class="px-3.5 py-3 font-black text-wassalOrange">#${o.id}</td>
                     <td class="px-3.5 py-3 font-mono text-slate-400">${o.dateStr}</td>
-                    <td class="px-3.5 py-3">${statusMap[o.status] || o.status}</td>
+                    <td class="px-3.5 py-3">
+                        <div>${statusMap[o.status] || o.status}</div>
+                        ${isRet && o.returnReason ? `<div class="text-[10px] text-red-400 mt-0.5">السبب: ${o.returnReason}</div>` : ''}
+                    </td>
                     <td class="px-3.5 py-3 font-bold text-white">${st.name}</td>
                     <td class="px-3.5 py-3">
                         <div class="text-slate-200 font-bold">${o.customerName}</div>
@@ -793,21 +847,22 @@ function renderArchive() {
                     <td class="px-3.5 py-3 text-[11px]">
                         <span class="text-statusPicked font-bold">${formatTime12(o.receivedTs)}</span> ➔
                         <span class="text-statusOnway font-bold">${formatTime12(o.departedTs)}</span> ➔
-                        <span class="text-emerald-300 font-bold">${formatTime12(o.deliveredTs)}</span> ➔
+                        <span class="${isRet ? 'text-red-400' : 'text-emerald-300'} font-bold">${isRet ? formatTime12(o.returnedTs) : formatTime12(o.deliveredTs)}</span> ➔
                         <span class="text-statusDone font-black">${formatTime12(o.settledTs)}</span>
                     </td>
                     <td class="px-3.5 py-3 font-black">
-                        <span class="text-white">${o.amount}</span> + <span class="text-wassalOrange">${o.fee} ج.م</span>
+                        ${isRet
+                            ? `<span class="text-red-400">مرتجع</span> + <span class="text-wassalOrange">${o.fee} ج.م</span>`
+                            : `<span class="text-white">${o.amount}</span> + <span class="text-wassalOrange">${o.fee} ج.م</span>`}
                     </td>
                 </tr>
             `;
         }).join('');
     }
 
-    // Closed Days History Table
     const closedBody = document.getElementById('closed-days-body');
     if (appState.closedDays.length === 0) {
-        closedBody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-500">لم يتم إقفال أي يومية سابقة بعد. عند انتهاء العمل اضغط "إقفال اليوم الحالي وبدء يوم جديد".</td></tr>`;
+        closedBody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-500">لم يتم إقفال أي يومية سابقة بعد.</td></tr>`;
     } else {
         closedBody.innerHTML = appState.closedDays.map(cd => `
             <tr class="hover:bg-slateCard/80">
@@ -830,24 +885,36 @@ function openCloseDayModal() {
     const activeD = getActiveShiftDate();
     const unFinished = appState.orders.filter(o => o.dateStr === activeD && isOrderActiveInRoom(o));
     const dayOrders = appState.orders.filter(o => o.dateStr === activeD);
-    const daySettled = dayOrders.filter(o => isOrderCompleted(o));
-    const rev = daySettled.reduce((s, o) => s + Number(o.fee), 0);
+    const daySettled = dayOrders.filter(o => isOrderSuccessfullySettled(o));
+    const dayArchived = dayOrders.filter(o => isOrderArchived(o));
+    const rev = dayArchived.reduce((s, o) => s + Number(o.fee), 0);
     const cash = daySettled.reduce((s, o) => s + Number(o.amount), 0);
     const exp = appState.expenses.filter(e => e.dateStr === activeD).reduce((s, e) => s + Number(e.amount), 0);
 
     const box = document.getElementById('close-day-summary-box');
     box.innerHTML = `
         <div class="flex justify-between"><span class="text-slate-400">اليوم الجاري إقفاله:</span><strong class="text-wassalOrange font-mono">${activeD}</strong></div>
-        <div class="flex justify-between"><span class="text-slate-400">أوردرات تم توريدها:</span><strong class="text-statusDone">${daySettled.length} من أصل ${dayOrders.length}</strong></div>
+        <div class="flex justify-between"><span class="text-slate-400">أوردرات ناجحة / مرتجعة:</span><strong class="text-statusDone">${daySettled.length} ناجح • ${dayOrders.filter(o => o.status === 'returned').length} مرتجع</strong></div>
         <div class="flex justify-between"><span class="text-slate-400">مبالغ موردة للمتاجر:</span><strong class="text-white">${cash.toLocaleString('ar-EG')} ج.م</strong></div>
         <div class="flex justify-between"><span class="text-slate-400">إيراد التوصيل:</span><strong class="text-statusDone">${rev.toLocaleString('ar-EG')} ج.م</strong></div>
         <div class="flex justify-between"><span class="text-slate-400">المصروفات المسجلة:</span><strong class="text-red-400">${exp.toLocaleString('ar-EG')} ج.م</strong></div>
         <div class="pt-2 border-t border-slateBorder flex justify-between text-sm"><span class="font-black text-white">صافي ربح اليومية:</span><strong class="text-wassalOrange font-black">${(rev - exp).toLocaleString('ar-EG')} ج.م</strong></div>
-        ${unFinished.length > 0 ? `<div class="mt-2 p-2 rounded-lg bg-red-500/15 border border-red-500/40 text-red-300 text-[11px] font-bold">⚠️ تنبيه: يوجد ${unFinished.length} طلب لم يتم توريده بعد (سيبقى ظاهراً في غرفة العمليات لإنهائه).</div>` : ''}
+        ${unFinished.length > 0 ? `<div class="mt-2 p-2 rounded-lg bg-red-500/15 border border-red-500/40 text-red-300 text-[11px] font-bold">⚠️ تنبيه: يوجد ${unFinished.length} طلب لم يُغلق بعد (سيبقى ظاهراً في غرفة العمليات لإنهائه).</div>` : ''}
     `;
 
     document.getElementById('input-next-shift-date').value = getNextDateStr(activeD);
     const modal = document.getElementById('modal-close-day');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function openReturnModal(orderId) {
+    const o = appState.orders.find(item => item.id === orderId);
+    if (!o) return;
+    document.getElementById('input-return-order-id').value = o.id;
+    document.getElementById('return-modal-order-id').textContent = `#${o.id} (${o.customerName})`;
+    document.getElementById('input-return-reason-note').value = '';
+    const modal = document.getElementById('modal-return-order');
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 }
@@ -861,6 +928,7 @@ function openOrderDrawer(orderId) {
     const st = getStore(o.storeId);
     const rd = getRider(o.riderId);
     const { totalMins, deliveryMins, waitMins, roadMins } = getOrderDurations(o);
+    const isRet = o.status === 'returning' || o.status === 'returned';
 
     document.getElementById('drawer-order-id').textContent = `#${o.id}`;
     const badge = document.getElementById('drawer-status-badge');
@@ -873,6 +941,12 @@ function openOrderDrawer(orderId) {
     } else if (o.status === 'delivered') {
         badge.className = 'px-2.5 py-1 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-black';
         badge.textContent = '3. تم التسليم (بانتظار التوريد)';
+    } else if (o.status === 'returning') {
+        badge.className = 'px-2.5 py-1 rounded-lg bg-red-500/20 border border-red-500/40 text-red-400 text-xs font-black';
+        badge.textContent = '↩️ مرتجع (جاري إعادته للمتجر)';
+    } else if (o.status === 'returned') {
+        badge.className = 'px-2.5 py-1 rounded-lg bg-red-500/20 border border-red-500/40 text-red-300 text-xs font-black';
+        badge.textContent = '↩️ مرتجع أُعيد للمتجر';
     } else {
         badge.className = 'px-2.5 py-1 rounded-lg bg-statusDone/20 border border-statusDone/40 text-statusDone text-xs font-black';
         badge.textContent = '4. تم التوريد والعودة';
@@ -881,10 +955,16 @@ function openOrderDrawer(orderId) {
     const waMessage = buildWhatsAppMessage(o);
 
     document.getElementById('drawer-content').innerHTML = `
+        ${isRet ? `
+        <div class="bg-red-500/15 border border-red-500/40 rounded-2xl p-3.5 text-xs space-y-1">
+            <div class="font-black text-red-400">⚠️ طلب مرتجع (لم يتم الاستلام)</div>
+            <div class="text-slate-200 font-bold">السبب: ${o.returnReason || 'غير محدد'}</div>
+        </div>` : ''}
+
         <div class="bg-slateCard border border-slateBorder rounded-2xl p-4 space-y-4">
             <div class="flex items-center justify-between">
                 <h4 class="text-xs font-black text-white">⏱️ دورة حياة الطلب الكاملة (${o.dateStr})</h4>
-                <span class="text-xs font-black text-wassalOrange">مدة التوصيل: ${deliveryMins} د</span>
+                <span class="text-xs font-black text-wassalOrange">المدة: ${deliveryMins} د</span>
             </div>
 
             <div class="relative pr-6 space-y-4 before:content-[''] before:absolute before:right-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slateBorder">
@@ -906,10 +986,10 @@ function openOrderDrawer(orderId) {
                 </div>
 
                 <div class="relative">
-                    <span class="absolute -right-6 top-1 w-3.5 h-3.5 rounded-full ${o.deliveredTs ? 'bg-emerald-400 ring-4 ring-emerald-400/20' : 'bg-slate-600'}"></span>
+                    <span class="absolute -right-6 top-1 w-3.5 h-3.5 rounded-full ${isRet ? 'bg-red-500 ring-4 ring-red-500/20' : (o.deliveredTs ? 'bg-emerald-400 ring-4 ring-emerald-400/20' : 'bg-slate-600')}"></span>
                     <div class="flex items-center justify-between text-xs">
-                        <span class="font-black ${o.deliveredTs ? 'text-emerald-300' : 'text-slate-500'}">3. التسليم للعميل</span>
-                        <span class="font-black ${o.deliveredTs ? 'text-emerald-300' : 'text-slate-500'}">${formatTime12(o.deliveredTs)}</span>
+                        <span class="font-black ${isRet ? 'text-red-400' : (o.deliveredTs ? 'text-emerald-300' : 'text-slate-500')}">${isRet ? '3. تعذر التسليم (مرتجع)' : '3. التسليم للعميل'}</span>
+                        <span class="font-black ${isRet ? 'text-red-400' : (o.deliveredTs ? 'text-emerald-300' : 'text-slate-500')}">${isRet ? formatTime12(o.returnedTs) : formatTime12(o.deliveredTs)}</span>
                     </div>
                     ${roadMins !== null ? `<p class="text-[11px] text-slate-400">مدة الطريق: ${roadMins} دقيقة</p>` : ''}
                 </div>
@@ -917,10 +997,10 @@ function openOrderDrawer(orderId) {
                 <div class="relative">
                     <span class="absolute -right-6 top-1 w-3.5 h-3.5 rounded-full ${o.settledTs ? 'bg-statusDone ring-4 ring-statusDone/20' : 'bg-slate-600'}"></span>
                     <div class="flex items-center justify-between text-xs">
-                        <span class="font-black ${o.settledTs ? 'text-statusDone' : 'text-slate-500'}">4. التوريد للمتجر والعودة للمكتب</span>
+                        <span class="font-black ${o.settledTs ? 'text-statusDone' : 'text-slate-500'}">${isRet ? '4. إعادة المرتجع للمتجر والعودة' : '4. التوريد للمتجر والعودة للمكتب'}</span>
                         <span class="font-black ${o.settledTs ? 'text-statusDone' : 'text-slate-500'}">${formatTime12(o.settledTs)}</span>
                     </div>
-                    <p class="text-[11px] text-slate-400">${o.settledTs ? `إجمالي الدورة الكاملة: ${totalMins} دقيقة` : 'في انتظار عودة المندوب وتوريد المبلغ'}</p>
+                    <p class="text-[11px] text-slate-400">${o.settledTs ? `إجمالي الدورة الكاملة: ${totalMins} دقيقة` : 'في انتظار عودة المندوب للمكتب'}</p>
                 </div>
             </div>
         </div>
@@ -946,16 +1026,16 @@ function openOrderDrawer(orderId) {
 
         <div class="bg-slateCard border border-slateBorder rounded-2xl p-4 space-y-2 text-xs">
             <div class="flex justify-between text-slate-300">
-                <span>قيمة الأوردر المستحقة للمتجر:</span>
-                <span class="font-black text-white">${o.amount} ج.م</span>
+                <span>قيمة الأوردر للمتجر:</span>
+                <span class="font-black ${isRet ? 'line-through text-slate-500' : 'text-white'}">${o.amount} ج.م</span>
             </div>
             <div class="flex justify-between text-slate-300">
                 <span>رسوم التوصيل (وصّل):</span>
                 <span class="font-black text-wassalOrange">${o.fee} ج.م</span>
             </div>
             <div class="pt-2 border-t border-slateBorder flex justify-between text-sm">
-                <span class="font-black text-white">إجمالي التحصيل من العميل:</span>
-                <span class="font-black text-statusDone">${Number(o.amount) + Number(o.fee)} ج.م</span>
+                <span class="font-black text-white">صافي المستحق تحصيله:</span>
+                <span class="font-black ${isRet ? 'text-red-400' : 'text-statusDone'}">${isRet ? o.fee : (Number(o.amount) + Number(o.fee))} ج.م</span>
             </div>
         </div>
 
@@ -972,9 +1052,16 @@ function openOrderDrawer(orderId) {
     if (o.status === 'received') {
         primaryAction = `<button type="button" data-action="move-onway" data-id="${o.id}" class="w-full py-3 rounded-xl bg-statusOnway text-obsidian font-black text-xs shadow-lg">تحرك للعميل الآن ➔</button>`;
     } else if (o.status === 'onway') {
-        primaryAction = `<button type="button" data-action="move-delivered" data-id="${o.id}" class="w-full py-3 rounded-xl bg-statusDone text-obsidian font-black text-xs shadow-lg">✓ تأكيد التسليم للعميل</button>`;
+        primaryAction = `
+            <div class="grid grid-cols-3 gap-2">
+                <button type="button" data-action="move-delivered" data-id="${o.id}" class="col-span-2 py-3 rounded-xl bg-statusDone text-obsidian font-black text-xs shadow-lg">✓ تأكيد التسليم</button>
+                <button type="button" data-action="open-return-modal" data-id="${o.id}" class="py-3 rounded-xl bg-red-500 text-white font-black text-xs shadow-lg">↩️ مرتجع</button>
+            </div>
+        `;
     } else if (o.status === 'delivered') {
         primaryAction = `<button type="button" data-action="move-settled" data-id="${o.id}" class="w-full py-3 rounded-xl wassal-grad text-obsidian font-black text-xs shadow-lg">💰 تم التوريد للمتجر والعودة للمكتب</button>`;
+    } else if (o.status === 'returning') {
+        primaryAction = `<button type="button" data-action="move-returned-done" data-id="${o.id}" class="w-full py-3 rounded-xl bg-red-500 text-white font-black text-xs shadow-lg">📦 تم تسليم المرتجع للمتجر والعودة</button>`;
     }
 
     document.getElementById('drawer-footer').innerHTML = `
@@ -1029,14 +1116,11 @@ function openRiderStatsModal(riderId, period = 'today') {
 
     const pickedCount = filtered.length;
     const deliveredCount = filtered.filter(o => o.status === 'delivered' || o.status === 'settled').length;
+    const returnedCount = filtered.filter(o => o.status === 'returning' || o.status === 'returned').length;
     const settledList = filtered.filter(o => o.status === 'settled');
-    const settledCount = settledList.length;
-    const totalFees = settledList.reduce((s, o) => s + Number(o.fee), 0);
+    const archivedList = filtered.filter(o => isOrderArchived(o));
+    const totalFees = archivedList.reduce((s, o) => s + Number(o.fee), 0);
     const totalMerchantCash = settledList.reduce((s, o) => s + Number(o.amount), 0);
-    const doneForSpeed = filtered.filter(o => o.deliveredTs);
-    const avgSpeed = doneForSpeed.length > 0
-        ? Math.round(doneForSpeed.reduce((s, o) => s + getOrderDurations(o).deliveryMins, 0) / doneForSpeed.length)
-        : null;
 
     const periodNames = {
         today: `اليوم (${activeD})`,
@@ -1050,8 +1134,11 @@ function openRiderStatsModal(riderId, period = 'today') {
         : filtered.map(o => {
             const st = getStore(o.storeId);
             const { deliveryMins } = getOrderDurations(o);
+            const isRet = o.status === 'returning' || o.status === 'returned';
             const stBadge = o.status === 'settled'
                 ? `<span class="text-statusDone font-black">✓ تم التوريد</span>`
+                : isRet
+                ? `<span class="text-red-400 font-black">↩️ مرتجع (${o.returnReason || ''})</span>`
                 : o.status === 'delivered'
                 ? `<span class="text-emerald-300 font-bold">سُلّم (توريد)</span>`
                 : o.status === 'onway'
@@ -1064,7 +1151,7 @@ function openRiderStatsModal(riderId, period = 'today') {
                     <td class="px-3 py-2.5 font-bold text-white">${st.name}</td>
                     <td class="px-3 py-2.5 text-slate-300">${o.customerName}</td>
                     <td class="px-3 py-2.5">${stBadge}</td>
-                    <td class="px-3 py-2.5 font-black text-white">${o.amount} + <span class="text-wassalOrange">${o.fee} ج.م</span> ${o.deliveredTs ? `(${deliveryMins}د)` : ''}</td>
+                    <td class="px-3 py-2.5 font-black text-white">${isRet ? 'مرتجع' : o.amount + ' ج.م'} + <span class="text-wassalOrange">${o.fee} ج.م</span> ${o.deliveredTs ? `(${deliveryMins}د)` : ''}</td>
                 </tr>
             `;
         }).join('');
@@ -1078,12 +1165,16 @@ function openRiderStatsModal(riderId, period = 'today') {
                 <div class="text-xl font-black text-white mt-1">${pickedCount}</div>
             </div>
             <div class="bg-obsidian border border-emerald-500/40 rounded-xl p-3">
-                <div class="text-[10px] text-emerald-300 font-bold">سلّم للعملاء</div>
+                <div class="text-[10px] text-emerald-300 font-bold">سلّم بنجاح</div>
                 <div class="text-xl font-black text-emerald-300 mt-1">${deliveredCount}</div>
+            </div>
+            <div class="bg-obsidian border border-red-500/40 rounded-xl p-3">
+                <div class="text-[10px] text-red-400 font-bold">مرتجع</div>
+                <div class="text-xl font-black text-red-400 mt-1">${returnedCount}</div>
             </div>
             <div class="bg-obsidian border border-statusDone/40 rounded-xl p-3">
                 <div class="text-[10px] text-statusDone font-bold">تم التوريد</div>
-                <div class="text-xl font-black text-statusDone mt-1">${settledCount}</div>
+                <div class="text-xl font-black text-statusDone mt-1">${settledList.length}</div>
             </div>
             <div class="bg-obsidian border border-wassalOrange/40 rounded-xl p-3">
                 <div class="text-[10px] text-wassalOrange font-bold">رسوم التوصيل</div>
@@ -1092,10 +1183,6 @@ function openRiderStatsModal(riderId, period = 'today') {
             <div class="bg-obsidian border border-slateBorder rounded-xl p-3">
                 <div class="text-[10px] text-slate-400">مبالغ موردة</div>
                 <div class="text-base font-black text-white mt-1.5">${totalMerchantCash} ج.م</div>
-            </div>
-            <div class="bg-obsidian border border-statusOnway/40 rounded-xl p-3">
-                <div class="text-[10px] text-statusOnway font-bold">متوسط السرعة</div>
-                <div class="text-base font-black text-statusOnway mt-1.5">${avgSpeed !== null ? avgSpeed + ' د' : '—'}</div>
             </div>
         </div>
 
@@ -1131,16 +1218,12 @@ function renderRiders() {
     const topMonth = stats.riderStats[0];
 
     const headingEl = document.getElementById('riders-view-heading');
-    if (headingEl) {
-        headingEl.textContent = `أسطول المناديب والموتوسيكلات (${appState.riders.length} طيارين)`;
-    }
+    if (headingEl) headingEl.textContent = `أسطول المناديب والموتوسيكلات (${appState.riders.length} طيارين)`;
 
     document.getElementById('riders-top-today-badge').textContent = (topToday && topToday.todayCount > 0)
-        ? `⚡ نجم اليوم: ${topToday.rider.name} (${topToday.todayCount} أوردر)`
-        : `⚡ نجم اليوم: —`;
+        ? `⚡ نجم اليوم: ${topToday.rider.name} (${topToday.todayCount} أوردر)` : `⚡ نجم اليوم: —`;
     document.getElementById('riders-top-month-badge').textContent = (topMonth && topMonth.monthCount > 0)
-        ? `🏆 نجم الشهر: ${topMonth.rider.name} (${topMonth.monthCount} أوردر)`
-        : `🏆 نجم الشهر: —`;
+        ? `🏆 نجم الشهر: ${topMonth.rider.name} (${topMonth.monthCount} أوردر)` : `🏆 نجم الشهر: —`;
 
     const grid = document.getElementById('riders-grid');
     if (appState.riders.length === 0) {
@@ -1528,7 +1611,7 @@ function switchTab(tabName) {
     }
 
     const titles = {
-        operations: ['غرفة العمليات ومتابعة الطلبات الجارية', 'تم الاستلام ➔ تحرك للعميل ➔ تم التسليم ➔ تم التوريد والعودة (ينتقل للأرشيف تلقائياً)'],
+        operations: ['غرفة العمليات ومتابعة الطلبات الجارية', 'تم الاستلام ➔ تحرك للعميل ➔ تم التسليم (أو مرتجع) ➔ تم التوريد والعودة'],
         archive: ['أرشيف الطلبات المنتهية وإقفال اليوميات', 'استعراض أي يوم سابق وإقفال اليوم الحالي لبدء يوم عمل جديد'],
         riders: [`أسطول المناديب والموتوسيكلات (${appState.riders.length} طيارين)`, 'اضغط على أي مندوب لعرض إحصائيات أوردراته اليومية والأسبوعية والشهرية'],
         stores: ['المتاجر المتعاقدة وترتيب الأكثر عملاً', 'تصنيف المتاجر حسب حجم الأوردرات اليومية والشهرية ونسبة المساهمة'],
@@ -1669,6 +1752,8 @@ document.addEventListener('click', (e) => {
         }
     } else if (action === 'open-close-day-modal') {
         openCloseDayModal();
+    } else if (action === 'open-return-modal') {
+        openReturnModal(id);
     } else if (action === 'archive-select-date') {
         uiState.archiveDateFilter = btn.getAttribute('data-date');
         renderArchive();
@@ -1742,6 +1827,17 @@ document.addEventListener('click', (e) => {
             saveData();
             renderAll();
             showToast(`💰 تم توريد #${order.id} وعودة المندوب للمكتب (نُقل للأرشيف)`);
+        }
+    } else if (action === 'move-returned-done') {
+        const order = appState.orders.find(o => o.id === id);
+        if (order) {
+            const now = Date.now();
+            order.status = 'returned';
+            order.settledTs = now;
+            syncRidersAvailability();
+            saveData();
+            renderAll();
+            showToast(`📦 تم تسليم المرتجع #${order.id} للمتجر وعودة المندوب للمكتب (نُقل للأرشيف)`);
         }
     } else if (action === 'delete-order') {
         appState.orders = appState.orders.filter(o => o.id !== id);
@@ -1826,6 +1922,38 @@ document.getElementById('form-new-order').addEventListener('submit', (e) => {
     showToast(`🟡 تم تسجيل استلام الطلب #${newOrder.id} الساعة ${formatTime12(receivedTs)}`);
 });
 
+document.getElementById('form-return-order').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const orderId = document.getElementById('input-return-order-id').value;
+    const reasonSel = document.getElementById('input-return-reason-select').value;
+    const reasonNote = document.getElementById('input-return-reason-note').value.trim();
+    const feeMode = document.getElementById('input-return-fee-mode').value;
+
+    const order = appState.orders.find(o => o.id === orderId);
+    if (!order) return;
+
+    const now = Date.now();
+    if (!order.departedTs) order.departedTs = now;
+    order.status = 'returning';
+    order.returnedTs = now;
+    order.returnReason = reasonNote ? `${reasonSel} — ${reasonNote}` : reasonSel;
+
+    if (feeMode === 'zero') {
+        order.fee = 0;
+    } else if (feeMode === 'half') {
+        order.fee = Math.round(Number(order.fee) / 2);
+    }
+
+    syncRidersAvailability();
+    saveData();
+    renderAll();
+
+    const modal = document.getElementById('modal-return-order');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    showToast(`↩️ تم تحويل الطلب #${order.id} إلى مرتجع (${order.returnReason})`);
+});
+
 document.getElementById('form-close-day').addEventListener('submit', (e) => {
     e.preventDefault();
     const closingDate = getActiveShiftDate();
@@ -1833,9 +1961,10 @@ document.getElementById('form-close-day').addEventListener('submit', (e) => {
     if (!nextDate) return;
 
     const dayOrders = appState.orders.filter(o => o.dateStr === closingDate);
-    const daySettled = dayOrders.filter(o => isOrderCompleted(o));
+    const daySettled = dayOrders.filter(o => isOrderSuccessfullySettled(o));
+    const dayArchived = dayOrders.filter(o => isOrderArchived(o));
     const settledCash = daySettled.reduce((s, o) => s + Number(o.amount), 0);
-    const revenue = daySettled.reduce((s, o) => s + Number(o.fee), 0);
+    const revenue = dayArchived.reduce((s, o) => s + Number(o.fee), 0);
     const expenses = appState.expenses.filter(ex => ex.dateStr === closingDate).reduce((s, ex) => s + Number(ex.amount), 0);
 
     appState.closedDays.unshift({

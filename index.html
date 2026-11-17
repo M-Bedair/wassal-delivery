@@ -120,7 +120,7 @@
                 <button type="button" data-action="switch-tab" data-tab="riders" id="tab-btn-riders" class="nav-tab w-full flex items-center justify-between px-4 py-3 rounded-xl font-bold text-sm text-slate-300 hover:text-white hover:bg-slateCard transition-all">
                     <div class="flex items-center gap-3">
                         <svg class="w-5 h-5 text-wassalOrange" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                        <span>المناديب والموتوسيكلات (10)</span>
+                        <span id="nav-label-riders">المناديب والموتوسيكلات</span>
                     </div>
                     <span id="nav-badge-riders" class="bg-statusDone/20 border border-statusDone/40 text-statusDone font-black text-xs px-2 py-0.5 rounded-full">10/10</span>
                 </button>
@@ -147,7 +147,7 @@
         <div class="p-4 border-t border-slateBorder space-y-3 bg-obsidian/70">
             <div class="bg-slateCard rounded-2xl p-3.5 border border-slateBorder">
                 <div class="flex items-center justify-between text-xs text-slate-300 mb-2">
-                    <span class="font-bold">جاهزية الأسطول (10)</span>
+                    <span id="sidebar-fleet-title" class="font-bold">جاهزية الأسطول (10)</span>
                     <span id="sidebar-fleet-pct" class="text-statusDone font-black">100%</span>
                 </div>
                 <div class="w-full bg-obsidian h-2 rounded-full overflow-hidden border border-slateBorder">
@@ -167,7 +167,7 @@
         <header class="hidden lg:flex glass-panel border-b border-slateBorder px-8 py-4 items-center justify-between sticky top-0 z-20">
             <div>
                 <h1 id="header-title" class="text-xl font-black text-white">غرفة العمليات ومتابعة الطلبات الحية</h1>
-                <p id="header-subtitle" class="text-xs text-slate-400 mt-0.5">تتبع لحظي لحركة الـ 10 مناديب وأوقات الاستلام والتحرك والتسليم وتوريد المبالغ للمتاجر</p>
+                <p id="header-subtitle" class="text-xs text-slate-400 mt-0.5">تتبع لحظي لحركة المناديب وأوقات الاستلام والتحرك والتسليم وتوريد المبالغ للمتاجر</p>
             </div>
 
             <div class="flex items-center gap-3">
@@ -244,7 +244,7 @@
                 <div class="bg-slateDark border border-statusDone/30 hover:border-statusDone/60 transition-all rounded-2xl p-4 flex items-center justify-between">
                     <div>
                         <div class="text-xs text-slate-300 font-bold">مناديب متاحون بالمكتب</div>
-                        <div class="text-3xl font-black text-white mt-1"><span id="kpi-riders-avail" class="text-statusDone">10</span><span class="text-sm text-slate-400 font-bold"> / 10</span></div>
+                        <div class="text-3xl font-black text-white mt-1"><span id="kpi-riders-avail" class="text-statusDone">10</span><span id="kpi-riders-total" class="text-sm text-slate-400 font-bold"> / 10</span></div>
                         <div class="text-[11px] text-slate-400 mt-1">الأكثر نشاطاً: <span id="kpi-top-rider-mini" class="text-white font-bold">—</span></div>
                     </div>
                     <div class="w-11 h-11 rounded-2xl bg-statusDone/15 border border-statusDone/30 text-statusDone flex items-center justify-center shrink-0">
@@ -374,403 +374,15 @@
                 </div>
             </section>
 
-            <!-- ==================== VIEW 2: 10 RIDERS FLEET ==================== -->
+            <!-- ==================== VIEW 2: RIDERS FLEET ==================== -->
             <section id="view-riders" class="view-section hidden space-y-5">
                 <div class="bg-slateDark border border-slateBorder rounded-2xl p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     <div>
-                        <h2 class="text-lg font-black text-white">أسطول المناديب والموتوسيكلات (10 طيارين) — إحصائيات اليوم والشهر</h2>
+                        <h2 id="riders-view-heading" class="text-lg font-black text-white">أسطول المناديب والموتوسيكلات — إحصائيات اليوم والشهر</h2>
                         <p class="text-xs text-slate-400 mt-1">متابعة أوردرات اليوم، أوردرات الشهر، إجمالي رسوم التوصيل المحققة، ومتوسط سرعة التوصيل لكل مندوب</p>
                     </div>
-                    <div class="flex flex-wrap items-center gap-2 text-xs">
+                    <div class="flex flex-wrap items-center gap-2.5 text-xs">
                         <span id="riders-top-today-badge" class="px-3 py-1.5 rounded-xl bg-wassalOrange/15 border border-wassalOrange/40 text-wassalOrange font-black">⚡ نجم اليوم: —</span>
                         <span id="riders-top-month-badge" class="px-3 py-1.5 rounded-xl bg-statusPicked/15 border border-statusPicked/40 text-statusPicked font-black">🏆 نجم الشهر: —</span>
-                    </div>
-                </div>
-                <div id="riders-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
-            </section>
-
-            <!-- ==================== VIEW 3: PARTNER STORES ==================== -->
-            <section id="view-stores" class="view-section hidden space-y-5">
-                <div class="bg-slateDark border border-slateBorder rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                        <h2 class="text-lg font-black text-white">المتاجر المتعاقدة وترتيب الأكثر عملاً (مطاعم • صيدليات • سوبرماركت)</h2>
-                        <p class="text-xs text-slate-400 mt-1">ترتيب المتاجر تلقائياً حسب عدد الأوردرات الشهرية واليومية ونسبة المساهمة والمبالغ الموردة</p>
-                    </div>
-                    <button type="button" data-action="open-new-store" class="wassal-grad wassal-grad-hover text-obsidian font-black px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 self-start sm:self-auto shadow-lg shadow-orange-500/20">
-                        <span>+ إضافة متجر متعاقد</span>
-                    </button>
-                </div>
-
-                <div id="top-merchant-banner" class="bg-gradient-to-l from-slateCard via-slateDark to-slateCard border border-statusPicked/40 rounded-2xl p-5"></div>
-
-                <div id="stores-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
-            </section>
-
-            <!-- ==================== VIEW 4: ACCOUNTING, EXPENSES & REPORTS ==================== -->
-            <section id="view-accounting" class="view-section hidden space-y-6">
-                <div class="bg-slateDark border border-slateBorder rounded-2xl p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                    <div>
-                        <h2 class="text-lg font-black text-white">النظام المحاسبي والمصروفات وتقارير الإدارة</h2>
-                        <p class="text-xs text-slate-400 mt-1">قائمة الدخل (الأرباح والخسائر)، إدارة المصروفات التشغيلية والإدارية، إحصائيات التجار والمناديب، وتقفيل اليومية والشهر</p>
-                    </div>
-                    <div class="flex flex-wrap items-center gap-2.5">
-                        <div class="flex items-center gap-2 bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-xs">
-                            <span class="text-slate-400 font-bold">شهر التقرير:</span>
-                            <input type="month" id="report-month-picker" class="bg-transparent text-white font-black focus:outline-none">
-                        </div>
-                        <button type="button" data-action="export-csv" class="bg-statusDone/15 hover:bg-statusDone/25 border border-statusDone/40 text-statusDone font-black px-4 py-2.5 rounded-xl text-xs flex items-center gap-1.5 transition-colors">
-                            <span>📊 تصدير CSV (إكسل)</span>
-                        </button>
-                        <button type="button" data-action="print-report" class="wassal-grad wassal-grad-hover text-obsidian font-black px-4 py-2.5 rounded-xl text-xs flex items-center gap-1.5 shadow-lg shadow-orange-500/20">
-                            <span>🖨️ طباعة التقرير الشامل</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div id="print-section" class="space-y-6">
-                    <!-- Income Statement -->
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                        <div class="bg-slateDark border border-slateBorder rounded-2xl p-5 space-y-4">
-                            <div class="flex items-center justify-between border-b border-slateBorder pb-3">
-                                <div>
-                                    <h3 class="font-black text-sm text-white">📅 قائمة الدخل وتقفيل اليوم</h3>
-                                    <p id="pnl-today-date" class="text-[11px] text-slate-400 mt-0.5">—</p>
-                                </div>
-                                <span id="pnl-today-margin" class="px-2.5 py-1 rounded-lg bg-statusDone/15 border border-statusDone/30 text-statusDone font-black text-xs">هامش الربح: 0%</span>
-                            </div>
-                            <div class="space-y-2.5 text-xs">
-                                <div class="flex justify-between items-center bg-obsidian p-3 rounded-xl border border-slateBorder">
-                                    <span class="text-slate-300 font-bold">(+) إجمالي إيرادات التوصيل (رسوم الشحن)</span>
-                                    <span id="pnl-today-rev" class="font-black text-statusDone text-sm">0 ج.م</span>
-                                </div>
-                                <div class="flex justify-between items-center bg-obsidian p-3 rounded-xl border border-slateBorder">
-                                    <span class="text-slate-300 font-bold">(-) إجمالي مصروفات اليوم التشغيلية والإدارية</span>
-                                    <span id="pnl-today-exp" class="font-black text-red-400 text-sm">0 ج.م</span>
-                                </div>
-                                <div class="flex justify-between items-center bg-gradient-to-l from-wassalOrange/20 to-slateCard p-3.5 rounded-xl border border-wassalOrange/50">
-                                    <span class="text-white font-black text-sm">(=) صافي ربح الشركة اليوم</span>
-                                    <span id="pnl-today-net" class="font-black text-wassalOrange text-lg">0 ج.م</span>
-                                </div>
-                                <div class="pt-2 border-t border-slateBorder flex justify-between items-center text-[11px] text-slate-400">
-                                    <span>عهدة المبيعات المحصلة والموردة للمتاجر اليوم:</span>
-                                    <strong id="pnl-today-settled" class="text-white font-black">0 ج.م</strong>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="bg-slateDark border border-wassalOrange/30 rounded-2xl p-5 space-y-4">
-                            <div class="flex items-center justify-between border-b border-slateBorder pb-3">
-                                <div>
-                                    <h3 class="font-black text-sm text-white">📆 قائمة الدخل المجمعة للشهر</h3>
-                                    <p id="pnl-month-label" class="text-[11px] text-wassalOrange font-bold mt-0.5">—</p>
-                                </div>
-                                <span id="pnl-month-margin" class="px-2.5 py-1 rounded-lg bg-wassalOrange/15 border border-wassalOrange/30 text-wassalOrange font-black text-xs">هامش الربح: 0%</span>
-                            </div>
-                            <div class="space-y-2.5 text-xs">
-                                <div class="flex justify-between items-center bg-obsidian p-3 rounded-xl border border-slateBorder">
-                                    <span class="text-slate-300 font-bold">(+) إجمالي إيرادات توصيل الشهر (<span id="pnl-month-orders-count" class="text-white">0</span> أوردر)</span>
-                                    <span id="pnl-month-rev" class="font-black text-statusDone text-sm">0 ج.م</span>
-                                </div>
-                                <div class="flex justify-between items-center bg-obsidian p-3 rounded-xl border border-slateBorder">
-                                    <span class="text-slate-300 font-bold">(-) إجمالي مصروفات الشهر (<span id="pnl-month-exp-count" class="text-white">0</span> بند)</span>
-                                    <span id="pnl-month-exp" class="font-black text-red-400 text-sm">0 ج.م</span>
-                                </div>
-                                <div class="flex justify-between items-center bg-gradient-to-l from-statusDone/20 to-slateCard p-3.5 rounded-xl border border-statusDone/50">
-                                    <span class="text-white font-black text-sm">(=) صافي الربح الشهري الفعلي</span>
-                                    <span id="pnl-month-net" class="font-black text-statusDone text-lg">0 ج.م</span>
-                                </div>
-                                <div class="pt-2 border-t border-slateBorder flex justify-between items-center text-[11px] text-slate-400">
-                                    <span>إجمالي حركة المبيعات الموردة للتجار خلال الشهر:</span>
-                                    <strong id="pnl-month-settled" class="text-white font-black">0 ج.م</strong>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Expenses Management -->
-                    <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
-                        <div class="bg-slateDark border border-slateBorder rounded-2xl p-5 space-y-4">
-                            <div class="border-b border-slateBorder pb-3">
-                                <h3 class="font-black text-sm text-white">💸 تسجيل مصروف تشغيلي / إداري جديد</h3>
-                                <p class="text-[11px] text-slate-400 mt-0.5">يُخصم تلقائياً من صافي أرباح اليوم والشهر</p>
-                            </div>
-                            <form id="form-new-expense" class="space-y-3 text-xs">
-                                <div>
-                                    <label class="block font-bold text-slate-200 mb-1">بيان / اسم المصروف *</label>
-                                    <input type="text" id="exp-title" required placeholder="مثال: تفويل بنزين موتوسيكل / تغيير زيت / باقة نت" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
-                                </div>
-                                <div class="grid grid-cols-2 gap-2.5">
-                                    <div>
-                                        <label class="block font-bold text-slate-200 mb-1">التصنيف *</label>
-                                        <select id="exp-category" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
-                                            <option value="بنزين ووقود موتوسيكلات">⛽ بنزين ووقود موتوسيكلات</option>
-                                            <option value="صيانة وقطع غيار">🔧 صيانة وقطع غيار</option>
-                                            <option value="رواتب وحوافز مناديب">🏍️ رواتب وحوافز مناديب</option>
-                                            <option value="إيجار ومرافق مكتب">🏢 إيجار ومرافق مكتب</option>
-                                            <option value="إنترنت واتصالات">📱 إنترنت واتصالات</option>
-                                            <option value="تسويق ومطبوعات">📢 تسويق ومطبوعات</option>
-                                            <option value="نثريات إدارية">🧾 نثريات إدارية</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block font-bold text-red-400 mb-1">المبلغ (ج.م) *</label>
-                                        <input type="number" id="exp-amount" required min="1" step="1" placeholder="150" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2.5 text-red-400 font-black focus:outline-none focus:border-wassalOrange">
-                                    </div>
-                                </div>
-                                <div class="grid grid-cols-2 gap-2.5">
-                                    <div>
-                                        <label class="block font-bold text-slate-200 mb-1">المندوب المرتبط (اختياري)</label>
-                                        <select id="exp-rider" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
-                                            <option value="">— مصروف عام للإدارة —</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block font-bold text-slate-200 mb-1">التاريخ *</label>
-                                        <input type="date" id="exp-date" required class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-wassalOrange">
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="block font-bold text-slate-200 mb-1">ملاحظات إضافية</label>
-                                    <input type="text" id="exp-notes" placeholder="رقم الفاتورة أو تفاصيل إضافية..." class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-wassalOrange">
-                                </div>
-                                <button type="submit" class="w-full py-2.5 rounded-xl wassal-grad wassal-grad-hover text-obsidian font-black text-xs shadow-lg shadow-orange-500/20">
-                                    + حفظ المصروف وخصمه من الأرباح
-                                </button>
-                            </form>
-                        </div>
-
-                        <div class="xl:col-span-2 bg-slateDark border border-slateBorder rounded-2xl flex flex-col overflow-hidden">
-                            <div class="p-4 border-b border-slateBorder bg-slateCard flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                                <div>
-                                    <h3 class="font-black text-sm text-white">📑 سجل المصروفات التشغيلية والإدارية</h3>
-                                    <p class="text-[11px] text-slate-400">عرض كافة المصروفات المسجلة للشهر المحدد</p>
-                                </div>
-                                <select id="filter-expense-cat" class="bg-obsidian border border-slateBorder rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-wassalOrange">
-                                    <option value="all">كل تصنيفات المصروفات</option>
-                                    <option value="بنزين ووقود موتوسيكلات">بنزين ووقود موتوسيكلات</option>
-                                    <option value="صيانة وقطع غيار">صيانة وقطع غيار</option>
-                                    <option value="رواتب وحوافز مناديب">رواتب وحوافز مناديب</option>
-                                    <option value="إيجار ومرافق مكتب">إيجار ومرافق مكتب</option>
-                                    <option value="إنترنت واتصالات">إنترنت واتصالات</option>
-                                    <option value="تسويق ومطبوعات">تسويق ومطبوعات</option>
-                                    <option value="نثريات إدارية">نثريات إدارية</option>
-                                </select>
-                            </div>
-
-                            <div id="expense-categories-bars" class="p-4 bg-obsidian/60 border-b border-slateBorder grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
-
-                            <div class="overflow-x-auto flex-1">
-                                <table class="w-full text-right text-xs">
-                                    <thead class="bg-obsidian text-slate-400 border-b border-slateBorder">
-                                        <tr>
-                                            <th class="px-3.5 py-3">التاريخ</th>
-                                            <th class="px-3.5 py-3">البيان</th>
-                                            <th class="px-3.5 py-3">التصنيف</th>
-                                            <th class="px-3.5 py-3">المندوب / الجهة</th>
-                                            <th class="px-3.5 py-3">المبلغ</th>
-                                            <th class="px-3.5 py-3 text-center">حذف</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="expenses-table-body" class="divide-y divide-slateBorder"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Top Merchants Ranking -->
-                    <div class="bg-slateDark border border-slateBorder rounded-2xl overflow-hidden">
-                        <div class="p-4 border-b border-slateBorder bg-slateCard flex items-center justify-between">
-                            <h3 class="font-black text-sm text-white">🏆 ترتيب المتاجر والتجار حسب حجم الأوردرات (اليوم / الشهر / الإجمالي)</h3>
-                            <span class="text-[11px] text-statusPicked font-bold">مرتب تنازلياً بالأكثر نشاطاً</span>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-right text-xs">
-                                <thead class="bg-obsidian text-slate-400 border-b border-slateBorder">
-                                    <tr>
-                                        <th class="px-4 py-3">الترتيب</th>
-                                        <th class="px-4 py-3">المتجر / التاجر</th>
-                                        <th class="px-4 py-3">التصنيف</th>
-                                        <th class="px-4 py-3">أوردرات اليوم</th>
-                                        <th class="px-4 py-3 text-wassalOrange">أوردرات الشهر</th>
-                                        <th class="px-4 py-3">نسبة المساهمة</th>
-                                        <th class="px-4 py-3 text-statusDone">مبيعات موردة (الشهر)</th>
-                                        <th class="px-4 py-3">إيراد التوصيل (الشهر)</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="stores-accounting-body" class="divide-y divide-slateBorder"></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Rider Performance Summary -->
-                    <div class="bg-slateDark border border-slateBorder rounded-2xl overflow-hidden">
-                        <div class="p-4 border-b border-slateBorder bg-slateCard flex items-center justify-between">
-                            <h3 class="font-black text-sm text-white">🏍️ تقرير أداء وإنتاجية المناديب (10 مناديب — اليومي والشهري)</h3>
-                            <span class="text-[11px] text-statusOnway font-bold">مرتب تنازلياً بأوردرات الشهر</span>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-right text-xs">
-                                <thead class="bg-obsidian text-slate-400 border-b border-slateBorder">
-                                    <tr>
-                                        <th class="px-4 py-3">الترتيب</th>
-                                        <th class="px-4 py-3">المندوب</th>
-                                        <th class="px-4 py-3">الموتوسيكل</th>
-                                        <th class="px-4 py-3 text-statusDone">أوردرات اليوم</th>
-                                        <th class="px-4 py-3 text-wassalOrange">أوردرات الشهر</th>
-                                        <th class="px-4 py-3">متوسط السرعة</th>
-                                        <th class="px-4 py-3">مبالغ موردة للتجار</th>
-                                        <th class="px-4 py-3">إيراد التوصيل المحصل</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="riders-accounting-body" class="divide-y divide-slateBorder"></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Detailed Timestamps Audit -->
-                    <div class="bg-slateDark border border-slateBorder rounded-2xl overflow-hidden">
-                        <div class="p-4 border-b border-slateBorder bg-slateCard">
-                            <h3 class="font-black text-sm text-white">⏱️ سجل التوقيتات التفصيلي للطلبات (استلام ← تحرك ← تسليم)</h3>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-right text-xs">
-                                <thead class="bg-obsidian text-slate-400 border-b border-slateBorder">
-                                    <tr>
-                                        <th class="px-3 py-3">#</th>
-                                        <th class="px-3 py-3">التاريخ</th>
-                                        <th class="px-3 py-3">المتجر</th>
-                                        <th class="px-3 py-3">العميل / المنطقة</th>
-                                        <th class="px-3 py-3">المندوب</th>
-                                        <th class="px-3 py-3 text-statusPicked">وقت الاستلام</th>
-                                        <th class="px-3 py-3 text-statusOnway">وقت التحرك</th>
-                                        <th class="px-3 py-3 text-statusDone">وقت التسليم</th>
-                                        <th class="px-3 py-3">المدة الكلية</th>
-                                        <th class="px-3 py-3">المبلغ المحصل</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="audit-table-body" class="divide-y divide-slateBorder"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </div>
-    </main>
-
-    <!-- SLIDE-OVER ORDER DETAILS DRAWER -->
-    <div id="order-drawer-backdrop" data-action="close-drawer" class="fixed inset-0 bg-black/70 backdrop-blur-xs z-40 hidden transition-opacity"></div>
-    <aside id="order-drawer" class="fixed top-0 left-0 h-screen w-full max-w-md glass-panel border-r border-slateBorder shadow-2xl z-50 transform -translate-x-full transition-transform duration-300 flex flex-col justify-between">
-        <div class="p-5 border-b border-slateBorder flex items-center justify-between bg-slateDark/90">
-            <div class="flex items-center gap-2.5">
-                <span id="drawer-order-id" class="px-3 py-1 rounded-xl wassal-grad text-obsidian font-black text-sm">#W-101</span>
-                <span id="drawer-status-badge" class="px-2.5 py-1 rounded-lg text-xs font-black">تم التسليم</span>
-            </div>
-            <button type="button" data-action="close-drawer" class="w-8 h-8 rounded-xl bg-slateCard hover:bg-slateHover border border-slateBorder text-slate-300 hover:text-white flex items-center justify-center">✕</button>
-        </div>
-        <div id="drawer-content" class="p-5 space-y-5 overflow-y-auto flex-1"></div>
-        <div id="drawer-footer" class="p-4 border-t border-slateBorder bg-slateDark/95 space-y-2.5"></div>
-    </aside>
-
-    <!-- MODAL: NEW ORDER -->
-    <div id="modal-new-order" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-slateDark border border-wassalOrange/40 rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl">
-            <div class="p-5 border-b border-slateBorder flex items-center justify-between bg-slateCard">
-                <div>
-                    <h3 class="font-black text-base text-white">+ تسجيل طلب توصيل جديد</h3>
-                    <p class="text-[11px] text-slate-400">يتم تسجيل وقت الاستلام تلقائياً وتعيين المندوب</p>
-                </div>
-                <button type="button" data-action="close-modal" data-modal="modal-new-order" class="text-slate-400 hover:text-white px-2 py-1 text-lg">✕</button>
-            </div>
-            <form id="form-new-order" class="p-5 space-y-3.5 max-h-[82vh] overflow-y-auto">
-                <div>
-                    <label class="block text-xs font-bold text-slate-200 mb-1">المتجر (مصدر الطلب) *</label>
-                    <select id="input-order-store" required class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-wassalOrange"></select>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-200 mb-1">اسم العميل *</label>
-                        <input type="text" id="input-order-customer" required placeholder="مثال: أ. محمود سالم" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-wassalOrange">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-200 mb-1">رقم هاتف العميل *</label>
-                        <input type="tel" id="input-order-phone" required placeholder="010xxxxxxxx" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-wassalOrange">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-200 mb-1">المنطقة / العنوان بالتفصيل *</label>
-                    <input type="text" id="input-order-address" required placeholder="مثال: حي الزهور - شارع 15 عمارة 4" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-wassalOrange">
-                </div>
-                <div class="grid grid-cols-2 gap-3 bg-slateCard p-3 rounded-xl border border-slateBorder">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-200 mb-1">قيمة الطلب للمتجر (ج.م) *</label>
-                        <input type="number" id="input-order-amount" required min="0" step="1" placeholder="250" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-sm text-white font-black focus:outline-none focus:border-wassalOrange">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-wassalOrange mb-1">رسوم التوصيل (ج.م) *</label>
-                        <input type="number" id="input-order-fee" required min="0" step="1" value="25" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-sm text-wassalOrange font-black focus:outline-none focus:border-wassalOrange">
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div class="sm:col-span-2">
-                        <label class="block text-xs font-bold text-slate-200 mb-1">تعيين المندوب *</label>
-                        <select id="input-order-rider" required class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-wassalOrange"></select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-200 mb-1">وقت الاستلام</label>
-                        <input type="time" id="input-order-time" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-wassalOrange">
-                        <span class="text-[10px] text-slate-400">اتركه فارغاً للتوقيت الآن</span>
-                    </div>
-                </div>
-                <div class="pt-2 flex justify-end gap-2">
-                    <button type="button" data-action="close-modal" data-modal="modal-new-order" class="px-4 py-2.5 rounded-xl bg-slateCard text-slate-300 text-xs font-bold">إلغاء</button>
-                    <button type="submit" class="wassal-grad wassal-grad-hover text-obsidian font-black px-6 py-2.5 rounded-xl text-xs shadow-lg shadow-orange-500/20">تسجيل الاستلام والبدء</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL: NEW STORE -->
-    <div id="modal-new-store" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-slateDark border border-wassalOrange/40 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
-            <div class="p-5 border-b border-slateBorder flex items-center justify-between bg-slateCard">
-                <h3 class="font-black text-base text-white">+ إضافة متجر متعاقد جديد</h3>
-                <button type="button" data-action="close-modal" data-modal="modal-new-store" class="text-slate-400 hover:text-white px-2 py-1 text-lg">✕</button>
-            </div>
-            <form id="form-new-store" class="p-5 space-y-3.5">
-                <div>
-                    <label class="block text-xs font-bold text-slate-200 mb-1">اسم المتجر / المطعم / الصيدلية *</label>
-                    <input type="text" id="input-store-name" required placeholder="مثال: مطعم البرنس" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-wassalOrange">
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-200 mb-1">التصنيف *</label>
-                        <select id="input-store-category" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-wassalOrange">
-                            <option value="مطعم">مطعم</option>
-                            <option value="صيدلية">صيدلية</option>
-                            <option value="سوبرماركت">سوبرماركت</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-200 mb-1">رسوم التوصيل الافتراضية *</label>
-                        <input type="number" id="input-store-fee" required value="25" min="5" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-wassalOrange">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-200 mb-1">رقم هاتف المتجر *</label>
-                    <input type="tel" id="input-store-phone" required placeholder="010xxxxxxxx" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-wassalOrange">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-200 mb-1">عنوان المتجر *</label>
-                    <input type="text" id="input-store-address" required placeholder="العنوان بالتفصيل..." class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-wassalOrange">
-                </div>
-                <div class="pt-2 flex justify-end gap-2">
-                    <button type="button" data-action="close-modal" data-modal="modal-new-store" class="px-4 py-2.5 rounded-xl bg-slateCard text-slate-300 text-xs font-bold">إلغاء</button>
-                    <button type="submit" class="wassal-grad text-obsidian font-black px-5 py-2.5 rounded-xl text-xs">حفظ المتجر</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script type="module" src="app.js"></script>
-</body>
-</html>
+                        <button type="button" data-action="open-rider-modal" class="wassal-grad wassal-grad-hover text-obsidian font-black px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-lg shadow-orange-500/20">
+                            <span>+ إضافة

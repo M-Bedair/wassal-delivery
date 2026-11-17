@@ -1,40 +1,14 @@
-// استيراد مكتبات Firebase الرسمية للعمل مباشرة في المتصفح (CDN)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  doc,
-  setDoc,
-  updateDoc,
-  deleteDoc,
-  onSnapshot,
-  query,
-  orderBy
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-// بيانات مشروعك الخاصة (wassal-delivery-a8b12)
 const firebaseConfig = {
-  apiKey: "AIzaSyBNHZ7_VMRNstGyHNl3pjVl9ypr1y3dROU",
-  authDomain: "wassal-delivery-a8b12.firebaseapp.com",
-  projectId: "wassal-delivery-a8b12",
-  storageBucket: "wassal-delivery-a8b12.firebasestorage.app",
-  messagingSenderId: "456649696289",
-  appId: "1:456649696289:web:89aeaf7ac1a234a6c66f60",
-  measurementId: "G-B974E837D6"
+    projectId: "wassal-delivery-a8b12",
+    databaseURL: "https://wassal-delivery-a8b12-default-rtdb.firebaseio.com",
+    authDomain: "wassal-delivery-a8b12.firebaseapp.com"
 };
 
-// تهيئة التطبيق وقاعدة البيانات السحابية
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-export {
-  db,
-  collection,
-  doc,
-  setDoc,
-  updateDoc,
-  deleteDoc,
-  onSnapshot,
-  query,
-  orderBy
-};
+export const db = getDatabase(app);
+export const stateRef = ref(db, 'wassal_operations_v1');
+export const connectedRef = ref(db, '.info/connected');
+export { set, onValue };

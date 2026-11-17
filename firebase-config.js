@@ -9,6 +9,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const db = getDatabase(app);
-export const stateRef = ref(db, 'wassal_operations_v1');
+export const stateRef = ref(db, 'wassal_modern_ops_v2');
 export const connectedRef = ref(db, '.info/connected');
 export { set, onValue };

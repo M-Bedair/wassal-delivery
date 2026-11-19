@@ -68,20 +68,20 @@ function createDemoOrders() {
     const d3 = getPastDateInCurrentMonth(9);
 
     return [
-        { id: 'W-115', dateStr: today, storeId: 'S1', customerName: 'أ. سامح عبد الرحمن', address: 'حي المساعيد - عمارة 14', phone: '01022334455', amount: 340, fee: 25, riderId: 'R1', status: 'settled', receivedTs: now - 52 * 60000, departedTs: now - 43 * 60000, deliveredTs: now - 28 * 60000, settledTs: now - 15 * 60000 },
-        { id: 'W-116', dateStr: today, storeId: 'S1', customerName: 'م. كريم الشاذلي', address: 'حي الزهور - برج الصفوة', phone: '01066778899', amount: 520, fee: 25, riderId: 'R5', status: 'delivered', receivedTs: now - 40 * 60000, departedTs: now - 32 * 60000, deliveredTs: now - 10 * 60000, settledTs: null },
-        { id: 'W-117', dateStr: today, storeId: 'S2', customerName: 'د. هبة محمود', address: 'شارع الفاتح - برج النور', phone: '01144556677', amount: 185, fee: 20, riderId: 'R2', status: 'onway', receivedTs: now - 18 * 60000, departedTs: now - 10 * 60000, deliveredTs: null, settledTs: null },
-        { id: 'W-118', dateStr: today, storeId: 'S4', customerName: 'أ. نادية كمال', address: 'شارع الجمهورية - عمارة 9', phone: '01555443322', amount: 275, fee: 25, riderId: 'R4', status: 'onway', receivedTs: now - 38 * 60000, departedTs: now - 25 * 60000, deliveredTs: null, settledTs: null },
-        { id: 'W-119', dateStr: today, storeId: 'S3', customerName: 'م. طارق الجندي', address: 'حي الضاحية - فيلا 22', phone: '01288990011', amount: 460, fee: 30, riderId: 'R3', status: 'received', receivedTs: now - 6 * 60000, departedTs: null, deliveredTs: null, settledTs: null },
-        { id: 'W-120', dateStr: today, storeId: 'S1', customerName: 'أ. ياسر المنياوي', address: 'ميدان المحطة - خلف البريد', phone: '01099112233', amount: 210, fee: 25, riderId: 'R7', status: 'received', receivedTs: now - 3 * 60000, departedTs: null, deliveredTs: null, settledTs: null },
-        { id: 'W-101', dateStr: d3, storeId: 'S1', customerName: 'أ. وائل عزت', address: 'شارع البحر', phone: '01011223344', amount: 310, fee: 25, riderId: 'R1', status: 'settled', receivedTs: now - 3 * 86400000, departedTs: now - 3 * 86400000 + 8 * 60000, deliveredTs: now - 3 * 86400000 + 22 * 60000, settledTs: now - 3 * 86400000 + 30 * 60000 },
-        { id: 'W-102', dateStr: d3, storeId: 'S1', customerName: 'د. مروة علي', address: 'حي الزهور', phone: '01022331144', amount: 420, fee: 25, riderId: 'R1', status: 'settled', receivedTs: now - 3 * 86400000 + 3600000, departedTs: now - 3 * 86400000 + 3600000 + 7 * 60000, deliveredTs: now - 3 * 86400000 + 3600000 + 20 * 60000, settledTs: now - 3 * 86400000 + 3600000 + 28 * 60000 },
-        { id: 'W-103', dateStr: d3, storeId: 'S3', customerName: 'أ. سلوى حسن', address: 'حي المساعيد', phone: '01122334455', amount: 640, fee: 30, riderId: 'R2', status: 'settled', receivedTs: now - 3 * 86400000 + 7200000, departedTs: now - 3 * 86400000 + 7200000 + 10 * 60000, deliveredTs: now - 3 * 86400000 + 7200000 + 28 * 60000, settledTs: now - 3 * 86400000 + 7200000 + 35 * 60000 },
-        { id: 'W-104', dateStr: d2, storeId: 'S1', customerName: 'أ. حسام فؤاد', address: 'شارع 23 يوليو', phone: '01233445566', amount: 290, fee: 25, riderId: 'R1', status: 'settled', receivedTs: now - 2 * 86400000, departedTs: now - 2 * 86400000 + 6 * 60000, deliveredTs: now - 2 * 86400000 + 19 * 60000, settledTs: now - 2 * 86400000 + 27 * 60000 },
-        { id: 'W-105', dateStr: d2, storeId: 'S2', customerName: 'أ. منال إبراهيم', address: 'ميدان الساعة', phone: '01544556677', amount: 155, fee: 20, riderId: 'R3', status: 'settled', receivedTs: now - 2 * 86400000 + 4000000, departedTs: now - 2 * 86400000 + 4000000 + 5 * 60000, deliveredTs: now - 2 * 86400000 + 4000000 + 17 * 60000, settledTs: now - 2 * 86400000 + 4000000 + 24 * 60000 },
-        { id: 'W-106', dateStr: d2, storeId: 'S6', customerName: 'م. شريف نصر', address: 'الكورنيش', phone: '01055667788', amount: 480, fee: 30, riderId: 'R5', status: 'settled', receivedTs: now - 2 * 86400000 + 8000000, departedTs: now - 2 * 86400000 + 8000000 + 9 * 60000, deliveredTs: now - 2 * 86400000 + 8000000 + 25 * 60000, settledTs: now - 2 * 86400000 + 8000000 + 34 * 60000 },
-        { id: 'W-107', dateStr: d1, storeId: 'S1', customerName: 'أ. إيهاب سالم', address: 'حي الضاحية', phone: '01066771122', amount: 370, fee: 25, riderId: 'R6', status: 'settled', receivedTs: now - 86400000, departedTs: now - 86400000 + 7 * 60000, deliveredTs: now - 86400000 + 23 * 60000, settledTs: now - 86400000 + 31 * 60000 },
-        { id: 'W-108', dateStr: d1, storeId: 'S4', customerName: 'أ. دينا مجدي', address: 'شارع الفاتح', phone: '01177889900', amount: 245, fee: 25, riderId: 'R8', status: 'settled', receivedTs: now - 86400000 + 3000000, departedTs: now - 86400000 + 3000000 + 8 * 60000, deliveredTs: now - 86400000 + 3000000 + 21 * 60000, settledTs: now - 86400000 + 3000000 + 29 * 60000 }
+        { id: 'W-115', dateStr: today, storeId: 'S1', customerName: 'أ. سامح عبد الرحمن', address: 'حي المساعيد - عمارة 14', phone: '01022334455', items: 'نصف تيس مندي + 2 بيبسي', amount: 340, fee: 25, riderId: 'R1', status: 'settled', receivedTs: now - 52 * 60000, departedTs: now - 43 * 60000, deliveredTs: now - 28 * 60000, settledTs: now - 15 * 60000 },
+        { id: 'W-116', dateStr: today, storeId: 'S1', customerName: 'م. كريم الشاذلي', address: 'حي الزهور - برج الصفوة', phone: '01066778899', items: 'فرخة شواية + أرز بسمتي + سلطات', amount: 520, fee: 25, riderId: 'R5', status: 'delivered', receivedTs: now - 40 * 60000, departedTs: now - 32 * 60000, deliveredTs: now - 10 * 60000, settledTs: null },
+        { id: 'W-117', dateStr: today, storeId: 'S2', customerName: 'د. هبة محمود', address: 'شارع الفاتح - برج النور', phone: '01144556677', items: 'أدوية ضغط + فيتامين د', amount: 185, fee: 20, riderId: 'R2', status: 'onway', receivedTs: now - 18 * 60000, departedTs: now - 10 * 60000, deliveredTs: null, settledTs: null },
+        { id: 'W-118', dateStr: today, storeId: 'S4', customerName: 'أ. نادية كمال', address: 'شارع الجمهورية - عمارة 9', phone: '01555443322', items: '2 بيتزا سوبر سوبريم وسط', amount: 275, fee: 25, riderId: 'R4', status: 'onway', receivedTs: now - 38 * 60000, departedTs: now - 25 * 60000, deliveredTs: null, settledTs: null },
+        { id: 'W-119', dateStr: today, storeId: 'S3', customerName: 'م. طارق الجندي', address: 'حي الضاحية - فيلا 22', phone: '01288990011', items: 'طلبات بقالة ومنظفات منزلية', amount: 460, fee: 30, riderId: 'R3', status: 'received', receivedTs: now - 6 * 60000, departedTs: null, deliveredTs: null, settledTs: null },
+        { id: 'W-120', dateStr: today, storeId: 'S1', customerName: 'أ. ياسر المنياوي', address: 'ميدان المحطة - خلف البريد', phone: '01099112233', items: 'وجبة كفتة مشوية + طحينة', amount: 210, fee: 25, riderId: 'R7', status: 'received', receivedTs: now - 3 * 60000, departedTs: null, deliveredTs: null, settledTs: null },
+        { id: 'W-101', dateStr: d3, storeId: 'S1', customerName: 'أ. وائل عزت', address: 'شارع البحر', phone: '01011223344', items: 'وجبة كباب وكفتة', amount: 310, fee: 25, riderId: 'R1', status: 'settled', receivedTs: now - 3 * 86400000, departedTs: now - 3 * 86400000 + 8 * 60000, deliveredTs: now - 3 * 86400000 + 22 * 60000, settledTs: now - 3 * 86400000 + 30 * 60000 },
+        { id: 'W-102', dateStr: d3, storeId: 'S1', customerName: 'د. مروة علي', address: 'حي الزهور', phone: '01022331144', items: '2 وجبة فراخ مشوية', amount: 420, fee: 25, riderId: 'R1', status: 'settled', receivedTs: now - 3 * 86400000 + 3600000, departedTs: now - 3 * 86400000 + 3600000 + 7 * 60000, deliveredTs: now - 3 * 86400000 + 3600000 + 20 * 60000, settledTs: now - 3 * 86400000 + 3600000 + 28 * 60000 },
+        { id: 'W-103', dateStr: d3, storeId: 'S3', customerName: 'أ. سلوى حسن', address: 'حي المساعيد', phone: '01122334455', items: 'خضار وفاكهة ومخبوزات', amount: 640, fee: 30, riderId: 'R2', status: 'settled', receivedTs: now - 3 * 86400000 + 7200000, departedTs: now - 3 * 86400000 + 7200000 + 10 * 60000, deliveredTs: now - 3 * 86400000 + 7200000 + 28 * 60000, settledTs: now - 3 * 86400000 + 7200000 + 35 * 60000 },
+        { id: 'W-104', dateStr: d2, storeId: 'S1', customerName: 'أ. حسام فؤاد', address: 'شارع 23 يوليو', phone: '01233445566', items: 'وجبة شاورما عربي', amount: 290, fee: 25, riderId: 'R1', status: 'settled', receivedTs: now - 2 * 86400000, departedTs: now - 2 * 86400000 + 6 * 60000, deliveredTs: now - 2 * 86400000 + 19 * 60000, settledTs: now - 2 * 86400000 + 27 * 60000 },
+        { id: 'W-105', dateStr: d2, storeId: 'S2', customerName: 'أ. منال إبراهيم', address: 'ميدان الساعة', phone: '01544556677', items: 'مستحضرات عناية وأدوية', amount: 155, fee: 20, riderId: 'R3', status: 'settled', receivedTs: now - 2 * 86400000 + 4000000, departedTs: now - 2 * 86400000 + 4000000 + 5 * 60000, deliveredTs: now - 2 * 86400000 + 4000000 + 17 * 60000, settledTs: now - 2 * 86400000 + 4000000 + 24 * 60000 },
+        { id: 'W-106', dateStr: d2, storeId: 'S6', customerName: 'م. شريف نصر', address: 'الكورنيش', phone: '01055667788', items: '2 كيلو سمك بوري سنجاري + جمبري', amount: 480, fee: 30, riderId: 'R5', status: 'settled', receivedTs: now - 2 * 86400000 + 8000000, departedTs: now - 2 * 86400000 + 8000000 + 9 * 60000, deliveredTs: now - 2 * 86400000 + 8000000 + 25 * 60000, settledTs: now - 2 * 86400000 + 8000000 + 34 * 60000 },
+        { id: 'W-107', dateStr: d1, storeId: 'S1', customerName: 'أ. إيهاب سالم', address: 'حي الضاحية', phone: '01066771122', items: 'وجبة حمام محشي + ملوخية', amount: 370, fee: 25, riderId: 'R6', status: 'settled', receivedTs: now - 86400000, departedTs: now - 86400000 + 7 * 60000, deliveredTs: now - 86400000 + 23 * 60000, settledTs: now - 86400000 + 31 * 60000 },
+        { id: 'W-108', dateStr: d1, storeId: 'S4', customerName: 'أ. دينا مجدي', address: 'شارع الفاتح', phone: '01177889900', items: 'بيتزا مارجريتا كبير + كريب', amount: 245, fee: 25, riderId: 'R8', status: 'settled', receivedTs: now - 86400000 + 3000000, departedTs: now - 86400000 + 3000000 + 8 * 60000, deliveredTs: now - 86400000 + 3000000 + 21 * 60000, settledTs: now - 86400000 + 3000000 + 29 * 60000 }
     ];
 }
 
@@ -140,17 +140,14 @@ function setSyncStatus(status) {
     });
 }
 
-// الطلبات الجارية في غرفة العمليات (تشمل المرتجع الذي لم يُعد للمتجر بعد)
 function isOrderActiveInRoom(o) {
     return o.status === 'received' || o.status === 'onway' || o.status === 'delivered' || o.status === 'returning';
 }
 
-// الطلبات المنتهية في الأرشيف (سواء تم توريدها بنجاح أو مرتجع أُعيد للمتجر)
 function isOrderArchived(o) {
     return o.status === 'settled' || o.status === 'returned';
 }
 
-// الطلبات الناجحة فقط لاحتساب مبيعات التجار
 function isOrderSuccessfullySettled(o) {
     return o.status === 'settled';
 }
@@ -327,7 +324,6 @@ function getAnalyticsSummary(targetMonth) {
     const todayReturnedOrders = todayOrders.filter(o => o.status === 'returned' || o.status === 'returning');
     const monthReturnedOrders = monthOrders.filter(o => o.status === 'returned' || o.status === 'returning');
 
-    // الإيرادات تشمل الطلبات الموردة + رسوم التوصيل المحتسبة على المرتجعات المقفلة
     const todayArchived = todayOrders.filter(o => isOrderArchived(o));
     const monthArchived = monthOrders.filter(o => isOrderArchived(o));
 
@@ -395,6 +391,7 @@ function buildWhatsAppMessage(o) {
         `• المندوب: ${rd.name} (${rd.plate})`,
         `• العميل: ${o.customerName} (${o.phone})`,
         `• العنوان: ${o.address}`,
+        o.items ? `• الأصناف: ${o.items}` : null,
         `• وقت الاستلام: ${formatTime12(o.receivedTs)}`,
         o.departedTs ? `• وقت التحرك: ${formatTime12(o.departedTs)}` : null,
         o.deliveredTs ? `• وقت التسليم: ${formatTime12(o.deliveredTs)} (مدة التوصيل: ${deliveryMins} دقيقة)` : null,
@@ -545,7 +542,8 @@ function renderFleetRibbon() {
             }
         } else if (r.status === 'off') {
             dotClass = 'bg-slate-500';
-            subText = `غير متاح • ${todayCnt} يوم / ${monthCnt} شهر`;
+            subText = `خارج العمل / غير متاح`;
+            borderClass = isSelected ? 'border-wassalOrange bg-wassalOrange/15 opacity-75' : 'border-slateBorder bg-obsidian/60 opacity-60 hover:opacity-100';
         }
 
         return `
@@ -570,6 +568,7 @@ function getFilteredActiveOrders() {
             o.id.toLowerCase().includes(q) ||
             o.customerName.toLowerCase().includes(q) ||
             o.address.toLowerCase().includes(q) ||
+            (o.items && o.items.toLowerCase().includes(q)) ||
             o.phone.includes(q) ||
             st.name.toLowerCase().includes(q) ||
             rd.name.toLowerCase().includes(q);
@@ -583,7 +582,6 @@ function getFilteredActiveOrders() {
 function renderOrdersBoardAndTable() {
     const filtered = getFilteredActiveOrders();
 
-    // العمود 1: received | العمود 2: onway | العمود 3: delivered + returning
     const colLists = {
         received: filtered.filter(o => o.status === 'received'),
         onway: filtered.filter(o => o.status === 'onway'),
@@ -646,6 +644,7 @@ function renderOrdersBoardAndTable() {
                 <td class="px-4 py-3.5">
                     <div class="font-bold text-slate-200">${o.customerName}</div>
                     <div class="text-[11px] text-slate-400">${o.address}</div>
+                    ${o.items ? `<div class="text-[10px] text-wassalAmber font-bold mt-0.5">🛒 ${o.items}</div>` : ''}
                 </td>
                 <td class="px-4 py-3.5 font-bold text-slate-200">${rd.name}</td>
                 <td class="px-4 py-3.5 text-[11px] text-slate-300">
@@ -740,12 +739,13 @@ function buildOrderCard(o) {
                 </div>
             </div>
 
-            <div class="text-xs space-y-1">
+            <div class="text-xs space-y-1 bg-obsidian/60 p-2.5 rounded-xl border border-slateBorder/60">
                 <div class="flex items-center justify-between">
                     <span class="font-bold text-slate-100">${o.customerName}</span>
                     <span class="text-wassalOrange font-mono font-bold text-[11px]">${o.phone}</span>
                 </div>
                 <p class="text-slate-400 text-[11px] truncate">📍 ${o.address}</p>
+                ${o.items ? `<p class="text-wassalAmber text-[11px] font-bold pt-0.5">🛒 ${o.items}</p>` : ''}
             </div>
 
             <div class="grid grid-cols-3 gap-1 bg-obsidian rounded-xl p-2 border border-slateBorder text-center text-xs">
@@ -842,6 +842,7 @@ function renderArchive() {
                     <td class="px-3.5 py-3">
                         <div class="text-slate-200 font-bold">${o.customerName}</div>
                         <div class="text-[11px] text-slate-400">${o.address}</div>
+                        ${o.items ? `<div class="text-[10px] text-wassalAmber font-bold mt-0.5">🛒 ${o.items}</div>` : ''}
                     </td>
                     <td class="px-3.5 py-3 font-bold text-slate-200">${rd.name}</td>
                     <td class="px-3.5 py-3 text-[11px]">
@@ -915,6 +916,94 @@ function openReturnModal(orderId) {
     document.getElementById('return-modal-order-id').textContent = `#${o.id} (${o.customerName})`;
     document.getElementById('input-return-reason-note').value = '';
     const modal = document.getElementById('modal-return-order');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function openStoreStatementModal(storeId) {
+    const store = getStore(storeId);
+    const targetMonth = uiState.reportMonth || getCurrentMonthStr();
+    const storeOrders = appState.orders.filter(o => o.storeId === storeId && (o.dateStr || '').startsWith(targetMonth));
+
+    const settledOrders = storeOrders.filter(o => isOrderSuccessfullySettled(o));
+    const returnedOrders = storeOrders.filter(o => o.status === 'returned' || o.status === 'returning');
+    const totalMerchantAmount = settledOrders.reduce((s, o) => s + Number(o.amount), 0);
+
+    document.getElementById('statement-store-subtitle').textContent = `${store.name} (${store.category}) — شهر ${targetMonth}`;
+
+    const rowsHTML = storeOrders.length === 0
+        ? `<tr><td colspan="6" class="py-8 text-center text-slate-500">لا توجد أوردرات مسجلة لهذا المتجر في شهر ${targetMonth}</td></tr>`
+        : storeOrders.map(o => {
+            const isRet = o.status === 'returned' || o.status === 'returning';
+            const statusTxt = o.status === 'settled' ? '✓ تم التوريد' : (isRet ? `↩️ مرتجع (${o.returnReason || ''})` : 'جاري');
+            return `
+                <tr class="border-b border-slateBorder hover:bg-slateCard/60">
+                    <td class="py-2.5 px-2 font-black text-wassalOrange">#${o.id}</td>
+                    <td class="py-2.5 px-2 text-slate-400 font-mono">${o.dateStr}</td>
+                    <td class="py-2.5 px-2 text-white">
+                        <div>${o.customerName}</div>
+                        ${o.items ? `<div class="text-[10px] text-slate-400">${o.items}</div>` : ''}
+                    </td>
+                    <td class="py-2.5 px-2">${statusTxt}</td>
+                    <td class="py-2.5 px-2 font-bold ${isRet ? 'line-through text-slate-500' : 'text-white'}">${o.amount} ج.م</td>
+                    <td class="py-2.5 px-2 font-bold text-wassalOrange">${o.fee} ج.م</td>
+                </tr>
+            `;
+        }).join('');
+
+    document.getElementById('statement-modal-body').innerHTML = `
+        <div class="grid grid-cols-3 gap-3 text-center">
+            <div class="bg-obsidian border border-slateBorder rounded-xl p-3">
+                <div class="text-[10px] text-slate-400">إجمالي الأوردرات</div>
+                <div class="text-lg font-black text-white mt-1">${storeOrders.length}</div>
+            </div>
+            <div class="bg-obsidian border border-statusDone/40 rounded-xl p-3">
+                <div class="text-[10px] text-statusDone">مبالغ البضائع (للمتجر)</div>
+                <div class="text-base font-black text-statusDone mt-1">${totalMerchantAmount.toLocaleString('ar-EG')} ج.م</div>
+            </div>
+            <div class="bg-obsidian border border-red-500/40 rounded-xl p-3">
+                <div class="text-[10px] text-red-400">طلبات مرتجعة</div>
+                <div class="text-base font-black text-red-400 mt-1">${returnedOrders.length}</div>
+            </div>
+        </div>
+
+        <div class="border border-slateBorder rounded-xl overflow-hidden">
+            <table class="w-full text-right text-xs">
+                <thead class="bg-obsidian text-slate-400 border-b border-slateBorder">
+                    <tr>
+                        <th class="py-2 px-2">#</th>
+                        <th class="py-2 px-2">التاريخ</th>
+                        <th class="py-2 px-2">العميل والأصناف</th>
+                        <th class="py-2 px-2">الحالة</th>
+                        <th class="py-2 px-2">قيمة الأوردر</th>
+                        <th class="py-2 px-2">التوصيل</th>
+                    </tr>
+                </thead>
+                <tbody>${rowsHTML}</tbody>
+            </table>
+        </div>
+
+        <div class="bg-obsidian border border-wassalOrange/50 rounded-xl p-3.5 space-y-1.5 text-xs">
+            <div class="flex justify-between"><span class="text-slate-300">إجمالي مبيعات البضائع للمتجر:</span><strong class="text-white">${totalMerchantAmount.toLocaleString('ar-EG')} ج.م</strong></div>
+            <div class="flex justify-between"><span class="text-slate-300">عدد الطلبات المرتجعة:</span><strong class="text-red-400">${returnedOrders.length} أوردر</strong></div>
+            <div class="pt-2 border-t border-slateBorder flex justify-between text-sm">
+                <span class="font-black text-wassalOrange">صافي المستحق للمتجر:</span>
+                <strong class="text-statusDone font-black text-base">${totalMerchantAmount.toLocaleString('ar-EG')} ج.م</strong>
+            </div>
+        </div>
+    `;
+
+    const waText = [
+        `📄 *كشف حساب متجر ${store.name}*`,
+        `• الفترة: شهر ${targetMonth}`,
+        `• إجمالي الأوردرات: ${storeOrders.length} (${settledOrders.length} ناجح، ${returnedOrders.length} مرتجع)`,
+        `• إجمالي قيمة البضائع الموردة: *${totalMerchantAmount.toLocaleString('ar-EG')} ج.م*`,
+        `_شكراً لتعاملكم مع خدمة وصّل للتوصيل 🧡_`
+    ].join('\n');
+
+    document.getElementById('whatsapp-store-statement-btn').href = `https://wa.me/${store.phone}?text=${encodeURIComponent(waText)}`;
+
+    const modal = document.getElementById('modal-store-statement');
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 }
@@ -1007,10 +1096,11 @@ function openOrderDrawer(orderId) {
 
         <div class="bg-slateCard border border-slateBorder rounded-2xl p-4 space-y-3 text-xs">
             <div>
-                <div class="text-[11px] text-slate-400">بيانات العميل</div>
+                <div class="text-[11px] text-slate-400">بيانات العميل والأصناف</div>
                 <div class="font-black text-white text-sm mt-0.5">${o.customerName}</div>
                 <div class="text-wassalOrange font-bold mt-0.5">📞 ${o.phone}</div>
                 <div class="text-slate-300 mt-1">📍 ${o.address}</div>
+                ${o.items ? `<div class="mt-2 p-2 rounded-lg bg-obsidian border border-wassalAmber/30 text-wassalAmber font-bold">🛒 الأصناف: ${o.items}</div>` : ''}
             </div>
             <div class="pt-3 border-t border-slateBorder flex items-center justify-between">
                 <div>
@@ -1238,9 +1328,9 @@ function renderRiders() {
         const isTopMonth = topMonth && topMonth.rider.id === r.id && topMonth.monthCount > 0;
 
         const statusMap = {
-            available: { label: 'متاح في المكتب', cls: 'bg-statusDone/15 border border-statusDone/40 text-statusDone' },
-            busy: { label: 'في مهمة', cls: 'bg-statusOnway/15 border border-statusOnway/40 text-statusOnway' },
-            off: { label: 'غير متاح', cls: 'bg-slateCard border border-slateBorder text-slate-400' }
+            available: { label: '🟢 متاح في المكتب', cls: 'bg-statusDone/15 border border-statusDone/40 text-statusDone' },
+            busy: { label: '🔵 في مهمة', cls: 'bg-statusOnway/15 border border-statusOnway/40 text-statusOnway' },
+            off: { label: '⚪ خارج العمل / غير متاح', cls: 'bg-slateCard border border-slateBorder text-slate-400' }
         };
         const stObj = statusMap[r.status] || statusMap.available;
 
@@ -1257,10 +1347,12 @@ function renderRiders() {
                     <div class="text-white font-bold">${st.name} ➔ ${activeOrder.address}</div>
                 </div>
             `;
+        } else if (r.status === 'off') {
+            destHTML = `<div class="text-xs text-slate-400 bg-obsidian/70 rounded-xl p-2.5 border border-dashed border-slateBorder">خارج العمل حالياً (مخفي من قائمة اختيار الطلبات الجديدة)</div>`;
         }
 
         return `
-            <div data-action="open-rider-stats" data-id="${r.id}" class="cursor-pointer bg-slateDark border ${isTopMonth ? 'border-wassalOrange/70 shadow-lg shadow-orange-500/10' : 'border-slateBorder hover:border-wassalOrange/60'} transition-all rounded-2xl p-5 flex flex-col justify-between space-y-4">
+            <div data-action="open-rider-stats" data-id="${r.id}" class="cursor-pointer bg-slateDark border ${isTopMonth ? 'border-wassalOrange/70 shadow-lg shadow-orange-500/10' : 'border-slateBorder hover:border-wassalOrange/60'} ${r.status === 'off' ? 'opacity-75' : ''} transition-all rounded-2xl p-5 flex flex-col justify-between space-y-4">
                 <div class="space-y-3">
                     <div class="flex items-start justify-between gap-2">
                         <div class="flex items-center gap-3">
@@ -1301,8 +1393,8 @@ function renderRiders() {
                         <button type="button" data-action="open-rider-stats" data-id="${r.id}" class="flex-1 py-2 px-2 rounded-xl wassal-grad text-obsidian text-xs font-black">
                             📊 كشف الأداء
                         </button>
-                        <button type="button" data-action="cycle-rider-status" data-id="${r.id}" class="px-2.5 py-2 rounded-xl bg-slateCard hover:bg-slateHover border border-slateBorder text-xs font-bold text-slate-300">
-                            الحالة
+                        <button type="button" data-action="toggle-rider-avail" data-id="${r.id}" class="px-2.5 py-2 rounded-xl bg-slateCard hover:bg-slateHover border border-slateBorder text-xs font-bold text-slate-200">
+                            ${r.status === 'off' ? '🟢 تفعيل' : '⚪ إيقاف'}
                         </button>
                         <button type="button" data-action="edit-rider" data-id="${r.id}" class="px-2.5 py-2 rounded-xl bg-statusOnway/15 hover:bg-statusOnway text-statusOnway hover:text-obsidian border border-statusOnway/30 text-xs font-black">
                             تعديل
@@ -1400,6 +1492,12 @@ function renderStores() {
                         <div class="font-black text-statusDone text-xs mt-0.5">${item.settledMonth} ج.م</div>
                     </div>
                 </div>
+
+                <div class="pt-2">
+                    <button type="button" data-action="open-store-statement" data-id="${s.id}" class="w-full py-2.5 rounded-xl wassal-grad wassal-grad-hover text-obsidian font-black text-xs shadow-md">
+                        📄 كشف حساب وتصفية المتجر
+                    </button>
+                </div>
             </div>
         `;
     }).join('');
@@ -1473,7 +1571,7 @@ function renderAccounting() {
                     <td class="px-3.5 py-3"><span class="px-2 py-0.5 rounded bg-obsidian border border-slateBorder text-[11px] text-slate-300">${e.category}</span></td>
                     <td class="px-3.5 py-3 text-slate-300 font-bold">${rdName}</td>
                     <td class="px-3.5 py-3 font-black text-red-400">${Number(e.amount).toLocaleString('ar-EG')} ج.م</td>
-                    <td class="px-3.5 py-3 text-center">
+                    <td class="px-3.5 py-3 text-center no-print">
                         <button type="button" data-action="delete-expense" data-id="${e.id}" class="px-2 py-1 rounded-lg bg-red-500/15 hover:bg-red-500 text-red-400 hover:text-white text-[11px] font-bold transition-colors">✕</button>
                     </td>
                 </tr>
@@ -1613,8 +1711,8 @@ function switchTab(tabName) {
     const titles = {
         operations: ['غرفة العمليات ومتابعة الطلبات الجارية', 'تم الاستلام ➔ تحرك للعميل ➔ تم التسليم (أو مرتجع) ➔ تم التوريد والعودة'],
         archive: ['أرشيف الطلبات المنتهية وإقفال اليوميات', 'استعراض أي يوم سابق وإقفال اليوم الحالي لبدء يوم عمل جديد'],
-        riders: [`أسطول المناديب والموتوسيكلات (${appState.riders.length} طيارين)`, 'اضغط على أي مندوب لعرض إحصائيات أوردراته اليومية والأسبوعية والشهرية'],
-        stores: ['المتاجر المتعاقدة وترتيب الأكثر عملاً', 'تصنيف المتاجر حسب حجم الأوردرات اليومية والشهرية ونسبة المساهمة'],
+        riders: [`أسطول المناديب والموتوسيكلات (${appState.riders.length} طيارين)`, 'اضغط على أي مندوب لعرض إحصائيات أوردراته أو تغيير حالته (متاح / خارج العمل)'],
+        stores: ['المتاجر المتعاقدة وترتيب الأكثر عملاً', 'تصنيف المتاجر حسب حجم الأوردرات وكشف حساب لكل متجر'],
         accounting: ['المحاسبة والمصروفات وتقارير الإدارة', 'قائمة الدخل اليومية والشهرية، إدارة المصروفات، وتقارير التقفيل والطباعة']
     };
     if (titles[tabName]) {
@@ -1661,13 +1759,16 @@ function openNewOrderModal() {
         document.getElementById('input-order-fee').value = appState.stores[0].fee;
     }
 
+    // إظهار المناديب المتاحين بالمكتب فقط
+    const availableRiders = appState.riders.filter(r => r.status === 'available');
     const riderSel = document.getElementById('input-order-rider');
-    const sortedRiders = [...appState.riders].sort((a, b) => (a.status === 'available' ? -1 : 1));
-    riderSel.innerHTML = sortedRiders.map(r => {
-        const tag = r.status === 'available' ? '🟢 متاح في المكتب' : (r.status === 'busy' ? '🔵 في مهمة' : '⚪ غير متاح');
-        return `<option value="${r.id}">${r.name} — ${tag} (${r.plate})</option>`;
-    }).join('');
+    if (availableRiders.length === 0) {
+        riderSel.innerHTML = `<option value="">⚠️ لا يوجد مناديب متاحين بالمكتب حالياً!</option>`;
+    } else {
+        riderSel.innerHTML = availableRiders.map(r => `<option value="${r.id}">🟢 ${r.name} (${r.plate})</option>`).join('');
+    }
 
+    document.getElementById('input-order-items').value = '';
     document.getElementById('input-order-time').value = '';
     const modal = document.getElementById('modal-new-order');
     modal.classList.remove('hidden');
@@ -1740,6 +1841,8 @@ document.addEventListener('click', (e) => {
         const m = document.getElementById('modal-new-store');
         m.classList.remove('hidden');
         m.classList.add('flex');
+    } else if (action === 'open-store-statement') {
+        openStoreStatementModal(id);
     } else if (action === 'open-rider-modal') {
         openRiderModal(null);
     } else if (action === 'edit-rider') {
@@ -1851,19 +1954,20 @@ document.addEventListener('click', (e) => {
             copyToClipboardSafe(buildWhatsAppMessage(order));
             showToast(`💬 تم نسخ رسالة واتساب للطلب #${order.id}`);
         }
-    } else if (action === 'cycle-rider-status') {
+    } else if (action === 'toggle-rider-avail') {
         const rider = appState.riders.find(r => r.id === id);
         if (rider) {
             const hasActive = appState.orders.some(o => o.riderId === id && isOrderActiveInRoom(o));
             if (hasActive) {
-                showToast(`المندوب ${rider.name} لديه طلب جاري حالياً`);
+                showToast(`⚠️ المندوب ${rider.name} لديه طلب جاري حالياً ولا يمكن إيقافه`);
                 return;
             }
-            const orderCycle = ['available', 'busy', 'off'];
-            const nextIdx = (orderCycle.indexOf(rider.status) + 1) % orderCycle.length;
-            rider.status = orderCycle[nextIdx];
+            rider.status = (rider.status === 'off') ? 'available' : 'off';
             saveData();
             renderAll();
+            showToast(rider.status === 'available'
+                ? `🟢 تم تفعيل المندوب ${rider.name} وهو متاح الآن بالمكتب`
+                : `⚪ تم تحويل ${rider.name} إلى خارج العمل (غير متاح)`);
         }
     }
 });
@@ -1874,16 +1978,43 @@ document.getElementById('input-order-store').addEventListener('change', (e) => {
     document.getElementById('input-order-fee').value = st.fee;
 });
 
+// الاستدعاء التلقائي لبيانات العميل عند إدخال رقم الهاتف
+document.getElementById('input-order-phone').addEventListener('input', (e) => {
+    const phoneVal = e.target.value.trim();
+    if (phoneVal.length >= 8) {
+        const foundOrder = appState.orders.find(o => o.phone === phoneVal);
+        if (foundOrder) {
+            const nameInput = document.getElementById('input-order-customer');
+            const addressInput = document.getElementById('input-order-address');
+            if (nameInput && !nameInput.value) nameInput.value = foundOrder.customerName;
+            if (addressInput && !addressInput.value) addressInput.value = foundOrder.address;
+
+            const prevReturns = appState.orders.filter(o => o.phone === phoneVal && (o.status === 'returned' || o.status === 'returning')).length;
+            if (prevReturns > 0) {
+                showToast(`⚠️ تنبيه: العميل ${foundOrder.customerName} لديه (${prevReturns}) مرتجع سابق!`);
+            } else {
+                showToast(`✨ تم استدعاء بيانات العميل: ${foundOrder.customerName}`);
+            }
+        }
+    }
+});
+
 document.getElementById('form-new-order').addEventListener('submit', (e) => {
     e.preventDefault();
     const storeId = document.getElementById('input-order-store').value;
     const customerName = document.getElementById('input-order-customer').value.trim();
     const phone = document.getElementById('input-order-phone').value.trim();
     const address = document.getElementById('input-order-address').value.trim();
+    const items = document.getElementById('input-order-items').value.trim();
     const amount = Number(document.getElementById('input-order-amount').value) || 0;
     const fee = Number(document.getElementById('input-order-fee').value) || 0;
     const riderId = document.getElementById('input-order-rider').value;
     const manualTime = document.getElementById('input-order-time').value;
+
+    if (!riderId) {
+        showToast('⚠️ لا يوجد مندوب متاح بالمكتب حالياً لتكليفه بالطلب');
+        return;
+    }
 
     let receivedTs = Date.now();
     if (manualTime) {
@@ -1900,6 +2031,7 @@ document.getElementById('form-new-order').addEventListener('submit', (e) => {
         customerName,
         address,
         phone,
+        items,
         amount,
         fee,
         riderId,

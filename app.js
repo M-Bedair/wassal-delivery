@@ -345,10 +345,17 @@ async function createOrderAtomically(orderPayload) {
     if (!fb || !fb.db || !currentUser) return null;
     setSyncStatus('pending');
     const metaRef = fb.doc(fb.db, 'wassal_meta', 'config');
+    const riderRef = fb.doc(fb.db, 'wassal_riders', String(orderPayload.riderId));
 
     try {
         const createdOrder = await fb.runTransaction(fb.db, async (transaction) => {
             const metaSnap = await transaction.get(metaRef);
+            const riderSnap = await transaction.get(riderRef);
+
+            if (!riderSnap.exists() || riderSnap.data().status !== 'available') {
+                throw new Error('RIDER_NOT_AVAILABLE');
+            }
+
             let currentSeq = 101;
             if (metaSnap.exists() && typeof metaSnap.data().nextOrderNum === 'number') {
                 currentSeq = metaSnap.data().nextOrderNum;
@@ -362,6 +369,7 @@ async function createOrderAtomically(orderPayload) {
 
             const orderRef = fb.doc(fb.db, 'wassal_orders', generatedId);
             transaction.set(orderRef, finalOrder);
+            transaction.update(riderRef, { status: 'busy' });
             transaction.set(metaRef, {
                 nextOrderNum: currentSeq + 1,
                 activeDate: appState.activeDate
@@ -374,10 +382,16 @@ async function createOrderAtomically(orderPayload) {
         return createdOrder;
     } catch (err) {
         console.error('Atomic order creation failed:', err);
-        setSyncStatus('offline');
-        showToast('⚠️ فشل تسجيل الطلب على السيرفر — تأكد من الاتصال والصلاحيات');
+        setSyncStatus(navigator.onLine ? 'online' : 'offline');
+        if (err.message === 'RIDER_NOT_AVAILABLE') {
+            showToast('⚠️ هذا المندوب تم تكليفه بطلب آخر للتو! اختر مندوباً متاحاً.');
+            populateSelects();
+        } else {
+            showToast('⚠️ فشل تسجيل الطلب على السيرفر — تأكد من الاتصال والصلاحيات');
+        }
         return null;
     }
+}
 }
 
 // ==================== STRICT BACKUP SCHEMA VALIDATOR ====================
@@ -2501,9 +2515,59 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitBtn.textContent = 'تسجيل الدخول لغرفة العمليات';
             }
         }
-    });
+    }); // <--- نهاية كود تسجيل الدخول الموجودة عندك بالفعل
 
-    // Role change listener in Security Modal
+    // ============== الصق الكود الجديد هنا ==============
+    // Create Staff User Account (Admin Only - Using Secondary Auth Instance)
+    document.getElementById('form-create-staff-user')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!isAdminUser()) {
+            showToast('⛔ إنشاء الحسابات متاح لمدير النظام فقط');
+            return;
+        }
+        await withActionLock('create-staff-user', async () => {
+            const staffName = document.getElementById('new-staff-name').value.trim();
+            const staffRole = document.getElementById('new-staff-role').value;
+            const staffEmail = document.getElementById('new-staff-email').value.trim();
+            const staffPassword = document.getElementById('new-staff-password').value;
+            const submitBtn = document.getElementById('btn-create-staff-submit');
+
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'جاري إنشاء الحساب...';
+            }
+
+            try {
+                const cred = await fb.createUserWithEmailAndPassword(fb.secondaryAuth, staffEmail, staffPassword);
+                const newUid = cred.user.uid;
+                await fb.signOut(fb.secondaryAuth);
+
+                await fb.setDoc(fb.doc(fb.db, 'wassal_users', newUid), {
+                    uid: newUid,
+                    name: staffName,
+                    email: staffEmail,
+                    role: staffRole,
+                    createdAt: Date.now()
+                });
+
+                await writeAuditLog('إنشاء حساب موظف', staffEmail, `الاسم: ${staffName} | الصلاحية: ${staffRole}`);
+                e.target.reset();
+                showToast(`✅ تم إنشاء حساب (${staffName}) وتفعيل صلاحيته فوراً`);
+            } catch (err) {
+                console.error('Create staff error:', err);
+                const msg = err.code === 'auth/email-already-in-use'
+                    ? '⚠️ هذا البريد الإلكتروني مسجل بالفعل'
+                    : '⚠️ تعذر إنشاء الحساب (تأكد أن كلمة المرور 6 أحرف على الأقل)';
+                showToast(msg);
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'إنشاء الحساب وتفعيل الصلاحية فوراً';
+                }
+            }
+        });
+    });
+    // Role change listener in Security Modal <--- هذا السطر موجود عندك بالفعل
     document.addEventListener('change', async (e) => {
         const sel = e.target.closest('[data-action="change-user-role"]');
         if (sel && isAdminUser()) {

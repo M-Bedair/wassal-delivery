@@ -1,26 +1,8 @@
 const STORAGE_KEY = 'wassal_modern_ops_v2';
 
-const INITIAL_RIDERS = [
-    { id: 'R1', name: 'أحمد محمود', bike: 'بجاج بوكسر 150', plate: 'ق هـ 412', phone: '', status: 'available' },
-    { id: 'R2', name: 'كريم عادل', bike: 'هوجن 3', plate: 'س ب 893', phone: '', status: 'available' },
-    { id: 'R3', name: 'مصطفى حسن', bike: 'دايون 4', plate: 'م ر 551', phone: '', status: 'available' },
-    { id: 'R4', name: 'إسلام طارق', bike: 'بجاج بولسار 180', plate: 'ط ل 129', phone: '', status: 'available' },
-    { id: 'R5', name: 'محمود سعيد', bike: 'هوجن F250', plate: 'ع ن 774', phone: '', status: 'available' },
-    { id: 'R6', name: 'عمر خالد', bike: 'بجاج بوكسر 150', plate: 'و ص 308', phone: '', status: 'available' },
-    { id: 'R7', name: 'يوسف إبراهيم', bike: 'دايون 40', plate: 'ك م 615', phone: '', status: 'available' },
-    { id: 'R8', name: 'حسام الدين', bike: 'هوجن 3', plate: 'أ د 940', phone: '', status: 'available' },
-    { id: 'R9', name: 'طارق نبيل', bike: 'بجاج بوكسر 150', plate: 'ف ق 217', phone: '', status: 'available' },
-    { id: 'R10', name: 'محمد فتحي', bike: 'بينيللي VLR', plate: 'ر ت 832', phone: '', status: 'available' }
-];
+const INITIAL_RIDERS = [];
 
-const INITIAL_STORES = [
-    { id: 'S1', name: 'مطعم حضرموت', category: 'مطعم', fee: 25, phone: '01099887701', address: 'شارع 23 يوليو - بجوار البنك الأهلي' },
-    { id: 'S2', name: 'صيدليات العزبي', category: 'صيدلية', fee: 20, phone: '01099887702', address: 'ميدان الساعة - برج الأطباء' },
-    { id: 'S3', name: 'هايبر ماركت', category: 'سوبرماركت', fee: 30, phone: '01099887703', address: 'شارع البحر - أمام المسجد الكبير' },
-    { id: 'S4', name: 'بيتزا كينج', category: 'مطعم', fee: 25, phone: '01099887704', address: 'حي الزهور - الشارع الرئيسي' },
-    { id: 'S5', name: 'صيدلية الشفاء', category: 'صيدلية', fee: 20, phone: '01099887705', address: 'شارع المحطة - تقاطع النصر' },
-    { id: 'S6', name: 'أسماك البحر', category: 'مطعم', fee: 30, phone: '01099887706', address: 'الكورنيش - بجوار النادي' }
-];
+const INITIAL_STORES = [];
 
 let cloudBridge = null;
 
@@ -43,13 +25,6 @@ function getCurrentMonthStr() {
     return getActiveShiftDate().slice(0, 7);
 }
 
-function getPastDateInCurrentMonth(daysBack) {
-    const d = new Date();
-    const targetDay = Math.max(1, d.getDate() - daysBack);
-    d.setDate(targetDay);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
 function formatTime12(ts) {
     if (!ts) return '--:--';
     const d = new Date(ts);
@@ -61,40 +36,11 @@ function formatTime12(ts) {
 }
 
 function createDemoOrders() {
-    const now = Date.now();
-    const today = getSystemTodayStr();
-    const d1 = getPastDateInCurrentMonth(2);
-    const d2 = getPastDateInCurrentMonth(5);
-    const d3 = getPastDateInCurrentMonth(9);
-
-    return [
-        { id: 'W-115', dateStr: today, storeId: 'S1', customerName: 'أ. سامح عبد الرحمن', address: 'حي المساعيد - عمارة 14', phone: '01022334455', items: 'نصف تيس مندي (300 ج.م) + 2 بيبسي (40 ج.م)', amount: 340, fee: 25, riderId: 'R1', status: 'settled', receivedTs: now - 52 * 60000, departedTs: now - 43 * 60000, deliveredTs: now - 28 * 60000, settledTs: now - 15 * 60000 },
-        { id: 'W-116', dateStr: today, storeId: 'S1', customerName: 'م. كريم الشاذلي', address: 'حي الزهور - برج الصفوة', phone: '01066778899', items: 'فرخة شواية (380 ج.م) + أرز بسمتي (140 ج.م)', amount: 520, fee: 25, riderId: 'R5', status: 'delivered', receivedTs: now - 40 * 60000, departedTs: now - 32 * 60000, deliveredTs: now - 10 * 60000, settledTs: null },
-        { id: 'W-117', dateStr: today, storeId: 'S2', customerName: 'د. هبة محمود', address: 'شارع الفاتح - برج النور', phone: '01144556677', items: 'أدوية ضغط (120 ج.م) + فيتامين د (65 ج.م)', amount: 185, fee: 20, riderId: 'R2', status: 'onway', receivedTs: now - 18 * 60000, departedTs: now - 10 * 60000, deliveredTs: null, settledTs: null },
-        { id: 'W-118', dateStr: today, storeId: 'S4', customerName: 'أ. نادية كمال', address: 'شارع الجمهورية - عمارة 9', phone: '01555443322', items: '2 بيتزا سوبر سوبريم وسط (275 ج.م)', amount: 275, fee: 25, riderId: 'R4', status: 'onway', receivedTs: now - 38 * 60000, departedTs: now - 25 * 60000, deliveredTs: null, settledTs: null },
-        { id: 'W-119', dateStr: today, storeId: 'S3', customerName: 'م. طارق الجندي', address: 'حي الضاحية - فيلا 22', phone: '01288990011', items: 'طلبات بقالة (310 ج.م) + منظفات منزلية (150 ج.م)', amount: 460, fee: 30, riderId: 'R3', status: 'received', receivedTs: now - 6 * 60000, departedTs: null, deliveredTs: null, settledTs: null },
-        { id: 'W-120', dateStr: today, storeId: 'S1', customerName: 'أ. ياسر المنياوي', address: 'ميدان المحطة - خلف البريد', phone: '01099112233', items: 'وجبة كفتة مشوية (210 ج.م)', amount: 210, fee: 25, riderId: 'R7', status: 'received', receivedTs: now - 3 * 60000, departedTs: null, deliveredTs: null, settledTs: null },
-        { id: 'W-101', dateStr: d3, storeId: 'S1', customerName: 'أ. وائل عزت', address: 'شارع البحر', phone: '01011223344', items: 'وجبة كباب وكفتة (310 ج.م)', amount: 310, fee: 25, riderId: 'R1', status: 'settled', receivedTs: now - 3 * 86400000, departedTs: now - 3 * 86400000 + 8 * 60000, deliveredTs: now - 3 * 86400000 + 22 * 60000, settledTs: now - 3 * 86400000 + 30 * 60000 },
-        { id: 'W-102', dateStr: d3, storeId: 'S1', customerName: 'د. مروة علي', address: 'حي الزهور', phone: '01022331144', items: '2 وجبة فراخ مشوية (420 ج.م)', amount: 420, fee: 25, riderId: 'R1', status: 'settled', receivedTs: now - 3 * 86400000 + 3600000, departedTs: now - 3 * 86400000 + 3600000 + 7 * 60000, deliveredTs: now - 3 * 86400000 + 3600000 + 20 * 60000, settledTs: now - 3 * 86400000 + 3600000 + 28 * 60000 },
-        { id: 'W-103', dateStr: d3, storeId: 'S3', customerName: 'أ. سلوى حسن', address: 'حي المساعيد', phone: '01122334455', items: 'خضار وفاكهة (440 ج.م) + مخبوزات (200 ج.م)', amount: 640, fee: 30, riderId: 'R2', status: 'settled', receivedTs: now - 3 * 86400000 + 7200000, departedTs: now - 3 * 86400000 + 7200000 + 10 * 60000, deliveredTs: now - 3 * 86400000 + 7200000 + 28 * 60000, settledTs: now - 3 * 86400000 + 7200000 + 35 * 60000 },
-        { id: 'W-104', dateStr: d2, storeId: 'S1', customerName: 'أ. حسام فؤاد', address: 'شارع 23 يوليو', phone: '01233445566', items: 'وجبة شاورما عربي (290 ج.م)', amount: 290, fee: 25, riderId: 'R1', status: 'settled', receivedTs: now - 2 * 86400000, departedTs: now - 2 * 86400000 + 6 * 60000, deliveredTs: now - 2 * 86400000 + 19 * 60000, settledTs: now - 2 * 86400000 + 27 * 60000 },
-        { id: 'W-105', dateStr: d2, storeId: 'S2', customerName: 'أ. منال إبراهيم', address: 'ميدان الساعة', phone: '01544556677', items: 'مستحضرات عناية وأدوية (155 ج.م)', amount: 155, fee: 20, riderId: 'R3', status: 'settled', receivedTs: now - 2 * 86400000 + 4000000, departedTs: now - 2 * 86400000 + 4000000 + 5 * 60000, deliveredTs: now - 2 * 86400000 + 4000000 + 17 * 60000, settledTs: now - 2 * 86400000 + 4000000 + 24 * 60000 },
-        { id: 'W-106', dateStr: d2, storeId: 'S6', customerName: 'م. شريف نصر', address: 'الكورنيش', phone: '01055667788', items: '2 كيلو سمك بوري (300 ج.م) + جمبري (180 ج.م)', amount: 480, fee: 30, riderId: 'R5', status: 'settled', receivedTs: now - 2 * 86400000 + 8000000, departedTs: now - 2 * 86400000 + 8000000 + 9 * 60000, deliveredTs: now - 2 * 86400000 + 8000000 + 25 * 60000, settledTs: now - 2 * 86400000 + 8000000 + 34 * 60000 },
-        { id: 'W-107', dateStr: d1, storeId: 'S1', customerName: 'أ. إيهاب سالم', address: 'حي الضاحية', phone: '01066771122', items: 'وجبة حمام محشي (320 ج.م) + ملوخية (50 ج.م)', amount: 370, fee: 25, riderId: 'R6', status: 'settled', receivedTs: now - 86400000, departedTs: now - 86400000 + 7 * 60000, deliveredTs: now - 86400000 + 23 * 60000, settledTs: now - 86400000 + 31 * 60000 },
-        { id: 'W-108', dateStr: d1, storeId: 'S4', customerName: 'أ. دينا مجدي', address: 'شارع الفاتح', phone: '01177889900', items: 'بيتزا مارجريتا كبير (165 ج.م) + كريب (80 ج.م)', amount: 245, fee: 25, riderId: 'R8', status: 'settled', receivedTs: now - 86400000 + 3000000, departedTs: now - 86400000 + 3000000 + 8 * 60000, deliveredTs: now - 86400000 + 3000000 + 21 * 60000, settledTs: now - 86400000 + 3000000 + 29 * 60000 }
-    ];
+    return [];
 }
 
 function createDemoExpenses() {
-    const today = getSystemTodayStr();
-    const d1 = getPastDateInCurrentMonth(1);
-    const d3 = getPastDateInCurrentMonth(3);
-    return [
-        { id: 'EXP-1', dateStr: today, title: 'تفويل بنزين 92 صباحي', category: 'بنزين ووقود موتوسيكلات', amount: 45, riderId: 'R1', notes: 'بون محطة التعاون' },
-        { id: 'EXP-2', dateStr: d1, title: 'تغيير زيت وتيل فرامل', category: 'صيانة وقطع غيار', amount: 90, riderId: 'R4', notes: 'صيانة دورية للموتوسيكل' },
-        { id: 'EXP-3', dateStr: d3, title: 'باقة إنترنت المكتب وخطوط المناديب', category: 'إنترنت واتصالات', amount: 80, riderId: '', notes: 'اشتراك شهري' },
-        { id: 'EXP-4', dateStr: d3, title: 'مطبوعات وبونات استلام وصّل', category: 'تسويق ومطبوعات', amount: 65, riderId: '', notes: 'دفاتر بونات' }
-    ];
+    return [];
 }
 
 let appState = {
@@ -104,7 +50,7 @@ let appState = {
     stores: [],
     orders: [],
     expenses: [],
-    nextOrderNum: 121
+    nextOrderNum: 101
 };
 
 let uiState = {
@@ -189,11 +135,11 @@ function loadLocalOrDefaultData() {
             appState = {
                 activeDate: parsed.activeDate || getSystemTodayStr(),
                 closedDays: normalizeArray(parsed.closedDays, []),
-                riders: normalizeArray(parsed.riders, JSON.parse(JSON.stringify(INITIAL_RIDERS))),
-                stores: normalizeArray(parsed.stores, JSON.parse(JSON.stringify(INITIAL_STORES))),
+                riders: normalizeArray(parsed.riders, []),
+                stores: normalizeArray(parsed.stores, []),
                 orders: normalizeArray(parsed.orders, []),
                 expenses: normalizeArray(parsed.expenses, []),
-                nextOrderNum: parsed.nextOrderNum || 121
+                nextOrderNum: parsed.nextOrderNum || 101
             };
             uiState.archiveDateFilter = appState.activeDate;
             syncRidersAvailability();
@@ -204,11 +150,11 @@ function loadLocalOrDefaultData() {
     appState = {
         activeDate: sysToday,
         closedDays: [],
-        riders: JSON.parse(JSON.stringify(INITIAL_RIDERS)),
-        stores: JSON.parse(JSON.stringify(INITIAL_STORES)),
-        orders: createDemoOrders(),
-        expenses: createDemoExpenses(),
-        nextOrderNum: 121
+        riders: [],
+        stores: [],
+        orders: [],
+        expenses: [],
+        nextOrderNum: 101
     };
     uiState.archiveDateFilter = sysToday;
     syncRidersAvailability();
@@ -220,11 +166,11 @@ function resetDemoData(notify) {
     appState = {
         activeDate: sysToday,
         closedDays: [],
-        riders: JSON.parse(JSON.stringify(INITIAL_RIDERS)),
-        stores: JSON.parse(JSON.stringify(INITIAL_STORES)),
-        orders: createDemoOrders(),
-        expenses: createDemoExpenses(),
-        nextOrderNum: 121
+        riders: [],
+        stores: [],
+        orders: [],
+        expenses: [],
+        nextOrderNum: 101
     };
     uiState.riderFilter = 'all';
     uiState.statusFilter = 'all';
@@ -235,7 +181,7 @@ function resetDemoData(notify) {
     syncRidersAvailability();
     saveData();
     renderAll();
-    if (notify) showToast('تمت إعادة ضبط البيانات التجريبية');
+    if (notify) showToast('تم تصفير جميع البيانات بنجاح — النظام جاهز للإدخال');
 }
 
 loadLocalOrDefaultData();
@@ -261,11 +207,11 @@ async function initCloudSync() {
                 appState = {
                     activeDate: cloudData.activeDate || getSystemTodayStr(),
                     closedDays: normalizeArray(cloudData.closedDays, []),
-                    riders: normalizeArray(cloudData.riders, JSON.parse(JSON.stringify(INITIAL_RIDERS))),
-                    stores: normalizeArray(cloudData.stores, JSON.parse(JSON.stringify(INITIAL_STORES))),
+                    riders: normalizeArray(cloudData.riders, []),
+                    stores: normalizeArray(cloudData.stores, []),
                     orders: normalizeArray(cloudData.orders, []),
                     expenses: normalizeArray(cloudData.expenses, []),
-                    nextOrderNum: cloudData.nextOrderNum || 121
+                    nextOrderNum: cloudData.nextOrderNum || 101
                 };
                 const activeD = getActiveShiftDate();
                 appState.orders.forEach(o => { if (!o.dateStr) o.dateStr = activeD; });
@@ -560,7 +506,7 @@ function renderKPIs() {
     const profitSign = currentStats.todayProfit >= 0 ? '+' : '';
     document.getElementById('nav-badge-profit').textContent = `${profitSign}${currentStats.todayProfit} ج.م`;
 
-    const pct = Math.round((availRiders / Math.max(1, totalRidersCount)) * 100);
+    const pct = totalRidersCount > 0 ? Math.round((availRiders / totalRidersCount) * 100) : 0;
     const sidebarFleetTitle = document.getElementById('sidebar-fleet-title');
     if (sidebarFleetTitle) sidebarFleetTitle.textContent = `جاهزية الأسطول (${totalRidersCount})`;
     document.getElementById('sidebar-fleet-pct').textContent = `${pct}%`;
@@ -574,6 +520,11 @@ function renderFleetRibbon() {
     const clearBtn = document.getElementById('clear-rider-pill-btn');
     if (uiState.riderFilter !== 'all') clearBtn.classList.remove('hidden');
     else clearBtn.classList.add('hidden');
+
+    if (appState.riders.length === 0) {
+        container.innerHTML = `<div class="text-xs text-slate-400 py-1 px-2">لا يوجد مناديب مضافين بعد — انتقل إلى تبويب <strong class="text-wassalOrange">المناديب والموتوسيكلات</strong> لإضافة طياريك.</div>`;
+        return;
+    }
 
     const today = getActiveShiftDate();
     const month = getCurrentMonthStr();
@@ -661,7 +612,6 @@ function renderOrdersBoardAndTable() {
     const q = (searchEl ? searchEl.value : '').trim().toLowerCase();
     const filtered = getFilteredActiveOrders();
 
-    // إذا كان هناك نص بحث ولم توجد نتائج في الطلبات الجارية، نبحث في الأرشيف
     const archiveMatches = q
         ? appState.orders.filter(o => isOrderArchived(o) && matchesSearchQuery(o, q))
         : [];
@@ -1105,7 +1055,7 @@ function openStoreStatementModal(storeId) {
         `_شكراً لتعاملكم مع خدمة وصّل للتوصيل 🧡_`
     ].join('\n');
 
-    document.getElementById('whatsapp-store-statement-btn').href = `https://wa.me/${store.phone}?text=${encodeURIComponent(waText)}`;
+    document.getElementById('whatsapp-store-statement-btn').href = `[https://wa.me/$](https://wa.me/$){store.phone}?text=${encodeURIComponent(waText)}`;
 
     const modal = document.getElementById('modal-store-statement');
     modal.classList.remove('hidden');
@@ -1236,7 +1186,7 @@ function openOrderDrawer(orderId) {
         <div class="bg-slateCard border border-statusDone/30 rounded-2xl p-3.5 space-y-2">
             <div class="flex items-center justify-between text-xs">
                 <span class="font-black text-statusDone">💬 رسالة جروب الواتساب</span>
-                <a href="https://wa.me/?text=${encodeURIComponent(waMessage)}" target="_blank" rel="noopener" class="text-[11px] text-statusOnway underline font-bold">فتح واتساب ويب ↗</a>
+                <a href="[https://wa.me/?text=$](https://wa.me/?text=$){encodeURIComponent(waMessage)}" target="_blank" rel="noopener" class="text-[11px] text-statusOnway underline font-bold">فتح واتساب ويب ↗</a>
             </div>
             <textarea readonly rows="5" class="w-full bg-obsidian border border-slateBorder rounded-xl p-2.5 text-[11px] text-slate-200 leading-relaxed focus:outline-none">${waMessage}</textarea>
         </div>
@@ -1421,7 +1371,7 @@ function renderRiders() {
 
     const grid = document.getElementById('riders-grid');
     if (appState.riders.length === 0) {
-        grid.innerHTML = `<div class="col-span-full bg-slateDark border border-dashed border-slateBorder rounded-2xl p-10 text-center text-slate-400 text-xs">لا يوجد مناديب مسجلون حالياً.</div>`;
+        grid.innerHTML = `<div class="col-span-full bg-slateDark border border-dashed border-slateBorder rounded-2xl p-10 text-center text-slate-400 text-xs">لا يوجد مناديب مسجلون حالياً. اضغط على <strong class="text-wassalOrange">+ إضافة مندوب جديد</strong> بالأعلى لبدء تسجيل طياريك.</div>`;
         return;
     }
 
@@ -1551,6 +1501,11 @@ function renderStores() {
     }
 
     const grid = document.getElementById('stores-grid');
+    if (ranked.length === 0) {
+        grid.innerHTML = `<div class="col-span-full bg-slateDark border border-dashed border-slateBorder rounded-2xl p-10 text-center text-slate-400 text-xs">لا توجد متاجر مسجلة حالياً. اضغط على <strong class="text-wassalOrange">+ إضافة متجر جديد</strong> بالأعلى لبدء تسجيل متاجرك.</div>`;
+        return;
+    }
+
     grid.innerHTML = ranked.map((item, idx) => {
         const s = item.store;
         const isFirst = idx === 0 && item.monthCount > 0;
@@ -1597,9 +1552,12 @@ function renderStores() {
                     </div>
                 </div>
 
-                <div class="pt-2">
-                    <button type="button" data-action="open-store-statement" data-id="${s.id}" class="w-full py-2.5 rounded-xl wassal-grad wassal-grad-hover text-obsidian font-black text-xs shadow-md">
-                        📄 كشف حساب وتصفية المتجر
+                <div class="pt-2 flex items-center gap-2">
+                    <button type="button" data-action="open-store-statement" data-id="${s.id}" class="flex-1 py-2.5 rounded-xl wassal-grad wassal-grad-hover text-obsidian font-black text-xs shadow-md">
+                        📄 كشف حساب وتصفية
+                    </button>
+                    <button type="button" data-action="delete-store" data-id="${s.id}" class="px-3 py-2.5 rounded-xl bg-red-500/15 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 text-xs font-black transition-colors">
+                        حذف
                     </button>
                 </div>
             </div>
@@ -1684,47 +1642,55 @@ function renderAccounting() {
     }
 
     const storesBody = document.getElementById('stores-accounting-body');
-    storesBody.innerHTML = stats.storeStats.map((item, idx) => {
-        const s = item.store;
-        const rankBadge = idx === 0 && item.monthCount > 0 ? '👑 #1' : `#${idx + 1}`;
-        return `
-            <tr class="hover:bg-slateCard/80 ${idx === 0 && item.monthCount > 0 ? 'bg-statusPicked/5' : ''}">
-                <td class="px-4 py-3 font-black ${idx === 0 && item.monthCount > 0 ? 'text-statusPicked' : 'text-slate-400'}">${rankBadge}</td>
-                <td class="px-4 py-3 font-black text-white">${s.name}</td>
-                <td class="px-4 py-3 text-slate-400">${s.category}</td>
-                <td class="px-4 py-3 font-bold text-white">${item.todayCount}</td>
-                <td class="px-4 py-3 font-black text-wassalOrange text-sm">${item.monthCount}</td>
-                <td class="px-4 py-3">
-                    <div class="flex items-center gap-2">
-                        <div class="w-16 h-1.5 bg-obsidian rounded-full overflow-hidden">
-                            <div class="h-full wassal-grad" style="width:${item.sharePct}%"></div>
+    if (stats.storeStats.length === 0) {
+        storesBody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-500">لا توجد متاجر مسجلة بعد</td></tr>`;
+    } else {
+        storesBody.innerHTML = stats.storeStats.map((item, idx) => {
+            const s = item.store;
+            const rankBadge = idx === 0 && item.monthCount > 0 ? '👑 #1' : `#${idx + 1}`;
+            return `
+                <tr class="hover:bg-slateCard/80 ${idx === 0 && item.monthCount > 0 ? 'bg-statusPicked/5' : ''}">
+                    <td class="px-4 py-3 font-black ${idx === 0 && item.monthCount > 0 ? 'text-statusPicked' : 'text-slate-400'}">${rankBadge}</td>
+                    <td class="px-4 py-3 font-black text-white">${s.name}</td>
+                    <td class="px-4 py-3 text-slate-400">${s.category}</td>
+                    <td class="px-4 py-3 font-bold text-white">${item.todayCount}</td>
+                    <td class="px-4 py-3 font-black text-wassalOrange text-sm">${item.monthCount}</td>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-16 h-1.5 bg-obsidian rounded-full overflow-hidden">
+                                <div class="h-full wassal-grad" style="width:${item.sharePct}%"></div>
+                            </div>
+                            <span class="font-bold text-slate-200">${item.sharePct}%</span>
                         </div>
-                        <span class="font-bold text-slate-200">${item.sharePct}%</span>
-                    </div>
-                </td>
-                <td class="px-4 py-3 font-black text-statusDone">${item.settledMonth.toLocaleString('ar-EG')} ج.م</td>
-                <td class="px-4 py-3 font-black text-white">${item.feeMonth.toLocaleString('ar-EG')} ج.م</td>
-            </tr>
-        `;
-    }).join('');
+                    </td>
+                    <td class="px-4 py-3 font-black text-statusDone">${item.settledMonth.toLocaleString('ar-EG')} ج.م</td>
+                    <td class="px-4 py-3 font-black text-white">${item.feeMonth.toLocaleString('ar-EG')} ج.م</td>
+                </tr>
+            `;
+        }).join('');
+    }
 
     const ridersBody = document.getElementById('riders-accounting-body');
-    ridersBody.innerHTML = stats.riderStats.map((item, idx) => {
-        const r = item.rider;
-        const rankBadge = idx === 0 && item.monthCount > 0 ? '🏆 #1' : `#${idx + 1}`;
-        return `
-            <tr class="hover:bg-slateCard/80">
-                <td class="px-4 py-3 font-black ${idx === 0 && item.monthCount > 0 ? 'text-wassalOrange' : 'text-slate-400'}">${rankBadge}</td>
-                <td class="px-4 py-3 font-black text-white">${r.name}</td>
-                <td class="px-4 py-3 text-slate-400">${r.bike} (${r.plate})</td>
-                <td class="px-4 py-3 font-black text-statusDone text-sm">${item.todayCount}</td>
-                <td class="px-4 py-3 font-black text-wassalOrange text-sm">${item.monthCount}</td>
-                <td class="px-4 py-3 font-bold text-statusOnway">${item.avgMins !== null ? item.avgMins + ' دقيقة' : '—'}</td>
-                <td class="px-4 py-3 font-bold text-white">${item.settledMonth.toLocaleString('ar-EG')} ج.م</td>
-                <td class="px-4 py-3 font-black text-wassalOrange">${item.feeMonth.toLocaleString('ar-EG')} ج.م</td>
-            </tr>
-        `;
-    }).join('');
+    if (stats.riderStats.length === 0) {
+        ridersBody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-500">لا يوجد مناديب مسجلون بعد</td></tr>`;
+    } else {
+        ridersBody.innerHTML = stats.riderStats.map((item, idx) => {
+            const r = item.rider;
+            const rankBadge = idx === 0 && item.monthCount > 0 ? '🏆 #1' : `#${idx + 1}`;
+            return `
+                <tr class="hover:bg-slateCard/80">
+                    <td class="px-4 py-3 font-black ${idx === 0 && item.monthCount > 0 ? 'text-wassalOrange' : 'text-slate-400'}">${rankBadge}</td>
+                    <td class="px-4 py-3 font-black text-white">${r.name}</td>
+                    <td class="px-4 py-3 text-slate-400">${r.bike} (${r.plate})</td>
+                    <td class="px-4 py-3 font-black text-statusDone text-sm">${item.todayCount}</td>
+                    <td class="px-4 py-3 font-black text-wassalOrange text-sm">${item.monthCount}</td>
+                    <td class="px-4 py-3 font-bold text-statusOnway">${item.avgMins !== null ? item.avgMins + ' دقيقة' : '—'}</td>
+                    <td class="px-4 py-3 font-bold text-white">${item.settledMonth.toLocaleString('ar-EG')} ج.م</td>
+                    <td class="px-4 py-3 font-black text-wassalOrange">${item.feeMonth.toLocaleString('ar-EG')} ج.م</td>
+                </tr>
+            `;
+        }).join('');
+    }
 }
 
 function exportMonthlyCSV() {
@@ -1853,6 +1819,17 @@ function setViewMode(mode) {
 }
 
 function openNewOrderModal() {
+    if (appState.stores.length === 0) {
+        showToast('⚠️ يرجى إضافة متجر واحد على الأقل أولاً من تبويب المتاجر');
+        switchTab('stores');
+        return;
+    }
+    if (appState.riders.length === 0) {
+        showToast('⚠️ يرجى إضافة مندوب واحد على الأقل أولاً من تبويب المناديب');
+        switchTab('riders');
+        return;
+    }
+
     const activeD = getActiveShiftDate();
     const dayBadge = document.getElementById('modal-order-active-day');
     if (dayBadge) dayBadge.textContent = activeD;
@@ -1863,7 +1840,6 @@ function openNewOrderModal() {
         document.getElementById('input-order-fee').value = appState.stores[0].fee;
     }
 
-    // إظهار المناديب المتاحين بالمكتب فقط
     const availableRiders = appState.riders.filter(r => r.status === 'available');
     const riderSel = document.getElementById('input-order-rider');
     if (availableRiders.length === 0) {
@@ -1955,6 +1931,18 @@ document.addEventListener('click', (e) => {
         m.classList.add('flex');
     } else if (action === 'open-store-statement') {
         openStoreStatementModal(id);
+    } else if (action === 'delete-store') {
+        const store = appState.stores.find(s => s.id === id);
+        if (!store) return;
+        const hasActive = appState.orders.some(o => o.storeId === id && isOrderActiveInRoom(o));
+        if (hasActive) {
+            showToast(`⚠️ لا يمكن حذف ${store.name} لوجود طلب جاري خاص به حالياً`);
+            return;
+        }
+        appState.stores = appState.stores.filter(s => s.id !== id);
+        saveData();
+        renderAll();
+        showToast(`تم حذف المتجر ${store.name}`);
     } else if (action === 'open-rider-modal') {
         openRiderModal(null);
     } else if (action === 'edit-rider') {
@@ -2096,7 +2084,6 @@ document.getElementById('order-items-list').addEventListener('input', (e) => {
     }
 });
 
-// الاستدعاء التلقائي لبيانات العميل عند إدخال رقم الهاتف
 document.getElementById('input-order-phone').addEventListener('input', (e) => {
     const phoneVal = e.target.value.trim();
     if (phoneVal.length >= 8) {

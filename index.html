@@ -52,7 +52,7 @@
     <!-- MOBILE HEADER -->
     <div class="lg:hidden sticky top-0 z-30 glass-panel border-b border-slateBorder px-4 py-3 flex items-center justify-between">
         <div class="flex items-center gap-2.5">
-            <img src="Logo.PNG" alt="شعار وصّل" class="w-9 h-9 rounded-xl object-contain bg-obsidian p-0.5 shadow-lg shadow-orange-500/20">
+            <img src="logo.png" alt="شعار وصّل" class="w-9 h-9 rounded-xl object-contain bg-obsidian p-0.5 shadow-lg shadow-orange-500/20">
             <div>
                 <h1 class="font-black text-base leading-none text-white">وصّل <span class="text-wassalOrange text-xs font-extrabold">WASSAL</span></h1>
                 <div class="flex items-center gap-1.5 mt-1">
@@ -73,47 +73,9 @@
     <aside id="sidebar" class="fixed top-0 right-0 z-40 h-screen w-72 bg-slateDark border-l border-slateBorder flex flex-col justify-between transition-transform duration-300 translate-x-full lg:translate-x-0">
         <div class="p-5 space-y-5 overflow-y-auto">
             <!-- Brand Identity -->
-            <div class="pb-4 border-b border-slateBorder flex flex-col items-center text-center select-none">
-                <!-- WASSAL Speed Emblem (SVG) -->
-                <svg class="w-40 h-14 drop-shadow-[0_4px_12px_rgba(255,107,0,0.28)]" viewBox="0 0 220 75" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <linearGradient id="wassalLogoGrad" x1="0" y1="0" x2="220" y2="75" gradientUnits="userSpaceOnUse">
-                            <stop offset="0%" stop-color="#FF6B00"/>
-                            <stop offset="100%" stop-color="#FFB020"/>
-                        </linearGradient>
-                    </defs>
-                    <!-- خطوط السرعة على اليسار -->
-                    <rect x="8" y="18" width="44" height="6" rx="3" fill="url(#wassalLogoGrad)"/>
-                    <rect x="20" y="31" width="36" height="6" rx="3" fill="url(#wassalLogoGrad)" opacity="0.85"/>
-                    <rect x="32" y="44" width="28" height="6" rx="3" fill="url(#wassalLogoGrad)" opacity="0.65"/>
-                    <!-- حرف W الديناميكي -->
-                    <path d="M68 18 L82 54 L100 28 L118 54 L136 16" stroke="url(#wassalLogoGrad)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
-                    <!-- دبوس الموقع على اليمين -->
-                    <path d="M174 12 C161 12 151 22 151 34.5 C151 49.5 174 66 174 66 C174 66 197 49.5 197 34.5 C197 22 187 12 174 12 Z" fill="url(#wassalLogoGrad)"/>
-                    <circle cx="174" cy="34" r="8" fill="#111827"/>
-                </svg>
-
-                <!-- WASSAL English Title -->
-                <div class="text-white font-black text-2xl tracking-[0.18em] leading-none mt-1">
-                    WASSAL
-                </div>
-
-                <!-- وصّل Arabic Title with Side Lines -->
-                <div class="flex items-center justify-center gap-2.5 w-full mt-1.5">
-                    <span class="h-[2px] w-7 bg-slate-500/70 rounded-full"></span>
-                    <span class="text-white font-black text-lg leading-none">وصّل</span>
-                    <span class="h-[2px] w-7 bg-slate-500/70 rounded-full"></span>
-                </div>
-
-                <!-- Orange Slogan Ribbon -->
-                <div class="mt-2.5 flex items-center justify-center gap-1.5">
-                    <span class="w-1.5 h-6 wassal-grad rounded-[2px] -skew-x-12"></span>
-                    <span class="w-1.5 h-6 wassal-grad rounded-[2px] -skew-x-12"></span>
-                    <div class="wassal-grad text-obsidian font-black text-xs px-4 py-1 rounded-md shadow-md shadow-orange-500/20">
-                        وصّل .. هتشوف الفرق
-                    </div>
-                </div>
-            </div>
+            <div class="flex items-center gap-3 pb-4 border-b border-slateBorder">
+                <img src="logo.png" alt="شعار وصّل" class="w-12 h-12 rounded-2xl object-contain bg-obsidian p-1 shadow-lg shadow-orange-500/25 shrink-0">
+                <div>
                     <div class="flex items-center gap-1.5">
                         <h1 class="font-black text-xl tracking-tight text-white">وصّل</h1>
                         <span class="px-2 py-0.5 text-[10px] font-black rounded-md bg-wassalOrange/15 text-wassalOrange border border-wassalOrange/30">WASSAL</span>
@@ -714,4 +676,267 @@
     <!-- MODAL: RIDER PERFORMANCE & PERIOD STATS -->
     <div id="modal-rider-stats" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
         <div class="bg-slateDark border border-slateBorder rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
-            <div class="p-5 border-b border-slateBorder flex items-center justify-between bg
+            <div class="p-5 border-b border-slateBorder flex items-center justify-between bg-slateCard">
+                <div>
+                    <h3 id="rstats-name" class="font-black text-base text-white">إحصائيات المندوب</h3>
+                    <p id="rstats-sub" class="text-[11px] text-slate-400">الموتوسيكل واللوحة</p>
+                </div>
+                <button type="button" data-action="close-modal" data-modal="modal-rider-stats" class="text-slate-400 hover:text-white px-2 py-1 text-lg">✕</button>
+            </div>
+            <div class="p-4 border-b border-slateBorder bg-obsidian flex flex-wrap items-center gap-2">
+                <span class="text-xs font-bold text-slate-400 ml-1">الفترة الزمنية:</span>
+                <button type="button" data-action="set-rstats-period" data-period="today" class="rstats-period-btn px-3 py-1.5 rounded-lg text-xs font-black wassal-grad text-obsidian">اليوم المفتوح</button>
+                <button type="button" data-action="set-rstats-period" data-period="week" class="rstats-period-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white">آخر 7 أيام (أسبوع)</button>
+                <button type="button" data-action="set-rstats-period" data-period="month" class="rstats-period-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white">الشهر الحالي</button>
+                <button type="button" data-action="set-rstats-period" data-period="all" class="rstats-period-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white">الكل</button>
+            </div>
+            <div id="rstats-body" class="p-5 space-y-4 overflow-y-auto flex-1"></div>
+        </div>
+    </div>
+
+    <!-- MODAL: CLOSE DAY & START NEW DAY -->
+    <div id="modal-close-day" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-slateDark border border-wassalOrange/50 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
+            <div class="p-5 border-b border-slateBorder flex items-center justify-between bg-slateCard">
+                <div>
+                    <h3 class="font-black text-base text-wassalOrange">🔒 إقفال اليوم الحالي وبدء يوم جديد</h3>
+                    <p class="text-[11px] text-slate-400">تأكيد تصفية اليومية وترحيلها للأرشيف</p>
+                </div>
+                <button type="button" data-action="close-modal" data-modal="modal-close-day" class="text-slate-400 hover:text-white px-2 py-1 text-lg">✕</button>
+            </div>
+            <form id="form-close-day" class="p-5 space-y-4 text-xs">
+                <div id="close-day-summary-box" class="bg-obsidian border border-slateBorder rounded-xl p-3.5 space-y-2"></div>
+                <div>
+                    <label class="block font-bold text-slate-200 mb-1">تاريخ اليوم الجديد الذي سيبدأ العمل به *</label>
+                    <input type="date" id="input-next-shift-date" required class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-white font-bold focus:outline-none focus:border-wassalOrange">
+                </div>
+                <div class="pt-1 flex justify-end gap-2">
+                    <button type="button" data-action="close-modal" data-modal="modal-close-day" class="px-4 py-2.5 rounded-xl bg-slateCard text-slate-300 font-bold">إلغاء</button>
+                    <button type="submit" class="wassal-grad wassal-grad-hover text-obsidian font-black px-5 py-2.5 rounded-xl shadow-lg shadow-orange-500/20">تأكيد إقفال اليوم وبدء الجديد</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: NEW ORDER -->
+    <div id="modal-new-order" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-slateDark border border-slateBorder rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl max-h-[92vh] flex flex-col">
+            <div class="p-5 border-b border-slateBorder flex items-center justify-between bg-slateCard shrink-0">
+                <div>
+                    <h3 class="font-black text-base text-white">تسجيل أوردر جديد (تم الاستلام)</h3>
+                    <p class="text-[11px] text-slate-400">يُسجل على يوم: <strong id="modal-order-active-day" class="text-wassalOrange font-mono">----/--/--</strong></p>
+                </div>
+                <button type="button" data-action="close-modal" data-modal="modal-new-order" class="text-slate-400 hover:text-white px-2 py-1 text-lg">✕</button>
+            </div>
+            <form id="form-new-order" class="p-5 space-y-3.5 text-xs overflow-y-auto">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">المتجر / المطعم *</label>
+                        <select id="input-order-store" required class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-wassalOrange"></select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">المندوب المكلف (المتاح بالمكتب فقط) *</label>
+                        <select id="input-order-rider" required class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-wassalOrange"></select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">هاتف العميل (يستدعي البيانات تلقائياً) *</label>
+                        <input id="input-order-phone" type="tel" required placeholder="010xxxxxxxx" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">اسم العميل *</label>
+                        <input id="input-order-customer" type="text" required placeholder="مثال: أ. محمود سالم" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">عنوان التوصيل بالتفصيل *</label>
+                    <input id="input-order-address" type="text" required placeholder="الحي - الشارع - علامة مميزة" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
+                </div>
+
+                <!-- Dynamic Items & Prices List -->
+                <div class="bg-obsidian/80 border border-slateBorder rounded-xl p-3 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label class="block font-bold text-wassalAmber">محتويات الأوردر وسعر كل صنف *</label>
+                        <span class="text-[11px] text-slate-400">اضغط (+) لإضافة صنف جديد</span>
+                    </div>
+
+                    <div id="order-items-list" class="space-y-2">
+                        <div class="order-item-row flex items-center gap-2">
+                            <input type="text" class="item-name flex-1 bg-slateDark border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-wassalOrange" required placeholder="اسم الصنف (مثال: 2 وجبة شيش طاووق)">
+                            <input type="number" class="item-price w-24 bg-slateDark border border-slateBorder rounded-xl px-2.5 py-2 text-white focus:outline-none focus:border-wassalOrange" min="0" required placeholder="السعر">
+                            <button type="button" data-action="add-order-item-row" title="إضافة صنف آخر" class="w-9 h-9 rounded-xl wassal-grad text-obsidian font-black text-base flex items-center justify-center shrink-0">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2.5">
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">إجمالي الأصناف (ج.م) *</label>
+                        <input id="input-order-amount" type="number" min="0" required placeholder="250" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">رسوم التوصيل *</label>
+                        <input id="input-order-fee" type="number" min="0" required value="25" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">وقت الاستلام</label>
+                        <input id="input-order-time" type="time" class="w-full bg-obsidian border border-slateBorder rounded-xl px-2.5 py-2 text-white focus:outline-none focus:border-wassalOrange">
+                    </div>
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" data-action="close-modal" data-modal="modal-new-order" class="px-4 py-2.5 rounded-xl bg-slateCard text-slate-300 font-bold">إلغاء</button>
+                    <button type="submit" class="wassal-grad wassal-grad-hover text-obsidian font-black px-5 py-2.5 rounded-xl shadow-lg shadow-orange-500/20">تسجيل الاستلام الآن</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: RETURN ORDER WITH REASON -->
+    <div id="modal-return-order" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-slateDark border border-red-500/50 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
+            <div class="p-5 border-b border-slateBorder flex items-center justify-between bg-slateCard">
+                <div>
+                    <h3 class="font-black text-base text-red-400">↩️ تسجيل الطلب كمرتجع</h3>
+                    <p class="text-[11px] text-slate-400">رقم الطلب: <strong id="return-modal-order-id" class="text-white">#W-101</strong></p>
+                </div>
+                <button type="button" data-action="close-modal" data-modal="modal-return-order" class="text-slate-400 hover:text-white px-2 py-1 text-lg">✕</button>
+            </div>
+            <form id="form-return-order" class="p-5 space-y-3.5 text-xs">
+                <input type="hidden" id="input-return-order-id">
+                <div>
+                    <label class="block font-bold text-slate-200 mb-1">سبب عدم الاستلام / الإرجاع *</label>
+                    <select id="input-return-reason-select" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-red-400">
+                        <option value="العميل لا يرد على الهاتف">📵 العميل لا يرد على الهاتف</option>
+                        <option value="هاتف العميل مغلق أو غير متاح">📴 هاتف العميل مغلق أو غير متاح</option>
+                        <option value="العميل ألغى الطلب عند الوصول">❌ العميل ألغى الطلب عند الوصول</option>
+                        <option value="العنوان غير واضح أو خارج النطاق">📍 العنوان غير واضح أو خارج النطاق</option>
+                        <option value="تأخر تجهيز الطلب من المتجر">⏱️ تأخر تجهيز الطلب من المتجر</option>
+                        <option value="أخرى">✏️ سبب آخر (اكتبه بالأسفل)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-200 mb-1">تفاصيل إضافية للسبب (اختياري)</label>
+                    <input type="text" id="input-return-reason-note" placeholder="مثال: تم الاتصال 4 مرات دون رد..." class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-red-400">
+                </div>
+                <div class="bg-obsidian border border-slateBorder rounded-xl p-3 space-y-1.5">
+                    <label class="block font-bold text-wassalOrange">موقف رسوم التوصيل للمرتجع:</label>
+                    <select id="input-return-fee-mode" class="w-full bg-slateDark border border-slateBorder rounded-lg px-3 py-2 text-white focus:outline-none">
+                        <option value="zero">مرتجع مجاني (0 ج.م رسوم توصيل)</option>
+                        <option value="keep">احتساب رسوم التوصيل كاملة على المتجر</option>
+                        <option value="half">احتساب نصف رسوم التوصيل (50%)</option>
+                    </select>
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" data-action="close-modal" data-modal="modal-return-order" class="px-4 py-2.5 rounded-xl bg-slateCard text-slate-300 font-bold">إلغاء</button>
+                    <button type="submit" class="bg-red-500 hover:bg-red-600 text-white font-black px-5 py-2.5 rounded-xl shadow-lg shadow-red-500/20">تأكيد المرتجع وإعادته للمتجر</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: STORE SETTLEMENT STATEMENT -->
+    <div id="modal-store-statement" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-slateDark border border-slateBorder rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl">
+            <div class="p-5 border-b border-slateBorder flex items-center justify-between bg-slateCard">
+                <div>
+                    <h3 class="font-black text-base text-wassalOrange">📄 كشف حساب وتصفية المتجر</h3>
+                    <p class="text-[11px] text-slate-400" id="statement-store-subtitle">اسم المتجر</p>
+                </div>
+                <button type="button" data-action="close-modal" data-modal="modal-store-statement" class="text-slate-400 hover:text-white px-2 py-1 text-lg">✕</button>
+            </div>
+            <div class="p-5 space-y-4 text-xs max-h-[70vh] overflow-y-auto" id="statement-modal-body"></div>
+            <div class="p-4 border-t border-slateBorder bg-slateCard flex justify-between items-center">
+                <button type="button" data-action="print-report" class="px-4 py-2.5 rounded-xl bg-slateCard hover:bg-slateHover border border-slateBorder text-slate-200 font-bold">🖨️ طباعة الكشف</button>
+                <div class="flex gap-2">
+                    <button type="button" data-action="close-modal" data-modal="modal-store-statement" class="px-4 py-2.5 rounded-xl bg-slateCard text-slate-300 font-bold">إغلاق</button>
+                    <a href="#" id="whatsapp-store-statement-btn" target="_blank" rel="noopener" class="px-5 py-2.5 rounded-xl bg-statusDone text-obsidian font-black shadow-lg">💬 إرسال الكشف للمتجر (واتساب)</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD / EDIT RIDER -->
+    <div id="modal-rider" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-slateDark border border-slateBorder rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
+            <div class="p-5 border-b border-slateBorder flex items-center justify-between bg-slateCard">
+                <h3 id="modal-rider-title" class="font-black text-base text-white">+ إضافة مندوب جديد</h3>
+                <button type="button" data-action="close-modal" data-modal="modal-rider" class="text-slate-400 hover:text-white px-2 py-1 text-lg">✕</button>
+            </div>
+            <form id="form-rider" class="p-5 space-y-3.5 text-xs">
+                <input type="hidden" id="input-rider-id">
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">اسم المندوب (الطيار) *</label>
+                    <input id="input-rider-name" type="text" required placeholder="مثال: عبد الرحمن سامي" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">نوع الموتوسيكل *</label>
+                        <input id="input-rider-bike" type="text" required placeholder="مثال: بجاج بوكسر 150" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">رقم اللوحة المعدنية *</label>
+                        <input id="input-rider-plate" type="text" required placeholder="مثال: س أ 734" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">رقم هاتف المندوب (اختياري)</label>
+                    <input id="input-rider-phone" type="tel" placeholder="010xxxxxxxx" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" data-action="close-modal" data-modal="modal-rider" class="px-4 py-2.5 rounded-xl bg-slateCard text-slate-300 font-bold">إلغاء</button>
+                    <button type="submit" class="wassal-grad wassal-grad-hover text-obsidian font-black px-5 py-2.5 rounded-xl shadow-lg shadow-orange-500/20">حفظ بيانات المندوب</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: NEW STORE -->
+    <div id="modal-new-store" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-slateDark border border-slateBorder rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
+            <div class="p-5 border-b border-slateBorder flex items-center justify-between bg-slateCard">
+                <h3 class="font-black text-base text-white">إضافة متجر / مطعم جديد</h3>
+                <button type="button" data-action="close-modal" data-modal="modal-new-store" class="text-slate-400 hover:text-white px-2 py-1 text-lg">✕</button>
+            </div>
+            <form id="form-new-store" class="p-5 space-y-3.5 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">اسم المتجر *</label>
+                    <input id="input-store-name" type="text" required placeholder="مثال: مطعم البركة" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">التصنيف *</label>
+                        <select id="input-store-category" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
+                            <option value="مطعم">مطعم</option>
+                            <option value="صيدلية">صيدلية</option>
+                            <option value="سوبرماركت">سوبرماركت</option>
+                            <option value="حلويات ومخبوزات">حلويات ومخبوزات</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">رسوم التوصيل الافتراضية *</label>
+                        <input id="input-store-fee" type="number" required value="25" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">هاتف المتجر *</label>
+                    <input id="input-store-phone" type="tel" required placeholder="010xxxxxxxx" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">عنوان المتجر *</label>
+                    <input id="input-store-address" type="text" required placeholder="الشارع والمنطقة" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" data-action="close-modal" data-modal="modal-new-store" class="px-4 py-2.5 rounded-xl bg-slateCard text-slate-300 font-bold">إلغاء</button>
+                    <button type="submit" class="wassal-grad wassal-grad-hover text-obsidian font-black px-5 py-2.5 rounded-xl shadow-lg shadow-orange-500/20">حفظ المتجر</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATIONS -->
+    <div id="toast-container" class="fixed bottom-5 left-5 z-50 space-y-2 pointer-events-none"></div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>

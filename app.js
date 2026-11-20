@@ -2,16 +2,39 @@ let fb = null;
 let isFirestoreConnected = false;
 let unsubscribers = [];
 
-// ==================== AUTH & ROLE STATE ====================
+// ==================== CLEANUP LEGACY INSECURE STORAGE ====================
+(function purgeLegacyLocalStorage() {
+    try {
+        ['wassal_pin', 'wassal_state', 'wassal_modern_ops', 'wassal_modern_ops_v2'].forEach(k => localStorage.removeItem(k));
+        sessionStorage.removeItem('wassal_unlocked');
+    } catch (e) {}
+})();
+
+// ==================== AUTH, ROLES & ACTION LOCKS ====================
 let currentUser = null;
-let currentUserRole = 'operator'; // 'admin' or 'operator'
+let currentUserRole = 'operator';
 let registeredUsers = [];
+let auditLogs = [];
+let cloudBackups = [];
+const activeActionLocks = new Set();
 
 function isAdminUser() {
     return currentUserRole === 'admin';
 }
 
-// ==================== XSS SANITIZATION ====================
+async function withActionLock(lockKey, asyncFn) {
+    if (activeActionLocks.has(lockKey)) {
+        return null;
+    }
+    activeActionLocks.add(lockKey);
+    try {
+        return await asyncFn();
+    } finally {
+        activeActionLocks.delete(lockKey);
+    }
+}
+
+// ==================== XSS & CSV FORMULA INJECTION SANITIZATION ====================
 function escapeHTML(str) {
     if (str === null || str === undefined) return '';
     return String(str)
@@ -20,6 +43,16 @@ function escapeHTML(str) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+}
+
+function sanitizeCSVCell(val) {
+    if (val === null || val === undefined) return '""';
+    let str = String(val).replace(/\r?\n|\r/g, ' ');
+    // منع تنفيذ صيغ Excel الضارة (Formula Injection)
+    if (/^[=+\-@\t\r]/.test(str.trim())) {
+        str = "'" + str;
+    }
+    return `"${str.replace(/"/g, '""')}"`;
 }
 
 // ==================== DATE & TIME HELPERS ====================
@@ -50,6 +83,13 @@ function formatTime12(ts) {
     const ampm = h >= 12 ? 'م' : 'ص';
     h = h % 12 || 12;
     return `${h}:${m} ${ampm}`;
+}
+
+function formatDateTime12(ts) {
+    if (!ts) return '—';
+    const d = new Date(ts);
+    const datePart = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    return `${datePart} (${formatTime12(ts)})`;
 }
 
 // ==================== APPLICATION STATE ====================
@@ -148,6 +188,25 @@ function renderUsersRolesList() {
     }).join('');
 }
 
+function renderCloudBackupsList() {
+    const container = document.getElementById('cloud-backups-list');
+    if (!container) return;
+    if (!isAdminUser() || cloudBackups.length === 0) {
+        container.innerHTML = `<div class="text-[11px] text-slate-500 py-1">لا توجد لقطات سحابية محفوظة بعد (تُنشأ تلقائياً عند إقفال اليوم).</div>`;
+        return;
+    }
+
+    container.innerHTML = cloudBackups.map(b => `
+        <div class="flex items-center justify-between bg-slateDark border border-slateBorder rounded-lg px-2.5 py-1.5 text-[11px]">
+            <div>
+                <div class="font-bold text-white">${escapeHTML(b.label || b.shiftDate)}</div>
+                <div class="text-[10px] text-slate-400">${formatDateTime12(b.createdAt)} • ${b.ordersCount || 0} طلب</div>
+            </div>
+            <button type="button" data-action="download-cloud-snapshot" data-id="${escapeHTML(b.id)}" class="px-2 py-1 rounded bg-statusDone/20 text-statusDone font-black text-[10px] hover:bg-statusDone hover:text-obsidian">تحميل JSON</button>
+        </div>
+    `).join('');
+}
+
 function isOrderActiveInRoom(o) {
     return o.status === 'received' || o.status === 'onway' || o.status === 'delivered' || o.status === 'returning';
 }
@@ -173,6 +232,45 @@ function syncRidersAvailability() {
             r.status = 'available';
         }
     });
+}
+
+// ==================== AUDIT LOG & CLOUD SNAPSHOTS ====================
+async function writeAuditLog(actionType, targetId, details) {
+    if (!fb || !fb.db || !currentUser) return;
+    try {
+        const logId = `LOG-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+        await fb.setDoc(fb.doc(fb.db, 'wassal_audit_logs', logId), {
+            id: logId,
+            ts: Date.now(),
+            actorEmail: currentUser.email || currentUser.uid,
+            actorRole: currentUserRole,
+            actionType: String(actionType),
+            targetId: String(targetId),
+            details: String(details)
+        });
+    } catch (err) {
+        console.warn('Audit log write warning:', err);
+    }
+}
+
+async function saveCloudBackupSnapshot(label) {
+    if (!fb || !fb.db || !currentUser || !isAdminUser()) return false;
+    try {
+        const snapId = `BKP-${Date.now()}`;
+        await fb.setDoc(fb.doc(fb.db, 'wassal_backups', snapId), {
+            id: snapId,
+            createdAt: Date.now(),
+            createdBy: currentUser.email || currentUser.uid,
+            shiftDate: getActiveShiftDate(),
+            label: label || `لقطة ${getActiveShiftDate()}`,
+            ordersCount: appState.orders.length,
+            snapshotJson: JSON.stringify(appState)
+        });
+        return true;
+    } catch (err) {
+        console.error('Cloud snapshot error:', err);
+        return false;
+    }
 }
 
 // ==================== FIRESTORE VERIFIED PERSISTENCE & CHUNKED BATCHES ====================
@@ -227,7 +325,6 @@ async function fsSaveMeta() {
     }
 }
 
-// تقسيم العمليات إلى دفعات لا تتجاوز 400 عملية لتجنب حد الـ 500 في Firestore
 async function commitOperationsInChunks(operations) {
     const CHUNK_SIZE = 400;
     for (let i = 0; i < operations.length; i += CHUNK_SIZE) {
@@ -244,7 +341,6 @@ async function commitOperationsInChunks(operations) {
     }
 }
 
-// توليد رقم أوردر ذري على السيرفر لمنع التعارض بين الأجهزة
 async function createOrderAtomically(orderPayload) {
     if (!fb || !fb.db || !currentUser) return null;
     setSyncStatus('pending');
@@ -284,58 +380,99 @@ async function createOrderAtomically(orderPayload) {
     }
 }
 
+// ==================== STRICT BACKUP SCHEMA VALIDATOR ====================
+function validateBackupSchema(restored) {
+    if (!restored || typeof restored !== 'object') return 'بنية الملف غير صالحة.';
+    if (!Array.isArray(restored.orders) || !Array.isArray(restored.riders) || !Array.isArray(restored.stores)) {
+        return 'الملف يفتقد إلى قوائم الطلبات أو المناديب أو المتاجر.';
+    }
+    const allowedStatuses = new Set(['received', 'onway', 'delivered', 'settled', 'returning', 'returned']);
+    for (const o of restored.orders) {
+        if (!o || typeof o.id !== 'string' || !o.id.trim()) return 'يوجد طلب بدون رقم تعريفي صالح.';
+        if (!allowedStatuses.has(o.status)) return `الطلب #${o.id} يحتوي على حالة غير معتمدة (${o.status}).`;
+        if (typeof Number(o.amount) !== 'number' || Number(o.amount) < 0 || Number.isNaN(Number(o.amount))) {
+            return `الطلب #${o.id} يحتوي على مبلغ مالي غير صالح.`;
+        }
+        if (typeof Number(o.fee) !== 'number' || Number(o.fee) < 0 || Number.isNaN(Number(o.fee))) {
+            return `الطلب #${o.id} يحتوي على رسوم توصيل غير صالحة.`;
+        }
+        if (!o.dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(String(o.dateStr))) {
+            return `الطلب #${o.id} يحتوي على صيغة تاريخ غير صحيحة.`;
+        }
+    }
+    for (const r of restored.riders) {
+        if (!r || !r.id || !r.name) return 'يوجد مندوب بدون اسم أو معرف.';
+    }
+    for (const s of restored.stores) {
+        if (!s || !s.id || !s.name) return 'يوجد متجر بدون اسم أو معرف.';
+    }
+    if (Array.isArray(restored.expenses)) {
+        for (const e of restored.expenses) {
+            if (!e || !e.id || Number(e.amount) <= 0 || Number.isNaN(Number(e.amount))) {
+                return 'يوجد مصروف بمبلغ غير صالح.';
+            }
+        }
+    }
+    return null;
+}
+
 async function resetAllDataSafely() {
     if (!isAdminUser()) {
         showToast('⛔ تصفير النظام متاح لمدير النظام فقط');
         return;
     }
-    const confirmed = window.confirm('⚠️ تحذير نهائي: سيتم مسح جميع الطلبات والمناديب والمتاجر والحسابات من قاعدة البيانات نهائياً!\n\nهل أنت متأكد من المتابعة؟');
+    const confirmed = window.confirm('⚠️ تحذير نهائي: سيتم أخذ نسخة احتياطية سحابية أولاً ثم مسح جميع الطلبات والمناديب والمتاجر والحسابات!\n\nهل أنت متأكد من المتابعة؟');
     if (!confirmed) return;
 
-    setSyncStatus('pending');
-    try {
-        const sysToday = getSystemTodayStr();
-        const ops = [];
+    await withActionLock('reset-system', async () => {
+        setSyncStatus('pending');
+        try {
+            await saveCloudBackupSnapshot(`نسخة تلقائية قبل التصفير (${getActiveShiftDate()})`);
+            await writeAuditLog('تصفير النظام', 'ALL_DATA', `تم تصفير قاعدة البيانات بالكامل (${appState.orders.length} طلب)`);
 
-        const cols = ['wassal_orders', 'wassal_riders', 'wassal_stores', 'wassal_expenses'];
-        for (const colName of cols) {
-            const snap = await fb.getDocs(fb.collection(fb.db, colName));
-            snap.forEach(d => {
-                ops.push({ type: 'delete', ref: d.ref });
-            });
-        }
+            const sysToday = getSystemTodayStr();
+            const ops = [];
 
-        ops.push({
-            type: 'set',
-            ref: fb.doc(fb.db, 'wassal_meta', 'config'),
-            data: {
-                activeDate: sysToday,
-                nextOrderNum: 101,
-                closedDays: []
+            const cols = ['wassal_orders', 'wassal_riders', 'wassal_stores', 'wassal_expenses'];
+            for (const colName of cols) {
+                const snap = await fb.getDocs(fb.collection(fb.db, colName));
+                snap.forEach(d => {
+                    ops.push({ type: 'delete', ref: d.ref });
+                });
             }
-        });
 
-        await commitOperationsInChunks(ops);
+            ops.push({
+                type: 'set',
+                ref: fb.doc(fb.db, 'wassal_meta', 'config'),
+                data: {
+                    activeDate: sysToday,
+                    nextOrderNum: 101,
+                    closedDays: []
+                }
+            });
 
-        uiState.riderFilter = 'all';
-        uiState.statusFilter = 'all';
-        uiState.archiveDateFilter = sysToday;
-        uiState.reportMonth = sysToday.slice(0, 7);
-        const monthPicker = document.getElementById('report-month-picker');
-        if (monthPicker) monthPicker.value = uiState.reportMonth;
+            await commitOperationsInChunks(ops);
 
-        const secModal = document.getElementById('modal-security');
-        if (secModal) {
-            secModal.classList.add('hidden');
-            secModal.classList.remove('flex');
+            uiState.riderFilter = 'all';
+            uiState.statusFilter = 'all';
+            uiState.archiveDateFilter = sysToday;
+            uiState.reportMonth = sysToday.slice(0, 7);
+            const monthPicker = document.getElementById('report-month-picker');
+            if (monthPicker) monthPicker.value = uiState.reportMonth;
+
+            const secModal = document.getElementById('modal-security');
+            if (secModal) {
+                secModal.classList.add('hidden');
+                secModal.classList.remove('flex');
+            }
+            setSyncStatus('online');
+            showToast('✅ تم حفظ نسخة احتياطية وتصفير قاعدة البيانات بالكامل');
+        } catch (err) {
+            console.error('Chunked reset error:', err);
+            setSyncStatus('offline');
+            showToast('⚠️ حدث خطأ أثناء تصفير البيانات');
         }
-        setSyncStatus('online');
-        showToast('✅ تم تصفير قاعدة البيانات بالكامل بنجاح');
-    } catch (err) {
-        console.error('Chunked reset error:', err);
-        setSyncStatus('offline');
-        showToast('⚠️ حدث خطأ أثناء تصفير البيانات');
-    }
+    });
 }
 
 function cleanupListeners() {
@@ -351,7 +488,6 @@ async function ensureUserProfileAndRole(user) {
     if (snap.exists()) {
         currentUserRole = snap.data().role || 'operator';
     } else {
-        // التحقق هل يوجد مستخدمون سابقون أم هذا أول مدير للنظام
         const allUsersSnap = await fb.getDocs(fb.collection(fb.db, 'wassal_users'));
         const assignedRole = allUsersSnap.empty ? 'admin' : 'operator';
         await fb.setDoc(userRef, {
@@ -377,6 +513,8 @@ async function initAuthAndFirestore() {
             if (!user) {
                 currentUser = null;
                 currentUserRole = 'operator';
+                auditLogs = [];
+                cloudBackups = [];
                 if (lockScreen) lockScreen.classList.remove('hidden');
                 return;
             }
@@ -386,7 +524,7 @@ async function initAuthAndFirestore() {
 
             await ensureUserProfileAndRole(user);
 
-            // 1. Users list listener (for Admin role management)
+            // 1. Users list listener
             unsubscribers.push(
                 fb.onSnapshot(fb.collection(fb.db, 'wassal_users'), (snap) => {
                     const list = [];
@@ -464,6 +602,29 @@ async function initAuthAndFirestore() {
                     renderAll();
                 })
             );
+
+            // 7. Audit Logs & Cloud Backups (Admin Only)
+            if (isAdminUser()) {
+                unsubscribers.push(
+                    fb.onSnapshot(fb.collection(fb.db, 'wassal_audit_logs'), (snap) => {
+                        const list = [];
+                        snap.forEach(d => list.push(d.data()));
+                        list.sort((a, b) => (Number(b.ts) || 0) - (Number(a.ts) || 0));
+                        auditLogs = list;
+                        renderAuditLogs();
+                    })
+                );
+
+                unsubscribers.push(
+                    fb.onSnapshot(fb.collection(fb.db, 'wassal_backups'), (snap) => {
+                        const list = [];
+                        snap.forEach(d => list.push(d.data()));
+                        list.sort((a, b) => (Number(b.createdAt) || 0) - (Number(a.createdAt) || 0));
+                        cloudBackups = list;
+                        renderCloudBackupsList();
+                    })
+                );
+            }
         });
     } catch (err) {
         console.error('Firebase Auth/Firestore init error:', err);
@@ -500,39 +661,65 @@ function getOrderDurations(order) {
     return { totalMins, deliveryMins, waitMins, roadMins };
 }
 
+// ==================== ACCURATE FINANCIAL & SHIFT ACCOUNTING ====================
+function computeShiftFinancials(dateStr) {
+    const dayOrders = appState.orders.filter(o => o.dateStr === dateStr);
+    const settledOrders = dayOrders.filter(o => o.status === 'settled');
+    const returnedOrders = dayOrders.filter(o => o.status === 'returned');
+    const openOrders = dayOrders.filter(o => isOrderActiveInRoom(o));
+
+    // الإيراد المحقق فعلياً من الطلبات المغلقة فقط (الموردة + رسوم المرتجعات المقفلة)
+    const closedOrders = [...settledOrders, ...returnedOrders];
+    const realizedDeliveryRevenue = closedOrders.reduce((s, o) => s + Number(o.fee || 0), 0);
+
+    // عُهدة بضائع المتاجر (تُحصّل من العميل وتُسلّم للتاجر — ليست إيراداً للشركة)
+    const merchantGoodsSettled = settledOrders.reduce((s, o) => s + Number(o.amount || 0), 0);
+
+    // المصروفات المسجلة في هذا التاريخ
+    const expensesTotal = appState.expenses
+        .filter(e => e.dateStr === dateStr)
+        .reduce((s, e) => s + Number(e.amount || 0), 0);
+
+    const netOperatingProfit = realizedDeliveryRevenue - expensesTotal;
+
+    return {
+        dateStr,
+        totalOrdersCount: dayOrders.length,
+        settledCount: settledOrders.length,
+        returnedCount: returnedOrders.length,
+        openCount: openOrders.length,
+        realizedDeliveryRevenue,
+        merchantGoodsSettled,
+        expensesTotal,
+        netOperatingProfit
+    };
+}
+
 function getAnalyticsSummary(targetMonth) {
     const today = getActiveShiftDate();
     const month = targetMonth || today.slice(0, 7);
 
+    const todayFin = computeShiftFinancials(today);
     const todayOrders = appState.orders.filter(o => o.dateStr === today);
     const monthOrders = appState.orders.filter(o => (o.dateStr || '').startsWith(month));
 
-    const todaySettledOrders = todayOrders.filter(o => isOrderSuccessfullySettled(o));
     const monthSettledOrders = monthOrders.filter(o => isOrderSuccessfullySettled(o));
-    const todayReturnedOrders = todayOrders.filter(o => o.status === 'returned' || o.status === 'returning');
-    const monthReturnedOrders = monthOrders.filter(o => o.status === 'returned' || o.status === 'returning');
+    const monthReturnedOrders = monthOrders.filter(o => o.status === 'returned');
+    const monthClosedOrders = [...monthSettledOrders, ...monthReturnedOrders];
 
-    const todayArchived = todayOrders.filter(o => isOrderArchived(o));
-    const monthArchived = monthOrders.filter(o => isOrderArchived(o));
-
-    const todayRev = todayArchived.reduce((s, o) => s + Number(o.fee), 0);
-    const todaySettled = todaySettledOrders.reduce((s, o) => s + Number(o.amount), 0);
-    const todayExp = appState.expenses.filter(e => e.dateStr === today).reduce((s, e) => s + Number(e.amount), 0);
-    const todayProfit = todayRev - todayExp;
-
-    const monthRev = monthArchived.reduce((s, o) => s + Number(o.fee), 0);
-    const monthSettled = monthSettledOrders.reduce((s, o) => s + Number(o.amount), 0);
+    const monthRev = monthClosedOrders.reduce((s, o) => s + Number(o.fee || 0), 0);
+    const monthSettled = monthSettledOrders.reduce((s, o) => s + Number(o.amount || 0), 0);
     const monthExpensesList = appState.expenses.filter(e => (e.dateStr || '').startsWith(month));
-    const monthExp = monthExpensesList.reduce((s, e) => s + Number(e.amount), 0);
+    const monthExp = monthExpensesList.reduce((s, e) => s + Number(e.amount || 0), 0);
     const monthProfit = monthRev - monthExp;
 
     const storeStats = appState.stores.map(s => {
         const sToday = todayOrders.filter(o => o.storeId === s.id);
         const sMonth = monthOrders.filter(o => o.storeId === s.id);
         const sMonthSuccess = sMonth.filter(o => isOrderSuccessfullySettled(o));
-        const sMonthArchived = sMonth.filter(o => isOrderArchived(o));
+        const sMonthClosed = sMonth.filter(o => isOrderArchived(o));
         const settledMonth = sMonthSuccess.reduce((sum, o) => sum + Number(o.amount), 0);
-        const feeMonth = sMonthArchived.reduce((sum, o) => sum + Number(o.fee), 0);
+        const feeMonth = sMonthClosed.reduce((sum, o) => sum + Number(o.fee), 0);
         const sharePct = monthOrders.length > 0 ? Math.round((sMonth.length / monthOrders.length) * 100) : 0;
         return { store: s, todayCount: sToday.length, monthCount: sMonth.length, settledMonth, feeMonth, sharePct };
     }).sort((a, b) => b.monthCount - a.monthCount || b.todayCount - a.todayCount);
@@ -542,11 +729,11 @@ function getAnalyticsSummary(targetMonth) {
         const rMonth = monthOrders.filter(o => o.riderId === r.id);
         const rAll = appState.orders.filter(o => o.riderId === r.id);
         const rMonthSuccess = rMonth.filter(o => isOrderSuccessfullySettled(o));
-        const rMonthArchived = rMonth.filter(o => isOrderArchived(o));
+        const rMonthClosed = rMonth.filter(o => isOrderArchived(o));
         const rAllDone = rAll.filter(o => o.status === 'delivered' || isOrderSuccessfullySettled(o));
 
         const settledMonth = rMonthSuccess.reduce((sum, o) => sum + Number(o.amount), 0);
-        const feeMonth = rMonthArchived.reduce((sum, o) => sum + Number(o.fee), 0);
+        const feeMonth = rMonthClosed.reduce((sum, o) => sum + Number(o.fee), 0);
         const avgMins = rAllDone.length > 0
             ? Math.round(rAllDone.reduce((sum, o) => sum + getOrderDurations(o).deliveryMins, 0) / rAllDone.length)
             : null;
@@ -554,7 +741,26 @@ function getAnalyticsSummary(targetMonth) {
         return { rider: r, todayCount: rToday.length, monthCount: rMonth.length, settledMonth, feeMonth, avgMins };
     }).sort((a, b) => b.monthCount - a.monthCount || b.todayCount - a.todayCount);
 
-    return { today, month, todayOrders, monthOrders, todaySettledOrders, monthSettledOrders, todayReturnedOrders, monthReturnedOrders, todayRev, todaySettled, todayExp, todayProfit, monthRev, monthSettled, monthExpensesList, monthExp, monthProfit, storeStats, riderStats };
+    return {
+        today,
+        month,
+        todayFin,
+        todayOrders,
+        monthOrders,
+        monthSettledOrders,
+        monthReturnedOrders,
+        todayRev: todayFin.realizedDeliveryRevenue,
+        todaySettled: todayFin.merchantGoodsSettled,
+        todayExp: todayFin.expensesTotal,
+        todayProfit: todayFin.netOperatingProfit,
+        monthRev,
+        monthSettled,
+        monthExpensesList,
+        monthExp,
+        monthProfit,
+        storeStats,
+        riderStats
+    };
 }
 
 function buildWhatsAppMessage(o) {
@@ -707,7 +913,7 @@ function renderKPIs() {
 
     document.getElementById('kpi-today-orders').textContent = currentStats.todayOrders.length;
     document.getElementById('kpi-month-orders').textContent = currentStats.monthOrders.length;
-    document.getElementById('kpi-delivered-sub').textContent = `${currentStats.todaySettledOrders.length} (مرتجع: ${currentStats.todayReturnedOrders.length})`;
+    document.getElementById('kpi-delivered-sub').textContent = `${currentStats.todayFin.settledCount} (مرتجع: ${currentStats.todayFin.returnedCount})`;
     document.getElementById('kpi-total').textContent = appState.orders.length;
 
     document.getElementById('kpi-active').textContent = activeTotal;
@@ -748,6 +954,9 @@ function renderKPIs() {
     const profitSign = currentStats.todayProfit >= 0 ? '+' : '';
     document.getElementById('nav-badge-profit').textContent = `${profitSign}${currentStats.todayProfit} ج.م`;
 
+    const auditBadge = document.getElementById('nav-badge-audit');
+    if (auditBadge) auditBadge.textContent = auditLogs.length;
+
     const pct = totalRidersCount > 0 ? Math.round((availRiders / totalRidersCount) * 100) : 0;
     const sidebarFleetTitle = document.getElementById('sidebar-fleet-title');
     if (sidebarFleetTitle) sidebarFleetTitle.textContent = `جاهزية الأسطول (${totalRidersCount})`;
@@ -755,6 +964,29 @@ function renderKPIs() {
     document.getElementById('sidebar-fleet-bar').style.width = `${pct}%`;
     document.getElementById('sidebar-office-txt').textContent = `● ${availRiders} بالمكتب`;
     document.getElementById('sidebar-busy-txt').textContent = `● ${busyRiders} في مهمة`;
+}
+
+function renderAuditLogs() {
+    const tbody = document.getElementById('audit-table-body');
+    if (!tbody) return;
+    if (!isAdminUser()) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-10 text-center text-red-400 font-bold">⛔ هذا السجل متاح لمدير النظام فقط</td></tr>`;
+        return;
+    }
+    if (auditLogs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-10 text-center text-slate-500">لا توجد سجلات تدقيق مسجلة بعد.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = auditLogs.map(log => `
+        <tr class="hover:bg-slateCard/80">
+            <td class="px-4 py-3 font-mono text-slate-400">${escapeHTML(formatDateTime12(log.ts))}</td>
+            <td class="px-4 py-3 font-bold text-white" dir="ltr">${escapeHTML(log.actorEmail)}</td>
+            <td class="px-4 py-3"><span class="px-2 py-0.5 rounded bg-wassalOrange/15 text-wassalOrange font-black text-[11px]">${escapeHTML(log.actionType)}</span></td>
+            <td class="px-4 py-3 font-mono font-bold text-statusOnway">${escapeHTML(log.targetId)}</td>
+            <td class="px-4 py-3 text-slate-200">${escapeHTML(log.details)}</td>
+        </tr>
+    `).join('');
 }
 
 function renderFleetRibbon() {
@@ -957,7 +1189,7 @@ function renderOrdersBoardAndTable() {
                     ${o.departedTs ? `<div>تحرك: <strong class="text-statusOnway">${formatTime12(o.departedTs)}</strong></div>` : ''}
                     ${o.deliveredTs ? `<div>تسليم: <strong class="text-statusDone">${formatTime12(o.deliveredTs)}</strong></div>` : ''}
                 </td>
-                <td class="px-4 py-3.5 font-black text-white">${o.status === 'returning' ? o.fee + ' ج.م (توصيل)' : (Number(o.amount) + Number(o.fee)) + ' ج.م'}</td>
+                <td class="px-4 py-3.5 font-black text-white">${o.status === 'returning' ? escapeHTML(o.fee) + ' ج.م (توصيل)' : (Number(o.amount) + Number(o.fee)) + ' ج.م'}</td>
                 <td class="px-4 py-3.5 text-center">
                     <div class="flex items-center justify-center gap-1.5">
                         ${quickAction}
@@ -1056,15 +1288,15 @@ function buildOrderCard(o) {
             <div class="grid grid-cols-3 gap-1 bg-obsidian rounded-xl p-2 border border-slateBorder text-center text-xs">
                 <div>
                     <div class="text-[10px] text-slate-400">توريد للمتجر</div>
-                    <div class="font-extrabold ${isReturning ? 'line-through text-slate-500' : 'text-white'}">${o.amount} ج.م</div>
+                    <div class="font-extrabold ${isReturning ? 'line-through text-slate-500' : 'text-white'}">${escapeHTML(o.amount)} ج.م</div>
                 </div>
                 <div class="border-x border-slateBorder">
                     <div class="text-[10px] text-slate-400">التوصيل</div>
-                    <div class="font-extrabold text-wassalOrange">${o.fee} ج.م</div>
+                    <div class="font-extrabold text-wassalOrange">${escapeHTML(o.fee)} ج.م</div>
                 </div>
                 <div>
                     <div class="text-[10px] text-slate-400">المطلوب</div>
-                    <div class="font-black ${isReturning ? 'text-red-400' : 'text-statusDone'}">${isReturning ? o.fee : (Number(o.amount) + Number(o.fee))} ج.م</div>
+                    <div class="font-black ${isReturning ? 'text-red-400' : 'text-statusDone'}">${isReturning ? escapeHTML(o.fee) : (Number(o.amount) + Number(o.fee))} ج.م</div>
                 </div>
             </div>
 
@@ -1108,12 +1340,12 @@ function renderArchive() {
         : appState.orders;
 
     const settledOnly = filteredOrders.filter(o => isOrderSuccessfullySettled(o));
-    const archivedAll = filteredOrders.filter(o => isOrderArchived(o));
+    const closedAll = filteredOrders.filter(o => isOrderArchived(o));
     const merchantCash = settledOnly.reduce((s, o) => s + Number(o.amount), 0);
-    const feesCash = archivedAll.reduce((s, o) => s + Number(o.fee), 0);
+    const feesCash = closedAll.reduce((s, o) => s + Number(o.fee), 0);
 
     document.getElementById('arch-stat-count').textContent = filteredOrders.length;
-    document.getElementById('arch-stat-settled-count').textContent = `${settledOnly.length} (مرتجع: ${filteredOrders.filter(o => o.status === 'returned' || o.status === 'returning').length})`;
+    document.getElementById('arch-stat-settled-count').textContent = `${settledOnly.length} (مرتجع: ${filteredOrders.filter(o => o.status === 'returned').length})`;
     document.getElementById('arch-stat-merchant-cash').textContent = `${merchantCash.toLocaleString('ar-EG')} ج.م`;
     document.getElementById('arch-stat-fees').textContent = `${feesCash.toLocaleString('ar-EG')} ج.م`;
 
@@ -1158,8 +1390,8 @@ function renderArchive() {
                     </td>
                     <td class="px-3.5 py-3 font-black">
                         ${isRet
-                            ? `<span class="text-red-400">مرتجع</span> + <span class="text-wassalOrange">${o.fee} ج.م</span>`
-                            : `<span class="text-white">${o.amount}</span> + <span class="text-wassalOrange">${o.fee} ج.م</span>`}
+                            ? `<span class="text-red-400">مرتجع</span> + <span class="text-wassalOrange">${escapeHTML(o.fee)} ج.م</span>`
+                            : `<span class="text-white">${escapeHTML(o.amount)}</span> + <span class="text-wassalOrange">${escapeHTML(o.fee)} ج.م</span>`}
                     </td>
                 </tr>
             `;
@@ -1174,7 +1406,7 @@ function renderArchive() {
             <tr class="hover:bg-slateCard/80">
                 <td class="px-4 py-3 font-black text-white font-mono">${escapeHTML(cd.dateStr)}</td>
                 <td class="px-4 py-3 text-slate-400">${formatTime12(cd.closedAt)}</td>
-                <td class="px-4 py-3 font-black text-white">${cd.ordersCount} أوردر</td>
+                <td class="px-4 py-3 font-black text-white">${escapeHTML(cd.ordersCount)} ناجح / ${escapeHTML(cd.returnedCount || 0)} مرتجع</td>
                 <td class="px-4 py-3 font-bold text-slate-200">${Number(cd.settledCash).toLocaleString('ar-EG')} ج.م</td>
                 <td class="px-4 py-3 font-black text-statusDone">${Number(cd.revenue).toLocaleString('ar-EG')} ج.م</td>
                 <td class="px-4 py-3 font-bold text-red-400">${Number(cd.expenses).toLocaleString('ar-EG')} ج.م</td>
@@ -1193,23 +1425,17 @@ function openCloseDayModal() {
         return;
     }
     const activeD = getActiveShiftDate();
-    const unFinished = appState.orders.filter(o => o.dateStr === activeD && isOrderActiveInRoom(o));
-    const dayOrders = appState.orders.filter(o => o.dateStr === activeD);
-    const daySettled = dayOrders.filter(o => isOrderSuccessfullySettled(o));
-    const dayArchived = dayOrders.filter(o => isOrderArchived(o));
-    const rev = dayArchived.reduce((s, o) => s + Number(o.fee), 0);
-    const cash = daySettled.reduce((s, o) => s + Number(o.amount), 0);
-    const exp = appState.expenses.filter(e => e.dateStr === activeD).reduce((s, e) => s + Number(e.amount), 0);
+    const fin = computeShiftFinancials(activeD);
 
     const box = document.getElementById('close-day-summary-box');
     box.innerHTML = `
         <div class="flex justify-between"><span class="text-slate-400">اليوم الجاري إقفاله:</span><strong class="text-wassalOrange font-mono">${escapeHTML(activeD)}</strong></div>
-        <div class="flex justify-between"><span class="text-slate-400">أوردرات ناجحة / مرتجعة:</span><strong class="text-statusDone">${daySettled.length} ناجح • ${dayOrders.filter(o => o.status === 'returned').length} مرتجع</strong></div>
-        <div class="flex justify-between"><span class="text-slate-400">مبالغ موردة للمتاجر:</span><strong class="text-white">${cash.toLocaleString('ar-EG')} ج.م</strong></div>
-        <div class="flex justify-between"><span class="text-slate-400">إيراد التوصيل:</span><strong class="text-statusDone">${rev.toLocaleString('ar-EG')} ج.م</strong></div>
-        <div class="flex justify-between"><span class="text-slate-400">المصروفات المسجلة:</span><strong class="text-red-400">${exp.toLocaleString('ar-EG')} ج.م</strong></div>
-        <div class="pt-2 border-t border-slateBorder flex justify-between text-sm"><span class="font-black text-white">صافي ربح اليومية:</span><strong class="text-wassalOrange font-black">${(rev - exp).toLocaleString('ar-EG')} ج.م</strong></div>
-        ${unFinished.length > 0 ? `<div class="mt-2 p-2 rounded-lg bg-red-500/15 border border-red-500/40 text-red-300 text-[11px] font-bold">⚠️ تنبيه: يوجد ${unFinished.length} طلب لم يُغلق بعد (سيبقى ظاهراً في غرفة العمليات لإنهائه).</div>` : ''}
+        <div class="flex justify-between"><span class="text-slate-400">الطلبات المغلقة باليومية:</span><strong class="text-statusDone">${fin.settledCount} ناجح • ${fin.returnedCount} مرتجع</strong></div>
+        <div class="flex justify-between"><span class="text-slate-400">عُهدة بضائع موردة للتجار:</span><strong class="text-white">${fin.merchantGoodsSettled.toLocaleString('ar-EG')} ج.م</strong></div>
+        <div class="flex justify-between"><span class="text-slate-400">(+) إيراد التوصيل المُحصّل:</span><strong class="text-statusDone">${fin.realizedDeliveryRevenue.toLocaleString('ar-EG')} ج.م</strong></div>
+        <div class="flex justify-between"><span class="text-slate-400">(-) المصروفات التشغيلية:</span><strong class="text-red-400">${fin.expensesTotal.toLocaleString('ar-EG')} ج.م</strong></div>
+        <div class="pt-2 border-t border-slateBorder flex justify-between text-sm"><span class="font-black text-white">(=) صافي ربح اليومية:</span><strong class="text-wassalOrange font-black">${fin.netOperatingProfit.toLocaleString('ar-EG')} ج.م</strong></div>
+        ${fin.openCount > 0 ? `<div class="mt-2 p-2 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-300 text-[11px] font-bold">ℹ️ يوجد ${fin.openCount} طلب لا يزال مفتوحاً في الشارع؛ لن يُحتسب في إيراد اليوم المقفل وسيبقى مفتوحاً لإنهائه في اليوم الجديد.</div>` : ''}
     `;
 
     document.getElementById('input-next-shift-date').value = getNextDateStr(activeD);
@@ -1281,8 +1507,8 @@ function openStoreStatementModal(storeId) {
                         ${o.items ? `<div class="text-[10px] text-slate-400">${escapeHTML(o.items)}</div>` : ''}
                     </td>
                     <td class="py-2.5 px-2">${statusTxt}</td>
-                    <td class="py-2.5 px-2 font-bold ${isRet ? 'line-through text-slate-500' : 'text-white'}">${o.amount} ج.م</td>
-                    <td class="py-2.5 px-2 font-bold text-wassalOrange">${o.fee} ج.م</td>
+                    <td class="py-2.5 px-2 font-bold ${isRet ? 'line-through text-slate-500' : 'text-white'}">${escapeHTML(o.amount)} ج.م</td>
+                    <td class="py-2.5 px-2 font-bold text-wassalOrange">${escapeHTML(o.fee)} ج.م</td>
                 </tr>
             `;
         }).join('');
@@ -1455,15 +1681,15 @@ function openOrderDrawer(orderId) {
         <div class="bg-slateCard border border-slateBorder rounded-2xl p-4 space-y-2 text-xs">
             <div class="flex justify-between text-slate-300">
                 <span>قيمة الأوردر للمتجر:</span>
-                <span class="font-black ${isRet ? 'line-through text-slate-500' : 'text-white'}">${o.amount} ج.م</span>
+                <span class="font-black ${isRet ? 'line-through text-slate-500' : 'text-white'}">${escapeHTML(o.amount)} ج.م</span>
             </div>
             <div class="flex justify-between text-slate-300">
                 <span>رسوم التوصيل (وصّل):</span>
-                <span class="font-black text-wassalOrange">${o.fee} ج.م</span>
+                <span class="font-black text-wassalOrange">${escapeHTML(o.fee)} ج.م</span>
             </div>
             <div class="pt-2 border-t border-slateBorder flex justify-between text-sm">
                 <span class="font-black text-white">صافي المستحق تحصيله:</span>
-                <span class="font-black ${isRet ? 'text-red-400' : 'text-statusDone'}">${isRet ? o.fee : (Number(o.amount) + Number(o.fee))} ج.م</span>
+                <span class="font-black ${isRet ? 'text-red-400' : 'text-statusDone'}">${isRet ? escapeHTML(o.fee) : (Number(o.amount) + Number(o.fee))} ج.م</span>
             </div>
         </div>
 
@@ -1584,7 +1810,7 @@ function openRiderStatsModal(riderId, period = 'today') {
                     <td class="px-3 py-2.5 font-bold text-white">${escapeHTML(st.name)}</td>
                     <td class="px-3 py-2.5 text-slate-300">${escapeHTML(o.customerName)}</td>
                     <td class="px-3 py-2.5">${stBadge}</td>
-                    <td class="px-3 py-2.5 font-black text-white">${isRet ? 'مرتجع' : o.amount + ' ج.م'} + <span class="text-wassalOrange">${o.fee} ج.م</span> ${o.deliveredTs ? `(${deliveryMins}د)` : ''}</td>
+                    <td class="px-3 py-2.5 font-black text-white">${isRet ? 'مرتجع' : escapeHTML(o.amount) + ' ج.م'} + <span class="text-wassalOrange">${escapeHTML(o.fee)} ج.م</span> ${o.deliveredTs ? `(${deliveryMins}د)` : ''}</td>
                 </tr>
             `;
         }).join('');
@@ -1816,7 +2042,7 @@ function renderStores() {
                         </div>
                         <h3 class="font-black text-base text-white mt-2">${escapeHTML(s.name)} ${isFirst ? '👑' : ''}</h3>
                     </div>
-                    <span class="text-xs font-black text-wassalOrange bg-obsidian px-2.5 py-1 rounded-lg border border-wassalOrange/30">توصيل: ${s.fee} ج.م</span>
+                    <span class="text-xs font-black text-wassalOrange bg-obsidian px-2.5 py-1 rounded-lg border border-wassalOrange/30">توصيل: ${escapeHTML(s.fee)} ج.م</span>
                 </div>
 
                 <div class="space-y-1">
@@ -1989,7 +2215,7 @@ function renderAccounting() {
     }
 }
 
-// ==================== BACKUP, RESTORE (CHUNKED) & CSV EXPORT ====================
+// ==================== BACKUP, VALIDATED RESTORE & PROTECTED CSV EXPORT ====================
 function downloadFullBackupJSON() {
     const payload = {
         exportedAt: new Date().toISOString(),
@@ -2019,57 +2245,60 @@ function handleRestoreBackupFile(file) {
     reader.onload = async (ev) => {
         try {
             const parsed = JSON.parse(ev.target.result);
-            const restored = parsed.data || parsed;
-            if (!restored || typeof restored !== 'object' || !Array.isArray(restored.orders)) {
-                showToast('⚠️ ملف النسخة الاحتياطية غير صالح');
+            const restored = parsed.data ? parsed.data : parsed;
+
+            // فحص صارم لهيكل البيانات ونوع الحقول قبل الاستعادة
+            const validationError = validateBackupSchema(restored);
+            if (validationError) {
+                showToast(`⚠️ مرفوض: ${validationError}`);
                 return;
             }
-            const ok = window.confirm(`هل تريد استعادة النسخة الاحتياطية؟\nسيتم استبدال البيانات الحالية بـ: ${restored.orders.length} طلب، ${restored.riders?.length || 0} مندوب، ${restored.stores?.length || 0} متجر.`);
-            if (!ok) return;
 
-            setSyncStatus('pending');
-            const ops = [];
-
-            // حذف المستندات القديمة غير الموجودة في النسخة المستعادة
-            const newOrderIds = new Set((restored.orders || []).map(o => String(o.id)));
-            const newRiderIds = new Set((restored.riders || []).map(r => String(r.id)));
-            const newStoreIds = new Set((restored.stores || []).map(s => String(s.id)));
-            const newExpIds = new Set((restored.expenses || []).map(e => String(e.id)));
-
-            appState.orders.forEach(o => { if (!newOrderIds.has(String(o.id))) ops.push({ type: 'delete', ref: fb.doc(fb.db, 'wassal_orders', String(o.id)) }); });
-            appState.riders.forEach(r => { if (!newRiderIds.has(String(r.id))) ops.push({ type: 'delete', ref: fb.doc(fb.db, 'wassal_riders', String(r.id)) }); });
-            appState.stores.forEach(s => { if (!newStoreIds.has(String(s.id))) ops.push({ type: 'delete', ref: fb.doc(fb.db, 'wassal_stores', String(s.id)) }); });
-            appState.expenses.forEach(e => { if (!newExpIds.has(String(e.id))) ops.push({ type: 'delete', ref: fb.doc(fb.db, 'wassal_expenses', String(e.id)) }); });
-
-            // كتابة المستندات المستعادة
-            (restored.riders || []).forEach(r => ops.push({ type: 'set', ref: fb.doc(fb.db, 'wassal_riders', String(r.id)), data: { ...r } }));
-            (restored.stores || []).forEach(s => ops.push({ type: 'set', ref: fb.doc(fb.db, 'wassal_stores', String(s.id)), data: { ...s } }));
-            (restored.orders || []).forEach(o => ops.push({ type: 'set', ref: fb.doc(fb.db, 'wassal_orders', String(o.id)), data: { ...o } }));
-            (restored.expenses || []).forEach(e => ops.push({ type: 'set', ref: fb.doc(fb.db, 'wassal_expenses', String(e.id)), data: { ...e } }));
-
-            ops.push({
-                type: 'set',
-                ref: fb.doc(fb.db, 'wassal_meta', 'config'),
-                data: {
-                    activeDate: restored.activeDate || getSystemTodayStr(),
-                    closedDays: Array.isArray(restored.closedDays) ? restored.closedDays : [],
-                    nextOrderNum: Number(restored.nextOrderNum) || 101
-                }
-            });
-
-            await commitOperationsInChunks(ops);
-
-            const secModal = document.getElementById('modal-security');
-            if (secModal) {
-                secModal.classList.add('hidden');
-                secModal.classList.remove('flex');
+            if (!window.confirm(`تم فحص الملف بنجاح (${restored.orders.length} طلب، ${restored.riders.length} مندوب). هل تريد استبدال قاعدة البيانات السحابية بهذه النسخة؟`)) {
+                return;
             }
-            setSyncStatus('online');
-            showToast('✅ تمت استعادة البيانات ومزامنتها بالكامل بنجاح');
+
+            await withActionLock('restore-backup', async () => {
+                setSyncStatus('pending');
+                await saveCloudBackupSnapshot(`نسخة تلقائية قبل الاستعادة (${getActiveShiftDate()})`);
+
+                const ops = [];
+                const cols = ['wassal_orders', 'wassal_riders', 'wassal_stores', 'wassal_expenses'];
+                for (const colName of cols) {
+                    const snap = await fb.getDocs(fb.collection(fb.db, colName));
+                    snap.forEach(d => ops.push({ type: 'delete', ref: d.ref }));
+                }
+
+                (restored.riders || []).forEach(r => ops.push({ type: 'set', ref: fb.doc(fb.db, 'wassal_riders', String(r.id)), data: r }));
+                (restored.stores || []).forEach(s => ops.push({ type: 'set', ref: fb.doc(fb.db, 'wassal_stores', String(s.id)), data: s }));
+                (restored.orders || []).forEach(o => ops.push({ type: 'set', ref: fb.doc(fb.db, 'wassal_orders', String(o.id)), data: o }));
+                (restored.expenses || []).forEach(e => ops.push({ type: 'set', ref: fb.doc(fb.db, 'wassal_expenses', String(e.id)), data: e }));
+
+                ops.push({
+                    type: 'set',
+                    ref: fb.doc(fb.db, 'wassal_meta', 'config'),
+                    data: {
+                        activeDate: restored.activeDate || getSystemTodayStr(),
+                        nextOrderNum: Number(restored.nextOrderNum) || 101,
+                        closedDays: Array.isArray(restored.closedDays) ? restored.closedDays : []
+                    }
+                });
+
+                await commitOperationsInChunks(ops);
+                await writeAuditLog('استعادة نسخة احتياطية', 'BACKUP_RESTORE', `تمت استعادة ${restored.orders.length} طلب و ${restored.riders.length} مندوب`);
+
+                setSyncStatus('online');
+                const modal = document.getElementById('modal-security');
+                if (modal) {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }
+                showToast('✅ تم التحقق من البيانات واستعادتها للسحابة بنجاح');
+            });
         } catch (err) {
-            console.error('Restore error:', err);
+            console.error(err);
             setSyncStatus('offline');
-            showToast('⚠️ تعذر استعادة الملف — تأكد من صحة البيانات والصلاحيات');
+            showToast('⚠️ تعذر قراءة أو رفع ملف النسخة الاحتياطية');
         }
     };
     reader.readAsText(file);
@@ -2078,29 +2307,52 @@ function handleRestoreBackupFile(file) {
 function exportMonthlyCSV() {
     const targetMonth = uiState.reportMonth || getCurrentMonthStr();
     const stats = getAnalyticsSummary(targetMonth);
-    const lines = [];
-    lines.push('\uFEFFتقرير شركة وصّل - WASSAL لشهر ' + targetMonth);
-    lines.push(`إجمالي أوردرات الشهر,${stats.monthOrders.length},إيرادات التوصيل,${stats.monthRev},المصروفات,${stats.monthExp},صافي الربح,${stats.monthProfit}`);
-    lines.push('');
-    lines.push('--- أداء المناديب ---');
-    lines.push('المندوب,أوردرات اليوم,أوردرات الشهر,إيراد التوصيل الشهري,مبالغ موردة للتجار');
-    stats.riderStats.forEach(r => {
-        lines.push(`"${r.rider.name}",${r.todayCount},${r.monthCount},${r.feeMonth},${r.settledMonth}`);
-    });
-    lines.push('');
-    lines.push('--- ترتيب المتاجر ---');
-    lines.push('المتجر,التصنيف,أوردرات اليوم,أوردرات الشهر,نسبة المساهمة %,مبيعات موردة');
-    stats.storeStats.forEach(s => {
-        lines.push(`"${s.store.name}","${s.store.category}",${s.todayCount},${s.monthCount},${s.sharePct}%,${s.settledMonth}`);
-    });
-    lines.push('');
-    lines.push('--- سجل المصروفات ---');
-    lines.push('التاريخ,البيان,التصنيف,المبلغ,ملاحظات');
-    stats.monthExpensesList.forEach(e => {
-        lines.push(`${e.dateStr},"${e.title}","${e.category}",${e.amount},"${e.notes || ''}"`);
+    const lines = [
+        [sanitizeCSVCell(`تقرير وصّل المحاسبي - شهر ${targetMonth}`)],
+        [],
+        [sanitizeCSVCell('ملخص الأرباح والخسائر'), sanitizeCSVCell('القيمة (ج.م)')],
+        [sanitizeCSVCell('إيرادات التوصيل المحققة'), sanitizeCSVCell(stats.monthRev)],
+        [sanitizeCSVCell('إجمالي المصروفات'), sanitizeCSVCell(stats.monthExp)],
+        [sanitizeCSVCell('صافي الربح الشهري'), sanitizeCSVCell(stats.monthProfit)],
+        [sanitizeCSVCell('مبالغ بضائع موردة للتجار'), sanitizeCSVCell(stats.monthSettled)],
+        [],
+        [
+            sanitizeCSVCell('رقم الطلب'),
+            sanitizeCSVCell('التاريخ'),
+            sanitizeCSVCell('الحالة'),
+            sanitizeCSVCell('المتجر'),
+            sanitizeCSVCell('العميل'),
+            sanitizeCSVCell('الهاتف'),
+            sanitizeCSVCell('العنوان'),
+            sanitizeCSVCell('الأصناف'),
+            sanitizeCSVCell('المندوب'),
+            sanitizeCSVCell('قيمة الأوردر'),
+            sanitizeCSVCell('رسوم التوصيل'),
+            sanitizeCSVCell('سبب المرتجع')
+        ]
+    ];
+
+    stats.monthOrders.forEach(o => {
+        const st = getStore(o.storeId);
+        const rd = getRider(o.riderId);
+        lines.push([
+            sanitizeCSVCell(o.id),
+            sanitizeCSVCell(o.dateStr),
+            sanitizeCSVCell(o.status),
+            sanitizeCSVCell(st.name),
+            sanitizeCSVCell(o.customerName),
+            sanitizeCSVCell(o.phone),
+            sanitizeCSVCell(o.address),
+            sanitizeCSVCell(o.items || ''),
+            sanitizeCSVCell(rd.name),
+            sanitizeCSVCell(o.amount),
+            sanitizeCSVCell(o.fee),
+            sanitizeCSVCell(o.returnReason || '')
+        ]);
     });
 
-    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const csvContent = '\uFEFF' + lines.map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -2109,28 +2361,37 @@ function exportMonthlyCSV() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showToast(`📊 تم تصدير تقرير شهر ${targetMonth} بصيغة CSV`);
+    showToast(`📊 تم تصدير تقرير شهر ${targetMonth} محمياً من Formula Injection`);
 }
 
-function populateExpenseFormDefaults() {
+function populateSelects() {
+    const storeSel = document.getElementById('input-order-store');
+    if (storeSel) {
+        storeSel.innerHTML = appState.stores.length
+            ? appState.stores.map(s => `<option value="${escapeHTML(s.id)}">${escapeHTML(s.name)} (${escapeHTML(s.category)} - توصيل ${escapeHTML(s.fee)} ج.م)</option>`).join('')
+            : `<option value="">-- أضف متجراً أولاً --</option>`;
+    }
+
+    const riderSel = document.getElementById('input-order-rider');
+    if (riderSel) {
+        const availableRiders = appState.riders.filter(r => r.status === 'available');
+        if (availableRiders.length === 0) {
+            riderSel.innerHTML = `<option value="">-- لا يوجد مناديب متاحين حالياً بالمكتب --</option>`;
+        } else {
+            riderSel.innerHTML = availableRiders
+                .map(r => `<option value="${escapeHTML(r.id)}">🟢 ${escapeHTML(r.name)} (${escapeHTML(r.plate)})</option>`)
+                .join('');
+        }
+    }
+
     const expRiderSel = document.getElementById('exp-rider');
     if (expRiderSel) {
-        expRiderSel.innerHTML = `<option value="">— مصروف عام للإدارة —</option>` +
+        expRiderSel.innerHTML = `<option value="">مصروف عام (بدون مندوب)</option>` +
             appState.riders.map(r => `<option value="${escapeHTML(r.id)}">${escapeHTML(r.name)} (${escapeHTML(r.plate)})</option>`).join('');
-    }
-    const expDateInput = document.getElementById('exp-date');
-    if (expDateInput && !expDateInput.value) {
-        expDateInput.value = getActiveShiftDate();
-    }
-    const monthPicker = document.getElementById('report-month-picker');
-    if (monthPicker && !monthPicker.value) {
-        monthPicker.value = uiState.reportMonth;
     }
 }
 
 function renderAll() {
-    applyRolePermissionsUI();
-    populateExpenseFormDefaults();
     renderKPIs();
     renderFleetRibbon();
     renderOrdersBoardAndTable();
@@ -2138,683 +2399,950 @@ function renderAll() {
     renderRiders();
     renderStores();
     renderAccounting();
+    renderAuditLogs();
+    renderUsersRolesList();
+    renderCloudBackupsList();
+    applyRolePermissionsUI();
+
     if (uiState.selectedOrderId) {
-        const stillExists = appState.orders.some(o => o.id === uiState.selectedOrderId);
-        if (stillExists) openOrderDrawer(uiState.selectedOrderId);
+        const exists = appState.orders.find(o => o.id === uiState.selectedOrderId);
+        if (exists) openOrderDrawer(uiState.selectedOrderId);
         else closeOrderDrawer();
     }
 }
 
-function switchTab(tabName) {
-    uiState.activeTab = tabName;
-    document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
-    const target = document.getElementById(`view-${tabName}`);
-    if (target) target.classList.remove('hidden');
-
-    document.querySelectorAll('.nav-tab').forEach(btn => {
-        btn.classList.remove('wassal-grad', 'text-obsidian', 'font-extrabold', 'shadow-lg', 'shadow-orange-500/20');
-        btn.classList.add('text-slate-300', 'font-bold', 'hover:text-white', 'hover:bg-slateCard');
-    });
-    const activeTabBtn = document.getElementById(`tab-btn-${tabName}`);
-    if (activeTabBtn) {
-        activeTabBtn.classList.remove('text-slate-300', 'font-bold', 'hover:text-white', 'hover:bg-slateCard');
-        activeTabBtn.classList.add('wassal-grad', 'text-obsidian', 'font-extrabold', 'shadow-lg', 'shadow-orange-500/20');
+// ==================== EVENT LISTENERS ====================
+document.addEventListener('DOMContentLoaded', () => {
+    const monthPicker = document.getElementById('report-month-picker');
+    if (monthPicker) {
+        monthPicker.value = uiState.reportMonth;
+        monthPicker.addEventListener('change', (e) => {
+            uiState.reportMonth = e.target.value || getCurrentMonthStr();
+            renderAccounting();
+        });
     }
 
-    const titles = {
-        operations: ['غرفة العمليات ومتابعة الطلبات الجارية', 'تم الاستلام ➔ تحرك للعميل ➔ تم التسليم (أو مرتجع) ➔ تم التوريد والعودة'],
-        archive: ['أرشيف الطلبات المنتهية وإقفال اليوميات', 'استعراض أي يوم سابق وإقفال اليوم الحالي لبدء يوم عمل جديد'],
-        riders: [`أسطول المناديب والموتوسيكلات (${appState.riders.length} طيارين)`, 'اضغط على أي مندوب لعرض إحصائيات أوردراته أو تغيير حالته (متاح / خارج العمل)'],
-        stores: ['المتاجر المتعاقدة وترتيب الأكثر عملاً', 'تصنيف المتاجر حسب حجم الأوردرات وكشف حساب لكل متجر'],
-        accounting: ['المحاسبة والمصروفات وتقارير الإدارة', 'قائمة الدخل اليومية والشهرية، إدارة المصروفات، وتقارير التقفيل والطباعة']
-    };
-    if (titles[tabName]) {
-        document.getElementById('header-title').textContent = titles[tabName][0];
-        document.getElementById('header-subtitle').textContent = titles[tabName][1];
+    const archPicker = document.getElementById('archive-date-picker');
+    if (archPicker) {
+        archPicker.value = uiState.archiveDateFilter;
+        archPicker.addEventListener('change', (e) => {
+            uiState.archiveDateFilter = e.target.value || '';
+            renderArchive();
+        });
     }
 
-    const sidebar = document.getElementById('sidebar');
-    if (!sidebar.classList.contains('translate-x-full') && window.innerWidth < 1024) {
-        sidebar.classList.add('translate-x-full');
-        document.getElementById('sidebar-backdrop').classList.add('hidden');
-    }
-    renderAll();
-}
-
-function setViewMode(mode) {
-    uiState.viewMode = mode;
-    const kanbanEl = document.getElementById('operations-kanban-container');
-    const tableEl = document.getElementById('operations-table-container');
-    const btnK = document.getElementById('view-btn-kanban');
-    const btnT = document.getElementById('view-btn-table');
-
-    if (mode === 'kanban') {
-        kanbanEl.classList.remove('hidden');
-        tableEl.classList.add('hidden');
-        btnK.className = 'px-3 py-1.5 rounded-lg text-xs font-black wassal-grad text-obsidian flex items-center gap-1.5 transition-all';
-        btnT.className = 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white flex items-center gap-1.5 transition-all';
-    } else {
-        kanbanEl.classList.add('hidden');
-        tableEl.classList.remove('hidden');
-        btnT.className = 'px-3 py-1.5 rounded-lg text-xs font-black wassal-grad text-obsidian flex items-center gap-1.5 transition-all';
-        btnK.className = 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white flex items-center gap-1.5 transition-all';
-    }
-}
-
-function openNewOrderModal() {
-    if (appState.stores.length === 0) {
-        showToast('⚠️ يرجى إضافة متجر واحد على الأقل أولاً من تبويب المتاجر');
-        switchTab('stores');
-        return;
-    }
-    if (appState.riders.length === 0) {
-        showToast('⚠️ يرجى إضافة مندوب واحد على الأقل أولاً من تبويب المناديب');
-        switchTab('riders');
-        return;
+    const expCatFilter = document.getElementById('filter-expense-cat');
+    if (expCatFilter) {
+        expCatFilter.addEventListener('change', (e) => {
+            uiState.expenseCatFilter = e.target.value;
+            renderAccounting();
+        });
     }
 
-    const activeD = getActiveShiftDate();
-    const dayBadge = document.getElementById('modal-order-active-day');
-    if (dayBadge) dayBadge.textContent = activeD;
+    const expDate = document.getElementById('exp-date');
+    if (expDate) expDate.value = getActiveShiftDate();
 
-    const storeSel = document.getElementById('input-order-store');
-    storeSel.innerHTML = appState.stores.map(s => `<option value="${escapeHTML(s.id)}">${escapeHTML(s.name)} (${escapeHTML(s.category)}) - توصيل ${s.fee} ج.م</option>`).join('');
-    if (appState.stores.length > 0) {
-        document.getElementById('input-order-fee').value = appState.stores[0].fee;
-    }
-
-    const availableRiders = appState.riders.filter(r => r.status === 'available');
-    const riderSel = document.getElementById('input-order-rider');
-    if (availableRiders.length === 0) {
-        riderSel.innerHTML = `<option value="">⚠️ لا يوجد مناديب متاحين بالمكتب حالياً!</option>`;
-    } else {
-        riderSel.innerHTML = availableRiders.map(r => `<option value="${escapeHTML(r.id)}">🟢 ${escapeHTML(r.name)} (${escapeHTML(r.plate)})</option>`).join('');
-    }
-
-    resetOrderItemsRows();
-    document.getElementById('input-order-time').value = '';
-    const modal = document.getElementById('modal-new-order');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-}
-
-function openRiderModal(riderId = null) {
-    if (!isAdminUser()) {
-        showToast('⛔ إدارة المناديب متاحة لمدير النظام فقط');
-        return;
-    }
-    const modal = document.getElementById('modal-rider');
-    const titleEl = document.getElementById('modal-rider-title');
-    const idInput = document.getElementById('input-rider-id');
-    const nameInput = document.getElementById('input-rider-name');
-    const bikeInput = document.getElementById('input-rider-bike');
-    const plateInput = document.getElementById('input-rider-plate');
-    const phoneInput = document.getElementById('input-rider-phone');
-
-    if (riderId) {
-        const r = appState.riders.find(item => item.id === riderId);
-        if (!r) return;
-        titleEl.textContent = `✏️ تعديل بيانات المندوب: ${r.name}`;
-        idInput.value = r.id;
-        nameInput.value = r.name;
-        bikeInput.value = r.bike;
-        plateInput.value = r.plate;
-        phoneInput.value = r.phone || '';
-    } else {
-        titleEl.textContent = '+ إضافة مندوب جديد';
-        idInput.value = '';
-        document.getElementById('form-rider').reset();
-    }
-
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-}
-
-// ==================== EVENT DELEGATION ====================
-document.addEventListener('click', async (e) => {
-    const btn = e.target.closest('[data-action]');
-    if (!btn) return;
-    const action = btn.getAttribute('data-action');
-    const id = btn.getAttribute('data-id');
-
-    if (action === 'logout-firebase') {
-        if (fb && fb.auth) {
-            await fb.signOut(fb.auth);
-            showToast('تم تسجيل الخروج بأمان');
-        }
-    } else if (action === 'open-security-modal') {
-        renderUsersRolesList();
-        const m = document.getElementById('modal-security');
-        if (m) {
-            m.classList.remove('hidden');
-            m.classList.add('flex');
-        }
-    } else if (action === 'download-backup') {
-        downloadFullBackupJSON();
-    } else if (action === 'toggle-sidebar') {
-        document.getElementById('sidebar').classList.toggle('translate-x-full');
-        document.getElementById('sidebar-backdrop').classList.toggle('hidden');
-    } else if (action === 'switch-tab') {
-        switchTab(btn.getAttribute('data-tab'));
-    } else if (action === 'set-view-mode') {
-        setViewMode(btn.getAttribute('data-mode'));
-    } else if (action === 'add-order-item-row') {
-        addOrderItemRow();
-    } else if (action === 'remove-order-item-row') {
-        const row = btn.closest('.order-item-row');
-        if (row) {
-            row.remove();
-            recalcOrderItemsTotal();
-        }
-    } else if (action === 'set-status-filter') {
-        uiState.statusFilter = btn.getAttribute('data-status');
-        document.querySelectorAll('.status-chip').forEach(chip => {
-            if (chip.getAttribute('data-status') === uiState.statusFilter) {
-                chip.className = 'status-chip px-3 py-1.5 rounded-lg text-xs font-black bg-slateCard text-white transition-all';
-            } else {
-                chip.className = 'status-chip px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all';
+    const itemsListEl = document.getElementById('order-items-list');
+    if (itemsListEl) {
+        itemsListEl.addEventListener('input', (e) => {
+            if (e.target.classList.contains('item-price')) {
+                recalcOrderItemsTotal();
             }
         });
-        renderOrdersBoardAndTable();
-    } else if (action === 'filter-by-rider-pill') {
-        uiState.riderFilter = (uiState.riderFilter === id) ? 'all' : id;
-        renderFleetRibbon();
-        renderOrdersBoardAndTable();
-    } else if (action === 'open-drawer') {
-        openOrderDrawer(id);
-    } else if (action === 'close-drawer') {
-        closeOrderDrawer();
-    } else if (action === 'open-edit-order') {
-        openEditOrderModal(id);
-    } else if (action === 'open-new-order') {
-        openNewOrderModal();
-    } else if (action === 'open-new-store') {
-        if (!isAdminUser()) {
-            showToast('⛔ إضافة المتاجر متاحة لمدير النظام فقط');
-            return;
+    }
+
+    const phoneInp = document.getElementById('input-order-phone');
+    if (phoneInp) {
+        phoneInp.addEventListener('input', (e) => {
+            const val = e.target.value.trim();
+            if (val.length >= 8) {
+                const match = appState.orders.find(o => o.phone === val);
+                if (match) {
+                    const custInp = document.getElementById('input-order-customer');
+                    const addrInp = document.getElementById('input-order-address');
+                    if (custInp && !custInp.value) custInp.value = match.customerName;
+                    if (addrInp && !addrInp.value) addrInp.value = match.address;
+                    showToast(`✨ تم استدعاء بيانات العميل (${match.customerName}) تلقائياً`);
+                }
+            }
+        });
+    }
+
+    document.getElementById('input-restore-backup')?.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) handleRestoreBackupFile(file);
+        e.target.value = '';
+    });
+
+    // Firebase Auth Login Form
+    document.getElementById('form-firebase-login')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('input-login-email').value.trim();
+        const password = document.getElementById('input-login-password').value;
+        const errEl = document.getElementById('login-error-msg');
+        const submitBtn = document.getElementById('btn-login-submit');
+        if (errEl) errEl.classList.add('hidden');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'جاري التحقق والدخول...';
         }
-        const m = document.getElementById('modal-new-store');
-        m.classList.remove('hidden');
-        m.classList.add('flex');
-    } else if (action === 'open-store-statement') {
-        openStoreStatementModal(id);
-    } else if (action === 'delete-store') {
-        if (!isAdminUser()) return;
-        const store = appState.stores.find(s => s.id === id);
-        if (!store) return;
-        const hasActive = appState.orders.some(o => o.storeId === id && isOrderActiveInRoom(o));
-        if (hasActive) {
-            showToast(`⚠️ لا يمكن حذف ${store.name} لوجود طلب جاري خاص به حالياً`);
-            return;
-        }
-        if (!window.confirm(`هل أنت متأكد من حذف المتجر "${store.name}"؟`)) return;
-        const ok = await fsDeleteDoc('wassal_stores', id);
-        if (ok) showToast(`تم حذف المتجر ${store.name}`);
-    } else if (action === 'open-rider-modal') {
-        openRiderModal(null);
-    } else if (action === 'edit-rider') {
-        openRiderModal(id);
-    } else if (action === 'open-rider-stats') {
-        openRiderStatsModal(id, 'today');
-    } else if (action === 'set-rstats-period') {
-        if (uiState.selectedRiderStatsId) {
-            openRiderStatsModal(uiState.selectedRiderStatsId, btn.getAttribute('data-period'));
-        }
-    } else if (action === 'open-close-day-modal') {
-        openCloseDayModal();
-    } else if (action === 'open-return-modal') {
-        openReturnModal(id);
-    } else if (action === 'archive-select-date') {
-        uiState.archiveDateFilter = btn.getAttribute('data-date');
-        renderArchive();
-    } else if (action === 'archive-show-all') {
-        uiState.archiveDateFilter = '';
-        const dp = document.getElementById('archive-date-picker');
-        if (dp) dp.value = '';
-        renderArchive();
-    } else if (action === 'delete-rider') {
-        if (!isAdminUser()) return;
-        const rider = appState.riders.find(r => r.id === id);
-        if (!rider) return;
-        const hasActive = appState.orders.some(o => o.riderId === id && isOrderActiveInRoom(o));
-        if (hasActive) {
-            showToast(`⚠️ لا يمكن حذف ${rider.name} لوجود طلب جاري مكلف به حالياً`);
-            return;
-        }
-        if (!window.confirm(`هل أنت متأكد من حذف المندوب "${rider.name}" من الأسطول؟`)) return;
-        if (uiState.riderFilter === id) uiState.riderFilter = 'all';
-        const ok = await fsDeleteDoc('wassal_riders', id);
-        if (ok) showToast(`تم حذف المندوب ${rider.name}`);
-    } else if (action === 'close-modal') {
-        const m = document.getElementById(btn.getAttribute('data-modal'));
-        if (m) { m.classList.add('hidden'); m.classList.remove('flex'); }
-    } else if (action === 'move-onway') {
-        const o = appState.orders.find(item => item.id === id);
-        if (o && o.status === 'received') {
-            const ok = await fsSaveDoc('wassal_orders', o.id, { status: 'onway', departedTs: Date.now() });
-            if (ok) showToast(`تحرك المندوب بالطلب #${o.id} للعميل 🛵`);
-        }
-    } else if (action === 'move-delivered') {
-        const o = appState.orders.find(item => item.id === id);
-        if (o && o.status === 'onway') {
-            const ok = await fsSaveDoc('wassal_orders', o.id, { status: 'delivered', deliveredTs: Date.now() });
-            if (ok) showToast(`تم تسليم الطلب #${o.id} — بانتظار التوريد للمتجر`);
-        }
-    } else if (action === 'move-settled') {
-        const o = appState.orders.find(item => item.id === id);
-        if (o && o.status === 'delivered') {
-            const ok = await fsSaveDoc('wassal_orders', o.id, { status: 'settled', settledTs: Date.now() });
-            if (ok) {
-                await fsSaveDoc('wassal_riders', o.riderId, { status: 'available' });
-                const rd = getRider(o.riderId);
-                showToast(`💰 تم توريد #${o.id} للأرشيف وعودة ${rd.name} متاحاً بالمكتب`);
+        try {
+            await fb.signInWithEmailAndPassword(fb.auth, email, password);
+            showToast('🔓 مرحباً بك في نظام وصّل المؤمّن');
+        } catch (err) {
+            console.error('Login error:', err);
+            if (errEl) {
+                errEl.textContent = '⚠️ البريد الإلكتروني أو كلمة المرور غير صحيحة';
+                errEl.classList.remove('hidden');
+            }
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'تسجيل الدخول لغرفة العمليات';
             }
         }
-    } else if (action === 'move-returned-done') {
-        const o = appState.orders.find(item => item.id === id);
-        if (o && o.status === 'returning') {
-            const ok = await fsSaveDoc('wassal_orders', o.id, { status: 'returned', settledTs: Date.now() });
-            if (ok) {
-                await fsSaveDoc('wassal_riders', o.riderId, { status: 'available' });
-                const rd = getRider(o.riderId);
-                showToast(`📦 تم تسليم مرتجع #${o.id} للمتجر وعودة ${rd.name} للمكتب`);
+    });
+
+    // Role change listener in Security Modal
+    document.addEventListener('change', async (e) => {
+        const sel = e.target.closest('[data-action="change-user-role"]');
+        if (sel && isAdminUser()) {
+            const targetUid = sel.getAttribute('data-uid');
+            const newRole = sel.value;
+            const targetUser = registeredUsers.find(u => u.uid === targetUid);
+            const saved = await fsSaveDoc('wassal_users', targetUid, { role: newRole });
+            if (saved) {
+                await writeAuditLog('تعديل صلاحية موظف', targetUser ? targetUser.email : targetUid, `تغيير الصلاحية إلى: ${newRole}`);
+                showToast(`✅ تم تحديث صلاحية الموظف إلى ${newRole === 'admin' ? 'مدير النظام' : 'موظف عمليات'}`);
             }
         }
-    } else if (action === 'delete-order') {
-        if (!isAdminUser()) {
-            showToast('⛔ حذف الطلبات متاح لمدير النظام فقط');
+    });
+
+    document.addEventListener('click', async (e) => {
+        const btn = e.target.closest('[data-action]');
+        if (!btn) return;
+        const action = btn.getAttribute('data-action');
+        const id = btn.getAttribute('data-id');
+
+        if (action === 'logout-firebase') {
+            e.stopPropagation();
+            if (fb && fb.auth) {
+                await fb.signOut(fb.auth);
+                showToast('🔒 تم تسجيل الخروج بنجاح');
+            }
             return;
         }
-        const o = appState.orders.find(item => item.id === id);
-        if (!o) return;
-        if (!window.confirm(`هل أنت متأكد من حذف الطلب #${o.id} نهائياً؟`)) return;
-        const ok = await fsDeleteDoc('wassal_orders', o.id);
-        if (ok) {
-            await fsSaveDoc('wassal_riders', o.riderId, { status: 'available' });
-            closeOrderDrawer();
-            showToast(`تم حذف الطلب #${o.id}`);
+
+        if (action === 'open-security-modal') {
+            e.stopPropagation();
+            renderUsersRolesList();
+            renderCloudBackupsList();
+            const m = document.getElementById('modal-security');
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+            return;
         }
-    } else if (action === 'delete-expense') {
-        if (!isAdminUser()) return;
-        if (!window.confirm('هل تريد حذف هذا المصروف؟')) return;
-        const ok = await fsDeleteDoc('wassal_expenses', id);
-        if (ok) showToast('تم حذف بند المصروف');
-    } else if (action === 'copy-whatsapp') {
-        const o = appState.orders.find(item => item.id === id);
-        if (o) {
-            copyToClipboardSafe(buildWhatsAppMessage(o));
-            showToast(`تم نسخ رسالة الواتساب للطلب #${o.id} 📋`);
+
+        if (action === 'create-cloud-snapshot') {
+            e.stopPropagation();
+            await withActionLock('cloud-snap', async () => {
+                const ok = await saveCloudBackupSnapshot(`لقطة يدوية (${getActiveShiftDate()})`);
+                if (ok) {
+                    await writeAuditLog('لقطة احتياطية سحابية', 'CLOUD_SNAPSHOT', 'تم حفظ نسخة احتياطية فورية على السيرفر');
+                    showToast('☁️ تم حفظ لقطة احتياطية على السحابة بنجاح');
+                }
+            });
+            return;
         }
-    } else if (action === 'toggle-rider-avail') {
-        if (!isAdminUser()) return;
-        const r = appState.riders.find(item => item.id === id);
-        if (r) {
-            if (r.status === 'busy') {
-                showToast('المندوب في مهمة جارية حالياً، قم بتوريد أو إنهاء طلبه أولاً');
+
+        if (action === 'download-cloud-snapshot') {
+            e.stopPropagation();
+            const snap = cloudBackups.find(b => b.id === id);
+            if (snap && snap.snapshotJson) {
+                const blob = new Blob([snap.snapshotJson], { type: 'application/json;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `WASSAL_CloudSnapshot_${snap.shiftDate || 'backup'}_${snap.id}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showToast('⬇️ تم تحميل اللقطة السحابية');
+            }
+            return;
+        }
+
+        if (action === 'download-backup') {
+            e.stopPropagation();
+            downloadFullBackupJSON();
+            return;
+        }
+
+        if (action === 'reset-demo') {
+            e.stopPropagation();
+            await resetAllDataSafely();
+            return;
+        }
+
+        if (action === 'add-order-item-row') {
+            e.stopPropagation();
+            addOrderItemRow();
+            return;
+        }
+
+        if (action === 'remove-order-item-row') {
+            e.stopPropagation();
+            const row = btn.closest('.order-item-row');
+            if (row) {
+                row.remove();
+                recalcOrderItemsTotal();
+            }
+            return;
+        }
+
+        if (action === 'toggle-sidebar') {
+            document.getElementById('sidebar').classList.toggle('translate-x-full');
+            document.getElementById('sidebar-backdrop').classList.toggle('hidden');
+            return;
+        }
+
+        if (action === 'switch-tab') {
+            const tab = btn.getAttribute('data-tab');
+            if (tab === 'audit' && !isAdminUser()) {
+                showToast('⛔ سجل التدقيق متاح لمدير النظام فقط');
                 return;
             }
-            const nextStatus = (r.status === 'off') ? 'available' : 'off';
-            const ok = await fsSaveDoc('wassal_riders', r.id, { status: nextStatus });
-            if (ok) showToast(`تم تحديث حالة ${r.name} إلى: ${nextStatus === 'available' ? 'متاح للعمل' : 'خارج العمل'}`);
-        }
-    } else if (action === 'export-csv') {
-        exportMonthlyCSV();
-    } else if (action === 'print-report') {
-        window.print();
-    } else if (action === 'reset-demo') {
-        await resetAllDataSafely();
-    }
-});
+            uiState.activeTab = tab;
 
-// ==================== CHANGE & INPUT LISTENERS ====================
-document.addEventListener('change', async (e) => {
-    if (e.target && e.target.getAttribute('data-action') === 'change-user-role') {
+            document.querySelectorAll('.nav-tab').forEach(el => {
+                el.classList.remove('wassal-grad', 'text-obsidian', 'shadow-lg', 'shadow-orange-500/20', 'font-extrabold');
+                el.classList.add('text-slate-300', 'font-bold');
+            });
+            const activeNavBtn = document.getElementById(`tab-btn-${tab}`);
+            if (activeNavBtn) {
+                activeNavBtn.classList.add('wassal-grad', 'text-obsidian', 'shadow-lg', 'shadow-orange-500/20', 'font-extrabold');
+                activeNavBtn.classList.remove('text-slate-300', 'font-bold');
+            }
+
+            document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
+            document.getElementById(`view-${tab}`).classList.remove('hidden');
+
+            const titles = {
+                operations: ['غرفة العمليات ومتابعة الطلبات الجارية', 'تم الاستلام ➔ تحرك للعميل ➔ تم التسليم (أو مرتجع) ➔ تم التوريد والعودة'],
+                archive: ['أرشيف الطلبات المنتهية وإقفال اليوميات', 'استعراض الطلبات المؤرشفة حسب التاريخ وإقفال اليومية الحالية مع نسخة احتياطية'],
+                riders: ['أسطول المناديب والموتوسيكلات', 'إدارة كاملة للأسطول وكشوف أداء لكل مندوب'],
+                stores: ['المتاجر المتعاقدة وترتيب الأكثر عملاً', 'تحليل حجم الطلبات لكل متجر وكشوف الحساب والتصفية'],
+                accounting: ['المحاسبة والمصروفات والتقارير', 'قائمة الدخل اليومية والشهرية، إدارة المصروفات، وتصدير التقارير المحمية'],
+                audit: ['سجل التدقيق والرقابة (Audit Log)', 'توثيق غير قابل للتعديل لكل عملية تعديل أو حذف أو إقفال يومية']
+            };
+            document.getElementById('header-title').textContent = titles[tab][0];
+            document.getElementById('header-subtitle').textContent = titles[tab][1];
+
+            document.getElementById('sidebar').classList.add('translate-x-full');
+            document.getElementById('sidebar-backdrop').classList.add('hidden');
+            return;
+        }
+
+        if (action === 'open-close-day-modal') {
+            e.stopPropagation();
+            openCloseDayModal();
+            return;
+        }
+
+        if (action === 'archive-select-date') {
+            uiState.archiveDateFilter = btn.getAttribute('data-date');
+            renderArchive();
+            return;
+        }
+
+        if (action === 'archive-show-all') {
+            uiState.archiveDateFilter = '';
+            const archInp = document.getElementById('archive-date-picker');
+            if (archInp) archInp.value = '';
+            renderArchive();
+            return;
+        }
+
+        if (action === 'open-rider-stats') {
+            e.stopPropagation();
+            openRiderStatsModal(id, 'today');
+            return;
+        }
+
+        if (action === 'set-rstats-period') {
+            const p = btn.getAttribute('data-period');
+            if (uiState.selectedRiderStatsId) {
+                openRiderStatsModal(uiState.selectedRiderStatsId, p);
+            }
+            return;
+        }
+
+        if (action === 'open-return-modal') {
+            e.stopPropagation();
+            openReturnModal(id);
+            return;
+        }
+
+        if (action === 'open-edit-order') {
+            e.stopPropagation();
+            openEditOrderModal(id);
+            return;
+        }
+
+        if (action === 'delete-order') {
+            e.stopPropagation();
+            if (!isAdminUser()) {
+                showToast('⛔ حذف الطلبات متاح لمدير النظام فقط');
+                return;
+            }
+            const o = appState.orders.find(item => item.id === id);
+            if (!o) return;
+            if (!window.confirm(`هل أنت متأكد من حذف الطلب #${o.id} (${o.customerName}) نهائياً؟`)) return;
+
+            await withActionLock(`del-order-${id}`, async () => {
+                const ok = await fsDeleteDoc('wassal_orders', id);
+                if (ok) {
+                    await writeAuditLog('حذف طلب', `#${o.id}`, `تم حذف طلب العميل ${o.customerName} بقيمة ${o.amount} ج.م`);
+                    if (uiState.selectedOrderId === id) closeOrderDrawer();
+                    showToast(`🗑️ تم حذف الطلب #${o.id} وتسجيل العملية في سجل التدقيق`);
+                }
+            });
+            return;
+        }
+
+        if (action === 'open-store-statement') {
+            e.stopPropagation();
+            openStoreStatementModal(id);
+            return;
+        }
+
+        if (action === 'delete-store') {
+            e.stopPropagation();
+            if (!isAdminUser()) {
+                showToast('⛔ حذف المتاجر متاح لمدير النظام فقط');
+                return;
+            }
+            const st = appState.stores.find(item => item.id === id);
+            if (!st) return;
+            if (!window.confirm(`هل أنت متأكد من حذف المتجر "${st.name}"؟`)) return;
+            await withActionLock(`del-store-${id}`, async () => {
+                const ok = await fsDeleteDoc('wassal_stores', id);
+                if (ok) {
+                    await writeAuditLog('حذف متجر', st.name, `تم حذف المتجر (${st.category})`);
+                    showToast(`🗑️ تم حذف المتجر "${st.name}"`);
+                }
+            });
+            return;
+        }
+
+        if (action === 'filter-by-rider-pill') {
+            uiState.riderFilter = (uiState.riderFilter === id) ? 'all' : id;
+            renderFleetRibbon();
+            renderOrdersBoardAndTable();
+            return;
+        }
+
+        if (action === 'set-view-mode') {
+            uiState.viewMode = btn.getAttribute('data-mode');
+            const isKanban = uiState.viewMode === 'kanban';
+            document.getElementById('operations-kanban-container').classList.toggle('hidden', !isKanban);
+            document.getElementById('operations-table-container').classList.toggle('hidden', isKanban);
+
+            document.getElementById('view-btn-kanban').className = isKanban
+                ? 'px-3 py-1.5 rounded-lg text-xs font-black wassal-grad text-obsidian flex items-center gap-1.5 transition-all'
+                : 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white flex items-center gap-1.5 transition-all';
+            document.getElementById('view-btn-table').className = !isKanban
+                ? 'px-3 py-1.5 rounded-lg text-xs font-black wassal-grad text-obsidian flex items-center gap-1.5 transition-all'
+                : 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white flex items-center gap-1.5 transition-all';
+            return;
+        }
+
+        if (action === 'set-status-filter') {
+            uiState.statusFilter = btn.getAttribute('data-status');
+            document.querySelectorAll('.status-chip').forEach(chip => {
+                const active = chip.getAttribute('data-status') === uiState.statusFilter;
+                chip.classList.toggle('bg-slateCard', active);
+                chip.classList.toggle('text-white', active);
+                chip.classList.toggle('font-black', active);
+            });
+            renderOrdersBoardAndTable();
+            return;
+        }
+
+        if (action === 'move-onway') {
+            e.stopPropagation();
+            await withActionLock(`move-${id}`, async () => {
+                const o = appState.orders.find(item => item.id === id);
+                if (o && o.status === 'received') {
+                    const updated = { ...o, status: 'onway', departedTs: Date.now() };
+                    const ok = await fsSaveDoc('wassal_orders', id, updated);
+                    if (ok) {
+                        copyToClipboardSafe(buildWhatsAppMessage(updated));
+                        showToast(`🔵 تم تسجيل تحرك #${o.id} (${formatTime12(updated.departedTs)}) ونسخ رسالة واتساب`);
+                    }
+                }
+            });
+            return;
+        }
+
+        if (action === 'move-delivered') {
+            e.stopPropagation();
+            await withActionLock(`move-${id}`, async () => {
+                const o = appState.orders.find(item => item.id === id);
+                if (o && o.status === 'onway') {
+                    const nowTs = Date.now();
+                    const updated = {
+                        ...o,
+                        status: 'delivered',
+                        departedTs: o.departedTs || nowTs,
+                        deliveredTs: nowTs
+                    };
+                    const ok = await fsSaveDoc('wassal_orders', id, updated);
+                    if (ok) {
+                        copyToClipboardSafe(buildWhatsAppMessage(updated));
+                        showToast(`🟢 تم تسليم #${o.id} — بانتظار توريد المبلغ للمتجر`);
+                    }
+                }
+            });
+            return;
+        }
+
+        if (action === 'move-settled') {
+            e.stopPropagation();
+            await withActionLock(`move-${id}`, async () => {
+                const o = appState.orders.find(item => item.id === id);
+                if (o && o.status === 'delivered') {
+                    const nowTs = Date.now();
+                    const updated = { ...o, status: 'settled', settledTs: nowTs };
+                    const ok = await fsSaveDoc('wassal_orders', id, updated);
+                    if (ok) {
+                        const rd = getRider(o.riderId);
+                        const stillBusy = appState.orders.some(other => other.id !== id && other.riderId === rd.id && isOrderActiveInRoom(other));
+                        if (!stillBusy && rd.id) {
+                            await fsSaveDoc('wassal_riders', rd.id, { status: 'available' });
+                        }
+                        copyToClipboardSafe(buildWhatsAppMessage(updated));
+                        showToast(`✅ تم توريد #${o.id} للمتجر وأصبح المندوب متاحاً بالمكتب!`);
+                    }
+                }
+            });
+            return;
+        }
+
+        if (action === 'move-returned-done') {
+            e.stopPropagation();
+            await withActionLock(`move-${id}`, async () => {
+                const o = appState.orders.find(item => item.id === id);
+                if (o && o.status === 'returning') {
+                    const nowTs = Date.now();
+                    const updated = { ...o, status: 'returned', settledTs: nowTs };
+                    const ok = await fsSaveDoc('wassal_orders', id, updated);
+                    if (ok) {
+                        const rd = getRider(o.riderId);
+                        const stillBusy = appState.orders.some(other => other.id !== id && other.riderId === rd.id && isOrderActiveInRoom(other));
+                        if (!stillBusy && rd.id) {
+                            await fsSaveDoc('wassal_riders', rd.id, { status: 'available' });
+                        }
+                        copyToClipboardSafe(buildWhatsAppMessage(updated));
+                        showToast(`📦 تم تسليم مرتجع #${o.id} للمتجر وعاد المندوب متاحاً بالمكتب!`);
+                    }
+                }
+            });
+            return;
+        }
+
+        if (action === 'copy-whatsapp') {
+            e.stopPropagation();
+            const o = appState.orders.find(item => item.id === id);
+            if (o) {
+                copyToClipboardSafe(buildWhatsAppMessage(o));
+                showToast(`📋 تم نسخ رسالة الواتساب للطلب #${o.id}`);
+            }
+            return;
+        }
+
+        if (action === 'open-drawer') {
+            openOrderDrawer(id);
+            return;
+        }
+
+        if (action === 'close-drawer') {
+            closeOrderDrawer();
+            return;
+        }
+
+        if (action === 'open-new-order') {
+            populateSelects();
+            resetOrderItemsRows();
+            document.getElementById('modal-order-active-day').textContent = getActiveShiftDate();
+            const now = new Date();
+            document.getElementById('input-order-time').value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            const st = getStore(document.getElementById('input-order-store').value);
+            if (st && st.fee) document.getElementById('input-order-fee').value = st.fee;
+            const modal = document.getElementById('modal-new-order');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            return;
+        }
+
+        if (action === 'open-rider-modal') {
+            if (!isAdminUser()) {
+                showToast('⛔ إضافة وتعديل المناديب متاح لمدير النظام فقط');
+                return;
+            }
+            document.getElementById('modal-rider-title').textContent = '+ إضافة مندوب جديد';
+            document.getElementById('input-rider-id').value = '';
+            document.getElementById('form-rider').reset();
+            const modal = document.getElementById('modal-rider');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            return;
+        }
+
+        if (action === 'edit-rider') {
+            e.stopPropagation();
+            if (!isAdminUser()) return;
+            const r = appState.riders.find(item => item.id === id);
+            if (!r) return;
+            document.getElementById('modal-rider-title').textContent = `تعديل بيانات المندوب: ${r.name}`;
+            document.getElementById('input-rider-id').value = r.id;
+            document.getElementById('input-rider-name').value = r.name;
+            document.getElementById('input-rider-bike').value = r.bike;
+            document.getElementById('input-rider-plate').value = r.plate;
+            document.getElementById('input-rider-phone').value = r.phone || '';
+            const modal = document.getElementById('modal-rider');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            return;
+        }
+
+        if (action === 'toggle-rider-avail') {
+            e.stopPropagation();
+            if (!isAdminUser()) return;
+            await withActionLock(`toggle-rider-${id}`, async () => {
+                const r = appState.riders.find(item => item.id === id);
+                if (!r) return;
+                const hasActive = appState.orders.some(o => o.riderId === r.id && isOrderActiveInRoom(o));
+                if (hasActive) {
+                    showToast('⚠️ لا يمكن إيقاف مندوب لديه طلب جاري الآن');
+                    return;
+                }
+                const nextStatus = r.status === 'off' ? 'available' : 'off';
+                const ok = await fsSaveDoc('wassal_riders', r.id, { status: nextStatus });
+                if (ok) showToast(`تم تحديث حالة ${r.name} إلى: ${nextStatus === 'available' ? 'متاح بالمكتب' : 'خارج العمل'}`);
+            });
+            return;
+        }
+
+        if (action === 'delete-rider') {
+            e.stopPropagation();
+            if (!isAdminUser()) return;
+            await withActionLock(`del-rider-${id}`, async () => {
+                const r = appState.riders.find(item => item.id === id);
+                if (!r) return;
+                const hasActive = appState.orders.some(o => o.riderId === r.id && isOrderActiveInRoom(o));
+                if (hasActive) {
+                    showToast('⚠️ لا يمكن حذف مندوب لديه أوردرات جارية حالياً');
+                    return;
+                }
+                if (!window.confirm(`هل أنت متأكد من حذف المندوب "${r.name}" من الأسطول؟`)) return;
+                const ok = await fsDeleteDoc('wassal_riders', r.id);
+                if (ok) {
+                    await writeAuditLog('حذف مندوب', r.name, `تم حذف المندوب (${r.plate})`);
+                    if (uiState.riderFilter === id) uiState.riderFilter = 'all';
+                    showToast(`🗑️ تم حذف المندوب ${r.name}`);
+                }
+            });
+            return;
+        }
+
+        if (action === 'open-new-store') {
+            if (!isAdminUser()) {
+                showToast('⛔ إضافة المتاجر متاح لمدير النظام فقط');
+                return;
+            }
+            const modal = document.getElementById('modal-new-store');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            return;
+        }
+
+        if (action === 'delete-expense') {
+            if (!isAdminUser()) return;
+            await withActionLock(`del-exp-${id}`, async () => {
+                const exp = appState.expenses.find(eItem => eItem.id === id);
+                const ok = await fsDeleteDoc('wassal_expenses', id);
+                if (ok) {
+                    await writeAuditLog('حذف مصروف', id, `تم حذف مصروف: ${exp ? exp.title : id} (${exp ? exp.amount : 0} ج.م)`);
+                    showToast('🗑️ تم حذف بند المصروف وتسجيل العملية');
+                }
+            });
+            return;
+        }
+
+        if (action === 'export-csv') {
+            exportMonthlyCSV();
+            return;
+        }
+
+        if (action === 'print-report') {
+            window.print();
+            return;
+        }
+
+        if (action === 'close-modal') {
+            const modalId = btn.getAttribute('data-modal');
+            const modal = document.getElementById(modalId);
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            return;
+        }
+    });
+
+    document.getElementById('search-input').addEventListener('input', () => {
+        renderOrdersBoardAndTable();
+    });
+
+    document.getElementById('input-order-store').addEventListener('change', (e) => {
+        const st = getStore(e.target.value);
+        if (st && st.fee) document.getElementById('input-order-fee').value = st.fee;
+    });
+
+    // Close Day Form with Auto Cloud Snapshot & Audit Log
+    document.getElementById('form-close-day').addEventListener('submit', async (e) => {
+        e.preventDefault();
         if (!isAdminUser()) return;
-        const uid = e.target.getAttribute('data-uid');
-        const newRole = e.target.value;
-        const ok = await fsSaveDoc('wassal_users', uid, { role: newRole });
-        if (ok) showToast(`✅ تم تحديث صلاحية الموظف إلى: ${newRole === 'admin' ? 'مدير' : 'موظف عمليات'}`);
-    }
-});
 
-document.getElementById('search-input').addEventListener('input', () => renderOrdersBoardAndTable());
+        await withActionLock('close-day', async () => {
+            const activeD = getActiveShiftDate();
+            const nextDate = document.getElementById('input-next-shift-date').value;
+            if (!nextDate) return;
 
-const orderItemsContainer = document.getElementById('order-items-list');
-if (orderItemsContainer) {
-    orderItemsContainer.addEventListener('input', (e) => {
-        if (e.target && e.target.classList.contains('item-price')) {
-            recalcOrderItemsTotal();
-        }
-    });
-}
+            const fin = computeShiftFinancials(activeD);
 
-document.getElementById('input-order-phone').addEventListener('input', (e) => {
-    const rawPhone = e.target.value.trim();
-    if (rawPhone.length >= 7) {
-        const prevOrder = appState.orders.find(o => (o.phone || '').includes(rawPhone));
-        if (prevOrder) {
-            const nameInput = document.getElementById('input-order-customer');
-            const addrInput = document.getElementById('input-order-address');
-            if (!nameInput.value.trim()) nameInput.value = prevOrder.customerName;
-            if (!addrInput.value.trim()) addrInput.value = prevOrder.address;
-            showToast(`⚡ تم استدعاء بيانات العميل: ${prevOrder.customerName}`);
-        }
-    }
-});
+            // أخذ لقطة احتياطية سحابية تلقائية قبل الإقفال
+            await saveCloudBackupSnapshot(`نسخة تلقائية قبل إقفال يومية ${activeD}`);
 
-document.getElementById('input-order-store').addEventListener('change', (e) => {
-    const s = appState.stores.find(item => item.id === e.target.value);
-    if (s) document.getElementById('input-order-fee').value = s.fee;
-});
+            const closedSummary = {
+                dateStr: activeD,
+                closedAt: Date.now(),
+                closedBy: currentUser ? currentUser.email : 'admin',
+                ordersCount: fin.settledCount,
+                returnedCount: fin.returnedCount,
+                settledCash: fin.merchantGoodsSettled,
+                revenue: fin.realizedDeliveryRevenue,
+                expenses: fin.expensesTotal,
+                netProfit: fin.netOperatingProfit
+            };
 
-document.getElementById('archive-date-picker').addEventListener('change', (e) => {
-    uiState.archiveDateFilter = e.target.value;
-    renderArchive();
-});
+            const updatedClosedDays = [closedSummary, ...appState.closedDays.filter(c => c.dateStr !== activeD)];
+            appState.closedDays = updatedClosedDays;
+            appState.activeDate = nextDate;
+            uiState.archiveDateFilter = nextDate;
+            uiState.reportMonth = nextDate.slice(0, 7);
 
-document.getElementById('report-month-picker').addEventListener('change', (e) => {
-    uiState.reportMonth = e.target.value;
-    renderAccounting();
-});
+            const ok = await fsSaveMeta();
+            if (ok) {
+                await writeAuditLog('إقفال يومية', activeD, `صافي الربح: ${fin.netOperatingProfit} ج.م | الإيراد: ${fin.realizedDeliveryRevenue} ج.م | بدء يوم: ${nextDate}`);
 
-document.getElementById('filter-expense-cat').addEventListener('change', (e) => {
-    uiState.expenseCatFilter = e.target.value;
-    renderAccounting();
-});
+                const expDateInp = document.getElementById('exp-date');
+                if (expDateInp) expDateInp.value = nextDate;
 
-// ==================== FORM SUBMISSIONS ====================
-document.getElementById('form-firebase-login').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = document.getElementById('input-login-email').value.trim();
-    const password = document.getElementById('input-login-password').value;
-    const errEl = document.getElementById('login-error-msg');
-    const submitBtn = document.getElementById('btn-login-submit');
+                const monthPicker = document.getElementById('report-month-picker');
+                if (monthPicker) monthPicker.value = uiState.reportMonth;
 
-    errEl.classList.add('hidden');
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'جاري التحقق من الهوية...';
-
-    try {
-        await fb.signInWithEmailAndPassword(fb.auth, email, password);
-        e.target.reset();
-        showToast('🔓 مرحباً بك في غرفة عمليات وصّل');
-    } catch (err) {
-        console.error('Login error:', err.code);
-        errEl.textContent = '⚠️ البريد الإلكتروني أو كلمة المرور غير صحيحة';
-        errEl.classList.remove('hidden');
-    } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'تسجيل الدخول لغرفة العمليات';
-    }
-});
-
-const restoreInput = document.getElementById('input-restore-backup');
-if (restoreInput) {
-    restoreInput.addEventListener('change', (e) => {
-        if (e.target.files && e.target.files[0]) {
-            handleRestoreBackupFile(e.target.files[0]);
-            e.target.value = '';
-        }
-    });
-}
-
-document.getElementById('form-close-day').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!isAdminUser()) return;
-    const activeD = getActiveShiftDate();
-    const nextDate = document.getElementById('input-next-shift-date').value;
-    if (!nextDate) return;
-
-    const dayOrders = appState.orders.filter(o => o.dateStr === activeD);
-    const daySettled = dayOrders.filter(o => isOrderSuccessfullySettled(o));
-    const dayArchived = dayOrders.filter(o => isOrderArchived(o));
-    const rev = dayArchived.reduce((s, o) => s + Number(o.fee), 0);
-    const cash = daySettled.reduce((s, o) => s + Number(o.amount), 0);
-    const exp = appState.expenses.filter(ex => ex.dateStr === activeD).reduce((s, ex) => s + Number(ex.amount), 0);
-
-    appState.closedDays.unshift({
-        dateStr: activeD,
-        closedAt: Date.now(),
-        closedBy: currentUser ? currentUser.email : '',
-        ordersCount: daySettled.length,
-        returnedCount: dayOrders.filter(o => o.status === 'returned').length,
-        settledCash: cash,
-        revenue: rev,
-        expenses: exp,
-        netProfit: rev - exp
+                const modal = document.getElementById('modal-close-day');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                showToast(`🔒 تم حفظ نسخة احتياطية وإقفال يوم ${activeD} — بدأ الآن يوم ${nextDate}`);
+            }
+        });
     });
 
-    appState.activeDate = nextDate;
-    uiState.archiveDateFilter = nextDate;
-    uiState.reportMonth = nextDate.slice(0, 7);
+    // Return Order Form
+    document.getElementById('form-return-order').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const orderId = document.getElementById('input-return-order-id').value;
+        await withActionLock(`return-${orderId}`, async () => {
+            const reasonSel = document.getElementById('input-return-reason-select').value;
+            const reasonNote = document.getElementById('input-return-reason-note').value.trim();
+            const feeMode = document.getElementById('input-return-fee-mode').value;
 
-    const expDateInp = document.getElementById('exp-date');
-    if (expDateInp) expDateInp.value = nextDate;
-    const monthPicker = document.getElementById('report-month-picker');
-    if (monthPicker) monthPicker.value = uiState.reportMonth;
+            const o = appState.orders.find(item => item.id === orderId);
+            if (!o) return;
 
-    const ok = await fsSaveMeta();
-    const modal = document.getElementById('modal-close-day');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-    if (ok) {
-        renderAll();
-        showToast(`🔒 تم إقفال يوم ${activeD} وبدء يوم عمل جديد (${nextDate}) 🎉`);
-    }
-});
+            const finalReason = reasonNote ? `${reasonSel} — ${reasonNote}` : reasonSel;
+            let updatedFee = Number(o.fee);
+            if (feeMode === 'zero') {
+                updatedFee = 0;
+            } else if (feeMode === 'half') {
+                updatedFee = Math.round(Number(o.fee) / 2);
+            }
 
-document.getElementById('form-return-order').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const orderId = document.getElementById('input-return-order-id').value;
-    const o = appState.orders.find(item => item.id === orderId);
-    if (!o) return;
+            const nowTs = Date.now();
+            const updatedOrder = {
+                ...o,
+                status: 'returning',
+                returnReason: finalReason,
+                fee: updatedFee,
+                departedTs: o.departedTs || nowTs,
+                returnedTs: nowTs
+            };
 
-    const reasonSel = document.getElementById('input-return-reason-select').value;
-    const reasonNote = document.getElementById('input-return-reason-note').value.trim();
-    const feeMode = document.getElementById('input-return-fee-mode').value;
+            const ok = await fsSaveDoc('wassal_orders', orderId, updatedOrder);
+            if (ok) {
+                await writeAuditLog('تسجيل مرتجع', `#${o.id}`, `السبب: ${finalReason} | رسوم التوصيل: ${updatedFee} ج.م`);
+                const modal = document.getElementById('modal-return-order');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
 
-    const finalReason = reasonNote ? `${reasonSel} — ${reasonNote}` : reasonSel;
-    let newFee = Number(o.fee);
-    if (feeMode === 'zero') newFee = 0;
-    else if (feeMode === 'half') newFee = Math.round(Number(o.fee) / 2);
-
-    const ok = await fsSaveDoc('wassal_orders', o.id, {
-        status: 'returning',
-        returnedTs: Date.now(),
-        returnReason: finalReason,
-        fee: newFee
+                copyToClipboardSafe(buildWhatsAppMessage(updatedOrder));
+                showToast(`↩️ تم تسجيل الطلب #${o.id} كمرتجع (${finalReason})`);
+            }
+        });
     });
 
-    const modal = document.getElementById('modal-return-order');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-    if (ok) showToast(`↩️ تم تسجيل الطلب #${o.id} كمرتجع — جاري إعادته للمتجر`);
-});
+    // Edit / Reassign Order Form with Audit Log
+    document.getElementById('form-edit-order').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const orderId = document.getElementById('edit-order-id').value;
+        await withActionLock(`edit-${orderId}`, async () => {
+            const o = appState.orders.find(item => item.id === orderId);
+            if (!o) return;
 
-document.getElementById('form-edit-order').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const orderId = document.getElementById('edit-order-id').value;
-    const o = appState.orders.find(item => item.id === orderId);
-    if (!o) return;
+            const newRiderId = document.getElementById('edit-order-rider').value;
+            const oldRiderId = o.riderId;
 
-    const newRiderId = document.getElementById('edit-order-rider').value;
-    const oldRiderId = o.riderId;
+            const updatedOrder = {
+                ...o,
+                riderId: newRiderId,
+                customerName: document.getElementById('edit-order-customer').value.trim(),
+                phone: document.getElementById('edit-order-phone').value.trim(),
+                address: document.getElementById('edit-order-address').value.trim(),
+                items: document.getElementById('edit-order-items').value.trim()
+            };
 
-    const updates = {
-        customerName: document.getElementById('edit-order-customer').value.trim(),
-        phone: document.getElementById('edit-order-phone').value.trim(),
-        address: document.getElementById('edit-order-address').value.trim(),
-        items: document.getElementById('edit-order-items').value.trim(),
-        riderId: newRiderId
-    };
+            const changes = [];
+            if (oldRiderId !== newRiderId) {
+                changes.push(`تحويل المندوب من (${getRider(oldRiderId).name}) إلى (${getRider(newRiderId).name})`);
+            }
+            if (o.customerName !== updatedOrder.customerName) changes.push(`تعديل اسم العميل`);
+            if (o.address !== updatedOrder.address) changes.push(`تعديل العنوان`);
 
-    // المدير فقط يمكنه تعديل القيم المالية
-    if (isAdminUser()) {
-        updates.amount = Number(document.getElementById('edit-order-amount').value) || 0;
-        updates.fee = Number(document.getElementById('edit-order-fee').value) || 0;
-    }
+            if (isAdminUser()) {
+                const newAmt = Number(document.getElementById('edit-order-amount').value) || 0;
+                const newFee = Number(document.getElementById('edit-order-fee').value) || 0;
+                if (Number(o.amount) !== newAmt) changes.push(`قيمة الأوردر: ${o.amount} ➔ ${newAmt}`);
+                if (Number(o.fee) !== newFee) changes.push(`التوصيل: ${o.fee} ➔ ${newFee}`);
+                updatedOrder.amount = newAmt;
+                updatedOrder.fee = newFee;
+            }
 
-    const ok = await fsSaveDoc('wassal_orders', o.id, updates);
+            const ok = await fsSaveDoc('wassal_orders', orderId, updatedOrder);
+            if (ok) {
+                if (oldRiderId !== newRiderId) {
+                    const oldStillBusy = appState.orders.some(other => other.id !== orderId && other.riderId === oldRiderId && isOrderActiveInRoom(other));
+                    if (!oldStillBusy && oldRiderId) {
+                        await fsSaveDoc('wassal_riders', oldRiderId, { status: 'available' });
+                    }
+                    if (isOrderActiveInRoom(updatedOrder) && newRiderId) {
+                        await fsSaveDoc('wassal_riders', newRiderId, { status: 'busy' });
+                    }
+                }
 
-    if (ok && oldRiderId !== newRiderId) {
-        const stillHasOtherActive = appState.orders.some(ord => ord.id !== o.id && ord.riderId === oldRiderId && isOrderActiveInRoom(ord));
-        if (!stillHasOtherActive) {
-            await fsSaveDoc('wassal_riders', oldRiderId, { status: 'available' });
+                if (changes.length > 0) {
+                    await writeAuditLog('تعديل طلب', `#${o.id}`, changes.join(' | '));
+                }
+
+                const modal = document.getElementById('modal-edit-order');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                showToast(`✏️ تم حفظ تعديلات الطلب #${o.id}`);
+            }
+        });
+    });
+
+    // New Order Submit (Atomic Server Transaction + Action Lock)
+    document.getElementById('form-new-order').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await withActionLock('create-order', async () => {
+            const storeId = document.getElementById('input-order-store').value;
+            const riderId = document.getElementById('input-order-rider').value;
+            if (!storeId) { showToast('⚠️ يرجى اختيار أو إضافة متجر أولاً'); return; }
+            if (!riderId) { showToast('⚠️ لا يوجد مناديب متاحين حالياً بالمكتب'); return; }
+
+            const rider = appState.riders.find(r => r.id === riderId);
+            if (!rider || rider.status !== 'available') {
+                showToast('⚠️ هذا المندوب لم يعد متاحاً، يرجى اختيار مندوب متاح بالمكتب');
+                populateSelects();
+                return;
+            }
+
+            const activeD = getActiveShiftDate();
+            const timeVal = document.getElementById('input-order-time').value;
+            const [ay, am, ad] = activeD.split('-').map(Number);
+            const tsDate = new Date(ay, am - 1, ad);
+            if (timeVal) {
+                const [hh, mm] = timeVal.split(':').map(Number);
+                tsDate.setHours(hh, mm, 0, 0);
+            } else {
+                const now = new Date();
+                tsDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), 0);
+            }
+
+            const { itemsText, computedTotal } = collectOrderItemsText();
+            const manualAmountVal = document.getElementById('input-order-amount').value;
+            const finalAmount = manualAmountVal !== '' ? Number(manualAmountVal) : computedTotal;
+
+            const orderPayload = {
+                dateStr: activeD,
+                storeId,
+                riderId,
+                customerName: document.getElementById('input-order-customer').value.trim(),
+                phone: document.getElementById('input-order-phone').value.trim(),
+                address: document.getElementById('input-order-address').value.trim(),
+                items: itemsText,
+                amount: finalAmount,
+                fee: Number(document.getElementById('input-order-fee').value) || 0,
+                status: 'received',
+                receivedTs: tsDate.getTime(),
+                departedTs: null,
+                deliveredTs: null,
+                settledTs: null
+            };
+
+            const submitBtn = document.getElementById('btn-submit-new-order');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'جاري الحفظ والتأكيد...';
+            }
+
+            try {
+                const createdOrder = await createOrderAtomically(orderPayload);
+                if (createdOrder) {
+                    await fsSaveDoc('wassal_riders', rider.id, { status: 'busy' });
+                    copyToClipboardSafe(buildWhatsAppMessage(createdOrder));
+
+                    e.target.reset();
+                    resetOrderItemsRows();
+                    const modal = document.getElementById('modal-new-order');
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                    showToast(`🟡 تم تسجيل #${createdOrder.id} على يوم ${activeD} وتأكيده من السيرفر!`);
+                }
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'تسجيل الاستلام الآن';
+                }
+            }
+        });
+    });
+
+    // Add / Edit Rider Submit
+    document.getElementById('form-rider').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!isAdminUser()) return;
+        await withActionLock('save-rider', async () => {
+            const existingId = document.getElementById('input-rider-id').value;
+            const name = document.getElementById('input-rider-name').value.trim();
+            const bike = document.getElementById('input-rider-bike').value.trim();
+            const plate = document.getElementById('input-rider-plate').value.trim();
+            const phone = document.getElementById('input-rider-phone').value.trim();
+
+            if (existingId) {
+                const r = appState.riders.find(item => item.id === existingId);
+                if (r) {
+                    const ok = await fsSaveDoc('wassal_riders', r.id, { ...r, name, bike, plate, phone });
+                    if (ok) {
+                        await writeAuditLog('تعديل مندوب', name, `لوحة: ${plate}`);
+                        showToast(`✅ تم تحديث بيانات المندوب ${name}`);
+                    }
+                }
+            } else {
+                const newId = 'r' + Date.now();
+                const ok = await fsSaveDoc('wassal_riders', newId, { id: newId, name, bike, plate, phone, status: 'available' });
+                if (ok) {
+                    await writeAuditLog('إضافة مندوب', name, `لوحة: ${plate}`);
+                    showToast(`🏍️ تمت إضافة المندوب ${name} للأسطول`);
+                }
+            }
+
+            e.target.reset();
+            const modal = document.getElementById('modal-rider');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        });
+    });
+
+    // Add Store Submit
+    document.getElementById('form-new-store').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!isAdminUser()) return;
+        await withActionLock('save-store', async () => {
+            const newStore = {
+                id: 's' + Date.now(),
+                name: document.getElementById('input-store-name').value.trim(),
+                category: document.getElementById('input-store-category').value,
+                fee: Number(document.getElementById('input-store-fee').value) || 25,
+                phone: document.getElementById('input-store-phone').value.trim(),
+                address: document.getElementById('input-store-address').value.trim()
+            };
+            const ok = await fsSaveDoc('wassal_stores', newStore.id, newStore);
+            if (ok) {
+                await writeAuditLog('إضافة متجر', newStore.name, `التصنيف: ${newStore.category}`);
+                e.target.reset();
+                const modal = document.getElementById('modal-new-store');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                showToast(`🏪 تمت إضافة متجر "${newStore.name}"`);
+            }
+        });
+    });
+
+    // New Expense Submit
+    document.getElementById('form-new-expense').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!isAdminUser()) return;
+        await withActionLock('save-expense', async () => {
+            const newExp = {
+                id: 'exp-' + Date.now(),
+                title: document.getElementById('exp-title').value.trim(),
+                category: document.getElementById('exp-category').value,
+                amount: Number(document.getElementById('exp-amount').value) || 0,
+                riderId: document.getElementById('exp-rider').value,
+                dateStr: document.getElementById('exp-date').value || getActiveShiftDate(),
+                notes: document.getElementById('exp-notes').value.trim(),
+                recordedBy: currentUser ? currentUser.email : 'admin'
+            };
+            if (newExp.amount <= 0) return;
+
+            const ok = await fsSaveDoc('wassal_expenses', newExp.id, newExp);
+            if (ok) {
+                await writeAuditLog('تسجيل مصروف', newExp.title, `المبلغ: ${newExp.amount} ج.م | التصنيف: ${newExp.category}`);
+                document.getElementById('exp-title').value = '';
+                document.getElementById('exp-amount').value = '';
+                document.getElementById('exp-notes').value = '';
+                showToast(`💸 تم تسجيل مصروف "${newExp.title}" (${newExp.amount} ج.م)`);
+            }
+        });
+    });
+
+    // Live Clock & Timers
+    function updateClock() {
+        const now = new Date();
+        const clockEl = document.getElementById('live-clock');
+        if (clockEl) {
+            clockEl.textContent = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         }
-        if (isOrderActiveInRoom(o)) {
-            await fsSaveDoc('wassal_riders', newRiderId, { status: 'busy' });
-        }
     }
-
-    const modal = document.getElementById('modal-edit-order');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-    if (ok) showToast(`✏️ تم حفظ تعديلات الطلب #${o.id} بنجاح`);
-});
-
-document.getElementById('form-new-order').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const riderId = document.getElementById('input-order-rider').value;
-    if (!riderId) {
-        showToast('⚠️ لا يوجد مندوب متاح بالمكتب حالياً، انتظر عودة أحد المناديب');
-        return;
-    }
-
-    const submitBtn = document.getElementById('btn-submit-new-order');
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'جاري التسجيل...';
-
-    const customTime = document.getElementById('input-order-time').value;
-    const activeD = getActiveShiftDate();
-    let rTs = Date.now();
-    if (customTime) {
-        const [yy, mm, dd] = activeD.split('-').map(Number);
-        const [hh, min] = customTime.split(':').map(Number);
-        rTs = new Date(yy, mm - 1, dd, hh, min).getTime();
-    }
-
-    const { itemsText, computedTotal } = collectOrderItemsText();
-    const amountVal = Number(document.getElementById('input-order-amount').value) || computedTotal;
-    const feeVal = Number(document.getElementById('input-order-fee').value) || 0;
-
-    const newOrderPayload = {
-        storeId: document.getElementById('input-order-store').value,
-        riderId: riderId,
-        customerName: document.getElementById('input-order-customer').value.trim(),
-        phone: document.getElementById('input-order-phone').value.trim(),
-        address: document.getElementById('input-order-address').value.trim(),
-        items: itemsText,
-        amount: amountVal,
-        fee: feeVal,
-        status: 'received',
-        dateStr: activeD,
-        receivedTs: rTs,
-        departedTs: null,
-        deliveredTs: null,
-        settledTs: null
-    };
-
-    const created = await createOrderAtomically(newOrderPayload);
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'تسجيل الاستلام الآن';
-
-    if (created) {
-        await fsSaveDoc('wassal_riders', riderId, { status: 'busy' });
-        e.target.reset();
-        resetOrderItemsRows();
-        const modal = document.getElementById('modal-new-order');
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        showToast(`✅ تم تسجيل استلام الطلب #${created.id} بتاريخ ${activeD}`);
-    }
-});
-
-document.getElementById('form-new-expense').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!isAdminUser()) {
-        showToast('⛔ تسجيل المصروفات متاح لمدير النظام فقط');
-        return;
-    }
-    const expDate = document.getElementById('exp-date').value || getActiveShiftDate();
-    const newExp = {
-        id: 'E-' + Date.now(),
-        title: document.getElementById('exp-title').value.trim(),
-        category: document.getElementById('exp-category').value,
-        amount: Number(document.getElementById('exp-amount').value),
-        riderId: document.getElementById('exp-rider').value,
-        dateStr: expDate,
-        notes: document.getElementById('exp-notes').value.trim(),
-        createdBy: currentUser ? currentUser.email : ''
-    };
-    const ok = await fsSaveDoc('wassal_expenses', newExp.id, newExp);
-    if (ok) {
-        e.target.reset();
-        document.getElementById('exp-date').value = getActiveShiftDate();
-        showToast(`💸 تم تسجيل مصروف "${newExp.title}" بقيمة ${newExp.amount} ج.م`);
-    }
-});
-
-document.getElementById('form-rider').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!isAdminUser()) return;
-    const editId = document.getElementById('input-rider-id').value;
-    const name = document.getElementById('input-rider-name').value.trim();
-    const bike = document.getElementById('input-rider-bike').value.trim();
-    const plate = document.getElementById('input-rider-plate').value.trim();
-    const phone = document.getElementById('input-rider-phone').value.trim();
-
-    if (editId) {
-        const ok = await fsSaveDoc('wassal_riders', editId, { name, bike, plate, phone });
-        if (ok) showToast(`✏️ تم تعديل بيانات المندوب ${name}`);
-    } else {
-        const newR = {
-            id: 'R' + Date.now(),
-            name,
-            bike,
-            plate,
-            phone,
-            status: 'available'
-        };
-        const ok = await fsSaveDoc('wassal_riders', newR.id, newR);
-        if (ok) showToast(`🏍️ تم إضافة المندوب ${newR.name} للأسطول`);
-    }
-
-    e.target.reset();
-    document.getElementById('input-rider-id').value = '';
-    const modal = document.getElementById('modal-rider');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-});
-
-document.getElementById('form-new-store').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!isAdminUser()) return;
-    const newS = {
-        id: 'S' + Date.now(),
-        name: document.getElementById('input-store-name').value.trim(),
-        category: document.getElementById('input-store-category').value,
-        fee: Number(document.getElementById('input-store-fee').value),
-        phone: document.getElementById('input-store-phone').value.trim(),
-        address: document.getElementById('input-store-address').value.trim()
-    };
-    const ok = await fsSaveDoc('wassal_stores', newS.id, newS);
-    e.target.reset();
-    const modal = document.getElementById('modal-new-store');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-    if (ok) showToast(`🏪 تم إضافة المتجر "${newS.name}" بنجاح`);
-});
-
-// ==================== LIVE CLOCK & INITIALIZE ====================
-function updateClock() {
-    const el = document.getElementById('live-clock');
-    if (el) el.textContent = formatTime12(Date.now());
-}
-
-setInterval(() => {
     updateClock();
-    if (uiState.activeTab === 'operations' && currentUser) renderOrdersBoardAndTable();
-}, 30000);
+    setInterval(updateClock, 1000);
+    setInterval(() => {
+        renderFleetRibbon();
+        renderOrdersBoardAndTable();
+    }, 30000);
 
-updateClock();
-initAuthAndFirestore();
+    initAuthAndFirestore();
+});

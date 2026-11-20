@@ -40,7 +40,7 @@
         ::-webkit-scrollbar-thumb:hover { background: #FF6B00; }
         @media print {
             body { background: #ffffff !important; color: #000000 !important; }
-            #sidebar, header, #kpi-ribbon, .no-print { display: none !important; }
+            #sidebar, header, #kpi-ribbon, .no-print, #auth-lock-screen { display: none !important; }
             main { margin: 0 !important; padding: 0 !important; }
             .bg-slateDark, .bg-slateCard, .bg-obsidian { background: #ffffff !important; color: #000000 !important; border-color: #cccccc !important; }
             .text-white, .text-slate-200, .text-slate-300, .text-slate-400 { color: #000000 !important; }
@@ -49,10 +49,45 @@
 </head>
 <body class="font-sans antialiased selection:bg-wassalOrange selection:text-white overflow-x-hidden">
 
+    <!-- AUTH LOCK SCREEN -->
+    <div id="auth-lock-screen" class="fixed inset-0 z-[100] bg-obsidian/95 backdrop-blur-xl flex items-center justify-center p-4">
+        <div class="bg-slateDark border border-wassalOrange/50 rounded-3xl max-w-sm w-full p-6 text-center space-y-5 shadow-2xl shadow-orange-500/10">
+            <div class="flex flex-col items-center select-none" dir="ltr">
+                <svg class="w-36 h-16 drop-shadow-[0_4px_12px_rgba(255,107,0,0.3)]" viewBox="0 0 270 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="lockGrad" x1="15" y1="15" x2="255" y2="115" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#FFA800"/>
+                            <stop offset="100%" stop-color="#FF6200"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M10 38 L88 30 L85 41 L10 38 Z" fill="url(#lockGrad)"/>
+                    <path d="M24 55 L92 48 L89 58 L24 55 Z" fill="url(#lockGrad)"/>
+                    <path d="M42 71 L97 65 L95 74 L42 71 Z" fill="url(#lockGrad)"/>
+                    <path d="M72 30 C86 29 96 36 101 49 L116 92 L139 46 C143 38 153 38 157 46 L176 92 L198 34 L212 43 L186 100 C181 109 169 109 164 100 L148 63 L127 100 C122 109 109 109 105 100 L85 48 C81 39 76 36 68 35 Z" fill="url(#lockGrad)"/>
+                    <path d="M225 8 C207 8 193 22 193 39.5 C193 60 225 88 225 88 C225 88 257 60 257 39.5 C257 22 243 8 225 8 Z" fill="url(#lockGrad)"/>
+                    <circle cx="225" cy="39" r="11.5" fill="#FFFFFF"/>
+                </svg>
+                <div class="font-black italic text-2xl tracking-wider leading-none mt-1">
+                    <span class="text-white">WA</span><span class="text-wassalOrange">SS</span><span class="text-white">AL</span>
+                </div>
+            </div>
+            <div>
+                <h2 class="font-black text-base text-white">🔒 النظام محمي برمز دخول</h2>
+                <p class="text-xs text-slate-400 mt-1">أدخل الرمز السري للمتابعة (الافتراضي: <span class="text-wassalOrange font-mono font-bold">1234</span>)</p>
+            </div>
+            <form id="form-unlock-system" class="space-y-3">
+                <input id="input-unlock-pin" type="password" inputmode="numeric" required placeholder="••••" class="w-full text-center tracking-[0.5em] text-xl font-black bg-obsidian border border-slateBorder rounded-2xl py-3 px-4 text-white focus:outline-none focus:border-wassalOrange">
+                <p id="unlock-error-msg" class="hidden text-xs font-bold text-red-400">⚠️ الرمز السري غير صحيح، حاول مرة أخرى</p>
+                <button type="submit" class="w-full wassal-grad wassal-grad-hover text-obsidian font-black py-3 rounded-2xl text-sm shadow-lg shadow-orange-500/20">
+                    دخول لغرفة العمليات
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- MOBILE HEADER -->
     <div class="lg:hidden sticky top-0 z-30 glass-panel border-b border-slateBorder px-4 py-3 flex items-center justify-between">
         <div class="flex items-center gap-2.5">
-            <!-- Mini SVG Logo for Mobile -->
             <div class="w-10 h-10 rounded-xl bg-obsidian border border-wassalOrange/40 flex items-center justify-center shadow-lg shadow-orange-500/15 shrink-0">
                 <svg class="w-8 h-6" viewBox="0 0 260 115" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <defs>
@@ -87,9 +122,8 @@
     <!-- FIXED RIGHT SIDEBAR -->
     <aside id="sidebar" class="fixed top-0 right-0 z-40 h-screen w-72 bg-slateDark border-l border-slateBorder flex flex-col justify-between transition-transform duration-300 translate-x-full lg:translate-x-0">
         <div class="p-5 space-y-5 overflow-y-auto">
-            <!-- Brand Identity (Full Coded SVG Logo matching original artwork) -->
+            <!-- Brand Identity (Full Coded SVG Logo) -->
             <div class="pb-4 border-b border-slateBorder flex flex-col items-center text-center select-none" dir="ltr">
-                <!-- W + Speed Lines + Location Pin + Shadda Emblem -->
                 <svg class="w-52 h-24 drop-shadow-[0_6px_14px_rgba(255,107,0,0.28)]" viewBox="0 0 270 128" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <linearGradient id="wMainGrad" x1="15" y1="15" x2="255" y2="115" gradientUnits="userSpaceOnUse">
@@ -102,35 +136,21 @@
                             <stop offset="100%" stop-color="#FF7A00"/>
                         </linearGradient>
                     </defs>
-
-                    <!-- Top Speed Streak -->
                     <path d="M10 38 L88 30 L85 41 L10 38 Z" fill="url(#wMainGrad)"/>
-                    <!-- Middle Speed Streak -->
                     <path d="M24 55 L92 48 L89 58 L24 55 Z" fill="url(#wMainGrad)"/>
-                    <!-- Bottom Speed Streak -->
                     <path d="M42 71 L97 65 L95 74 L42 71 Z" fill="url(#wMainGrad)"/>
-
-                    <!-- W Folded Ribbon Back Segments (for 3D depth) -->
                     <path d="M138 44 L112 96 L124 102 L150 50 Z" fill="url(#wShadowGrad)"/>
                     <path d="M196 34 L168 96 L180 102 L208 42 Z" fill="url(#wShadowGrad)"/>
-
-                    <!-- W Main Continuous Ribbon -->
                     <path d="M72 30 C86 29 96 36 101 49 L116 92 L139 46 C143 38 153 38 157 46 L176 92 L198 34 L212 43 L186 100 C181 109 169 109 164 100 L148 63 L127 100 C122 109 109 109 105 100 L85 48 C81 39 76 36 68 35 Z" fill="url(#wMainGrad)"/>
-
-                    <!-- Small Orange Shadda (ّ) tucked under the W valley -->
                     <path d="M135 111 C135 116 141 116 141 111 L141 107 L144 107 L144 111 C144 116 150 116 150 111 L150 107 L154 107 L154 112 C154 119 146 121 142.5 117 C139 121 131 119 131 112 L131 107 L135 107 Z" fill="url(#wMainGrad)"/>
-
-                    <!-- Location Pin on Top Right -->
                     <path d="M225 8 C207 8 193 22 193 39.5 C193 60 225 88 225 88 C225 88 257 60 257 39.5 C257 22 243 8 225 8 Z" fill="url(#wMainGrad)"/>
                     <circle cx="225" cy="39" r="11.5" fill="#FFFFFF"/>
                 </svg>
 
-                <!-- WASSAL English Wordmark (SS in Orange, rest in White, Italic Bold) -->
                 <div class="font-black italic text-[28px] tracking-wider leading-none -mt-1">
                     <span class="text-white">WA</span><span class="text-transparent bg-clip-text bg-gradient-to-b from-[#FFA800] to-[#FF6200]">SS</span><span class="text-white">AL</span>
                 </div>
 
-                <!-- وصّل Arabic Wordmark with Orange Shadda & Side Lines -->
                 <div class="flex items-center justify-center gap-2.5 w-full mt-1" dir="rtl">
                     <span class="h-[2.5px] w-9 bg-gradient-to-l from-[#FF6B00] to-[#FFA800] rounded-full"></span>
                     <span class="relative text-white font-black text-2xl leading-none tracking-tight">
@@ -139,7 +159,6 @@
                     <span class="h-[2.5px] w-9 bg-gradient-to-r from-[#FF6B00] to-[#FFA800] rounded-full"></span>
                 </div>
 
-                <!-- Slanted Orange Slogan Banner + Two Diagonal Bars on the Left -->
                 <div class="mt-2.5 flex items-center justify-center gap-1.5" dir="rtl">
                     <div class="wassal-grad text-obsidian font-black text-xs px-4 py-1 rounded-sm -skew-x-12 shadow-md shadow-orange-500/25">
                         <span class="inline-block skew-x-12">وصّل .. هتشوف الفرق</span>
@@ -213,7 +232,7 @@
             </nav>
         </div>
 
-        <!-- Fleet Quick Summary Footer -->
+        <!-- Fleet Quick Summary & Security Footer -->
         <div class="p-4 border-t border-slateBorder space-y-2.5 bg-obsidian/50">
             <div class="bg-slateCard border border-slateBorder rounded-xl p-3 space-y-2">
                 <div class="flex items-center justify-between text-xs">
@@ -228,12 +247,15 @@
                     <span id="sidebar-busy-txt" class="text-statusOnway font-bold">● 0 في مهمة</span>
                 </div>
             </div>
-            <div class="grid grid-cols-2 gap-1.5">
-                <button type="button" data-action="open-close-day-modal" class="py-2 px-2 rounded-lg bg-wassalOrange/15 hover:bg-wassalOrange text-wassalOrange hover:text-obsidian border border-wassalOrange/40 text-[11px] font-black transition-colors">
+            <div class="grid grid-cols-3 gap-1.5">
+                <button type="button" data-action="open-close-day-modal" class="py-2 px-1.5 rounded-lg bg-wassalOrange/15 hover:bg-wassalOrange text-wassalOrange hover:text-obsidian border border-wassalOrange/40 text-[10px] font-black transition-colors">
                     🔒 إقفال اليوم
                 </button>
-                <button type="button" data-action="reset-demo" class="py-2 px-2 rounded-lg bg-slateCard hover:bg-slateHover border border-slateBorder text-[11px] text-slate-400 hover:text-white font-bold transition-colors">
-                    تصفير البيانات
+                <button type="button" data-action="open-security-modal" class="py-2 px-1.5 rounded-lg bg-slateCard hover:bg-slateHover border border-slateBorder text-[10px] text-slate-200 font-black transition-colors">
+                    🛡️ النسخ والأمان
+                </button>
+                <button type="button" data-action="lock-system" class="py-2 px-1.5 rounded-lg bg-slateCard hover:bg-red-500/20 border border-slateBorder text-[10px] text-red-400 font-black transition-colors">
+                    قفل الشاشة
                 </button>
             </div>
         </div>
@@ -263,7 +285,6 @@
 
         <!-- 5-CARD EXECUTIVE KPI RIBBON -->
         <section id="kpi-ribbon" class="px-4 sm:px-6 pt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
-            <!-- 1. Today & Month Orders -->
             <div class="bg-slateDark border border-slateBorder rounded-2xl p-4 flex flex-col justify-between">
                 <div class="flex items-center justify-between">
                     <span class="text-xs text-slate-400 font-bold">أوردرات اليوم / الشهر</span>
@@ -279,7 +300,6 @@
                 <p class="text-[11px] text-slate-400">مورد اليوم: <strong id="kpi-delivered-sub" class="text-statusDone">0</strong> • الإجمالي: <strong id="kpi-total" class="text-slate-200">0</strong></p>
             </div>
 
-            <!-- 2. Active Orders -->
             <div class="bg-slateDark border border-slateBorder rounded-2xl p-4 flex flex-col justify-between">
                 <div class="flex items-center justify-between">
                     <span class="text-xs text-slate-400 font-bold">أوردرات جارية الآن</span>
@@ -293,7 +313,6 @@
                 </div>
             </div>
 
-            <!-- 3. Top Merchant -->
             <div data-action="switch-tab" data-tab="stores" class="cursor-pointer bg-slateDark border border-slateBorder hover:border-wassalOrange/60 transition-colors rounded-2xl p-4 flex flex-col justify-between">
                 <div class="flex items-center justify-between">
                     <span class="text-xs text-slate-400 font-bold">الأكثر عملاً (التاجر #1)</span>
@@ -303,7 +322,6 @@
                 <p class="text-[11px] text-slate-400"><strong id="kpi-top-merchant-count" class="text-wassalOrange">0 أوردر</strong> • مساهمة <strong id="kpi-top-merchant-share" class="text-statusDone">0%</strong></p>
             </div>
 
-            <!-- 4. Riders Availability -->
             <div data-action="switch-tab" data-tab="riders" class="cursor-pointer bg-slateDark border border-slateBorder hover:border-wassalOrange/60 transition-colors rounded-2xl p-4 flex flex-col justify-between">
                 <div class="flex items-center justify-between">
                     <span class="text-xs text-slate-400 font-bold">المناديب المتاحين بالمكتب</span>
@@ -313,7 +331,6 @@
                 <p class="text-[11px] text-slate-400 truncate">الأكثر نشاطاً: <strong id="kpi-top-rider-mini" class="text-white">—</strong></p>
             </div>
 
-            <!-- 5. Today Net Profit -->
             <div data-action="switch-tab" data-tab="accounting" class="cursor-pointer bg-slateDark border border-wassalOrange/40 hover:border-wassalOrange transition-colors rounded-2xl p-4 flex flex-col justify-between">
                 <div class="flex items-center justify-between">
                     <span class="text-xs text-slate-300 font-bold">صافي ربح اليوم (بعد المصاريف)</span>
@@ -326,7 +343,6 @@
 
         <!-- ==================== VIEW 1: OPERATIONS (ACTIVE ORDERS ONLY) ==================== -->
         <section id="view-operations" class="view-section p-4 sm:p-6 space-y-4">
-            <!-- Live Riders Quick Ribbon -->
             <div class="bg-slateDark border border-slateBorder rounded-2xl p-3">
                 <div class="flex items-center justify-between mb-2 px-1">
                     <span class="text-xs font-black text-slate-300">🏍️ حالة المناديب اللحظية (اضغط على المندوب لفلترة طلباته):</span>
@@ -335,7 +351,6 @@
                 <div id="fleet-ribbon-list" class="flex items-center gap-2 overflow-x-auto pb-1"></div>
             </div>
 
-            <!-- Toolbar -->
             <div class="bg-slateDark border border-slateBorder rounded-2xl p-3 flex flex-wrap items-center justify-between gap-3">
                 <div class="flex items-center gap-1.5 bg-obsidian p-1 rounded-xl border border-slateBorder">
                     <button type="button" id="view-btn-kanban" data-action="set-view-mode" data-mode="kanban" class="px-3 py-1.5 rounded-lg text-xs font-black wassal-grad text-obsidian flex items-center gap-1.5 transition-all">
@@ -351,12 +366,11 @@
                     <button type="button" data-action="set-status-filter" data-status="received" class="status-chip px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white">1. تم الاستلام</button>
                     <button type="button" data-action="set-status-filter" data-status="onway" class="status-chip px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white">2. في الطريق</button>
                     <button type="button" data-action="set-status-filter" data-status="delivered" class="status-chip px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white">3. تسليم / مرتجع</button>
+                    <button type="button" data-action="set-status-filter" data-status="overdue" class="status-chip px-3 py-1.5 rounded-lg text-xs font-bold text-red-400 hover:text-white">⚠️ المتأخرة (+35د)</button>
                 </div>
             </div>
 
-            <!-- 3-Stage Active Kanban Board -->
             <div id="operations-kanban-container" class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
-                <!-- Stage 1: Picked Up -->
                 <div class="bg-slateDark/90 border border-slateBorder rounded-2xl flex flex-col">
                     <div class="p-3.5 border-b border-slateBorder flex items-center justify-between">
                         <div class="flex items-center gap-2">
@@ -368,7 +382,6 @@
                     <div id="col-list-received" class="p-3 space-y-3 min-h-[340px]"></div>
                 </div>
 
-                <!-- Stage 2: On The Way -->
                 <div class="bg-slateDark/90 border border-slateBorder rounded-2xl flex flex-col">
                     <div class="p-3.5 border-b border-slateBorder flex items-center justify-between">
                         <div class="flex items-center gap-2">
@@ -380,7 +393,6 @@
                     <div id="col-list-onway" class="p-3 space-y-3 min-h-[340px]"></div>
                 </div>
 
-                <!-- Stage 3: Delivered / Returning -->
                 <div class="bg-slateDark/90 border border-slateBorder rounded-2xl flex flex-col">
                     <div class="p-3.5 border-b border-slateBorder flex items-center justify-between">
                         <div class="flex items-center gap-2">
@@ -393,7 +405,6 @@
                 </div>
             </div>
 
-            <!-- Quick Table View -->
             <div id="operations-table-container" class="hidden bg-slateDark border border-slateBorder rounded-2xl overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-right text-xs">
@@ -417,7 +428,6 @@
 
         <!-- ==================== VIEW 2: ARCHIVE & DAY CLOSE ==================== -->
         <section id="view-archive" class="view-section hidden p-4 sm:p-6 space-y-5">
-            <!-- Header Banner & Close Day CTA -->
             <div class="bg-slateDark border border-wassalOrange/40 rounded-2xl p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div>
                     <div class="flex items-center gap-2">
@@ -431,7 +441,6 @@
                 </button>
             </div>
 
-            <!-- Date Selector & Summary -->
             <div class="bg-slateDark border border-slateBorder rounded-2xl p-4 space-y-4">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <div class="flex flex-wrap items-center gap-2">
@@ -442,7 +451,6 @@
                     <div id="archive-quick-dates" class="flex items-center gap-1.5 overflow-x-auto"></div>
                 </div>
 
-                <!-- Selected Date KPI Strip -->
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
                     <div class="bg-obsidian border border-slateBorder rounded-xl p-3">
                         <div class="text-slate-400">إجمالي طلبات اليوم المحدد</div>
@@ -462,7 +470,6 @@
                     </div>
                 </div>
 
-                <!-- Orders Archive Table -->
                 <div class="overflow-x-auto border border-slateBorder rounded-xl">
                     <table class="w-full text-right text-xs">
                         <thead class="bg-obsidian text-slate-400 border-b border-slateBorder">
@@ -482,7 +489,6 @@
                 </div>
             </div>
 
-            <!-- Closed Days Log -->
             <div class="bg-slateDark border border-slateBorder rounded-2xl overflow-hidden">
                 <div class="p-4 border-b border-slateBorder">
                     <h4 class="font-black text-sm text-white">📚 سجل اليوميات المقفلة السابقة</h4>
@@ -614,7 +620,6 @@
                 </div>
             </div>
 
-            <!-- Expenses Manager -->
             <div class="bg-slateDark border border-slateBorder rounded-2xl p-5 space-y-4">
                 <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slateBorder pb-3">
                     <div>
@@ -670,7 +675,6 @@
                 </div>
             </div>
 
-            <!-- Store & Rider Accounting Tables -->
             <div class="bg-slateDark border border-slateBorder rounded-2xl overflow-hidden">
                 <div class="p-4 border-b border-slateBorder flex items-center justify-between">
                     <h3 class="font-black text-base text-white">🏪 تقرير المتاجر وترتيب الأكثر عملاً</h3>
@@ -730,13 +734,111 @@
                     <h3 id="drawer-order-id" class="font-black text-lg text-wassalOrange">#W-000</h3>
                     <span id="drawer-status-badge" class="px-2.5 py-0.5 rounded-full text-xs font-extrabold">الحالة</span>
                 </div>
-                <p class="text-xs text-slate-400 mt-0.5">التوقيتات الكاملة للطلب ورسالة الواتساب</p>
+                <p class="text-xs text-slate-400 mt-0.5">التوقيتات الكاملة للطلب، التعديل، ورسالة الواتساب</p>
             </div>
             <button type="button" data-action="close-drawer" class="p-2 rounded-xl bg-obsidian text-slate-400 hover:text-white">✕</button>
         </div>
         <div id="drawer-content" class="p-5 space-y-4 overflow-y-auto flex-1"></div>
         <div id="drawer-footer" class="p-4 border-t border-slateBorder bg-obsidian space-y-2"></div>
     </aside>
+
+    <!-- MODAL: EDIT / REASSIGN ORDER -->
+    <div id="modal-edit-order" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-slateDark border border-statusOnway/50 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
+            <div class="p-5 border-b border-slateBorder flex items-center justify-between bg-slateCard">
+                <div>
+                    <h3 class="font-black text-base text-statusOnway">✏️ تعديل الطلب أو تحويله لمندوب آخر</h3>
+                    <p class="text-[11px] text-slate-400">رقم الطلب: <strong id="edit-order-title-id" class="text-white">#W-101</strong></p>
+                </div>
+                <button type="button" data-action="close-modal" data-modal="modal-edit-order" class="text-slate-400 hover:text-white px-2 py-1 text-lg">✕</button>
+            </div>
+            <form id="form-edit-order" class="p-5 space-y-3 text-xs">
+                <input type="hidden" id="edit-order-id">
+                <div>
+                    <label class="block font-bold text-slate-200 mb-1">تحويل / تعيين المندوب *</label>
+                    <select id="edit-order-rider" required class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-statusOnway"></select>
+                </div>
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">اسم العميل *</label>
+                        <input id="edit-order-customer" type="text" required class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-statusOnway">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">هاتف العميل *</label>
+                        <input id="edit-order-phone" type="tel" required class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-statusOnway">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">العنوان بالتفصيل *</label>
+                    <input id="edit-order-address" type="text" required class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-statusOnway">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">الأصناف</label>
+                    <input id="edit-order-items" type="text" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-statusOnway">
+                </div>
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">قيمة الأوردر للمتجر (ج.م)</label>
+                        <input id="edit-order-amount" type="number" min="0" required class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-statusOnway">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">رسوم التوصيل (ج.م)</label>
+                        <input id="edit-order-fee" type="number" min="0" required class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-statusOnway">
+                    </div>
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" data-action="close-modal" data-modal="modal-edit-order" class="px-4 py-2.5 rounded-xl bg-slateCard text-slate-300 font-bold">إلغاء</button>
+                    <button type="submit" class="bg-statusOnway text-obsidian font-black px-5 py-2.5 rounded-xl shadow-lg">حفظ التعديلات</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: SECURITY, PIN CHANGE & BACKUP/RESTORE -->
+    <div id="modal-security" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-slateDark border border-wassalOrange/50 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
+            <div class="p-5 border-b border-slateBorder flex items-center justify-between bg-slateCard">
+                <div>
+                    <h3 class="font-black text-base text-wassalOrange">🛡️ الأمان والنسخ الاحتياطي للبيانات</h3>
+                    <p class="text-[11px] text-slate-400">حماية الدخول وأخذ نسخة احتياطية كاملة</p>
+                </div>
+                <button type="button" data-action="close-modal" data-modal="modal-security" class="text-slate-400 hover:text-white px-2 py-1 text-lg">✕</button>
+            </div>
+            <div class="p-5 space-y-5 text-xs">
+                <form id="form-change-pin" class="bg-obsidian border border-slateBorder rounded-xl p-3.5 space-y-2.5">
+                    <div class="font-black text-white">🔑 تغيير رمز الدخول السري (PIN)</div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input id="input-new-pin" type="password" inputmode="numeric" minlength="4" maxlength="12" required placeholder="الرمز الجديد (4+ أرقام)" class="bg-slateDark border border-slateBorder rounded-lg px-3 py-2 text-white focus:outline-none focus:border-wassalOrange">
+                        <button type="submit" class="wassal-grad text-obsidian font-black rounded-lg py-2 px-3">تحديث الرمز</button>
+                    </div>
+                </form>
+
+                <div class="bg-obsidian border border-slateBorder rounded-xl p-3.5 space-y-2.5">
+                    <div class="font-black text-white">💾 النسخ الاحتياطي والاستعادة (JSON)</div>
+                    <p class="text-[11px] text-slate-400">احتفظ بنسخة احتياطية كاملة على جهازك يومياً لضمان عدم فقدان أي بيانات.</p>
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <button type="button" data-action="download-backup" class="py-2.5 px-3 rounded-lg bg-statusDone/20 hover:bg-statusDone text-statusDone hover:text-obsidian border border-statusDone/40 font-black transition-colors">
+                            ⬇️ تحميل نسخة احتياطية
+                        </button>
+                        <label class="py-2.5 px-3 rounded-lg bg-statusOnway/20 hover:bg-statusOnway text-statusOnway hover:text-obsidian border border-statusOnway/40 font-black text-center cursor-pointer transition-colors">
+                            ⬆️ استعادة من ملف
+                            <input type="file" id="input-restore-backup" accept=".json" class="hidden">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-3.5 flex items-center justify-between">
+                    <div>
+                        <div class="font-black text-red-400">⚠️ منطقة الخطر</div>
+                        <div class="text-[11px] text-slate-400">مسح جميع البيانات من النظام والسحابة</div>
+                    </div>
+                    <button type="button" data-action="reset-demo" class="px-3 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white font-black text-[11px]">
+                        تصفير النظام
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- MODAL: RIDER PERFORMANCE & PERIOD STATS -->
     <div id="modal-rider-stats" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
@@ -819,7 +921,6 @@
                     <input id="input-order-address" type="text" required placeholder="الحي - الشارع - علامة مميزة" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
                 </div>
 
-                <!-- Dynamic Items & Prices List -->
                 <div class="bg-obsidian/80 border border-slateBorder rounded-xl p-3 space-y-2">
                     <div class="flex items-center justify-between">
                         <label class="block font-bold text-wassalAmber">محتويات الأوردر وسعر كل صنف *</label>

@@ -73,8 +73,46 @@
     <aside id="sidebar" class="fixed top-0 right-0 z-40 h-screen w-72 bg-slateDark border-l border-slateBorder flex flex-col justify-between transition-transform duration-300 translate-x-full lg:translate-x-0">
         <div class="p-5 space-y-5 overflow-y-auto">
             <!-- Brand Identity -->
-            <div class="pb-3 border-b border-slateBorder flex justify-center">
-                <img src="Logo.PNG" alt="وصّل - WASSAL" class="w-full h-auto object-contain">
+            <div class="pb-4 border-b border-slateBorder flex flex-col items-center text-center select-none">
+                <!-- WASSAL Speed Emblem (SVG) -->
+                <svg class="w-40 h-14 drop-shadow-[0_4px_12px_rgba(255,107,0,0.28)]" viewBox="0 0 220 75" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="wassalLogoGrad" x1="0" y1="0" x2="220" y2="75" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#FF6B00"/>
+                            <stop offset="100%" stop-color="#FFB020"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- خطوط السرعة على اليسار -->
+                    <rect x="8" y="18" width="44" height="6" rx="3" fill="url(#wassalLogoGrad)"/>
+                    <rect x="20" y="31" width="36" height="6" rx="3" fill="url(#wassalLogoGrad)" opacity="0.85"/>
+                    <rect x="32" y="44" width="28" height="6" rx="3" fill="url(#wassalLogoGrad)" opacity="0.65"/>
+                    <!-- حرف W الديناميكي -->
+                    <path d="M68 18 L82 54 L100 28 L118 54 L136 16" stroke="url(#wassalLogoGrad)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+                    <!-- دبوس الموقع على اليمين -->
+                    <path d="M174 12 C161 12 151 22 151 34.5 C151 49.5 174 66 174 66 C174 66 197 49.5 197 34.5 C197 22 187 12 174 12 Z" fill="url(#wassalLogoGrad)"/>
+                    <circle cx="174" cy="34" r="8" fill="#111827"/>
+                </svg>
+
+                <!-- WASSAL English Title -->
+                <div class="text-white font-black text-2xl tracking-[0.18em] leading-none mt-1">
+                    WASSAL
+                </div>
+
+                <!-- وصّل Arabic Title with Side Lines -->
+                <div class="flex items-center justify-center gap-2.5 w-full mt-1.5">
+                    <span class="h-[2px] w-7 bg-slate-500/70 rounded-full"></span>
+                    <span class="text-white font-black text-lg leading-none">وصّل</span>
+                    <span class="h-[2px] w-7 bg-slate-500/70 rounded-full"></span>
+                </div>
+
+                <!-- Orange Slogan Ribbon -->
+                <div class="mt-2.5 flex items-center justify-center gap-1.5">
+                    <span class="w-1.5 h-6 wassal-grad rounded-[2px] -skew-x-12"></span>
+                    <span class="w-1.5 h-6 wassal-grad rounded-[2px] -skew-x-12"></span>
+                    <div class="wassal-grad text-obsidian font-black text-xs px-4 py-1 rounded-md shadow-md shadow-orange-500/20">
+                        وصّل .. هتشوف الفرق
+                    </div>
+                </div>
             </div>
                     <div class="flex items-center gap-1.5">
                         <h1 class="font-black text-xl tracking-tight text-white">وصّل</h1>

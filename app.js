@@ -1,11 +1,47 @@
 const STORAGE_KEY = 'wassal_modern_ops_v2';
-
-const INITIAL_RIDERS = [];
-
-const INITIAL_STORES = [];
+const PIN_STORAGE_KEY = 'wassal_security_pin_v1';
+const SESSION_UNLOCK_KEY = 'wassal_session_unlocked';
+const DEFAULT_PIN = '1234';
 
 let cloudBridge = null;
+let pendingCloudSave = false;
 
+// ==================== SECURITY & XSS SANITIZATION ====================
+function escapeHTML(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function getStoredPin() {
+    return localStorage.getItem(PIN_STORAGE_KEY) || DEFAULT_PIN;
+}
+
+function initAuthLock() {
+    const lockScreen = document.getElementById('auth-lock-screen');
+    if (!lockScreen) return;
+    if (sessionStorage.getItem(SESSION_UNLOCK_KEY) === 'true') {
+        lockScreen.classList.add('hidden');
+    } else {
+        lockScreen.classList.remove('hidden');
+    }
+}
+
+function lockSystemNow() {
+    sessionStorage.removeItem(SESSION_UNLOCK_KEY);
+    const lockScreen = document.getElementById('auth-lock-screen');
+    const pinInput = document.getElementById('input-unlock-pin');
+    const errEl = document.getElementById('unlock-error-msg');
+    if (pinInput) pinInput.value = '';
+    if (errEl) errEl.classList.add('hidden');
+    if (lockScreen) lockScreen.classList.remove('hidden');
+}
+
+// ==================== DATE & TIME HELPERS ====================
 function getSystemTodayStr() {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -35,14 +71,7 @@ function formatTime12(ts) {
     return `${h}:${m} ${ampm}`;
 }
 
-function createDemoOrders() {
-    return [];
-}
-
-function createDemoExpenses() {
-    return [];
-}
-
+// ==================== APPLICATION STATE ====================
 let appState = {
     activeDate: getSystemTodayStr(),
     closedDays: [],
@@ -71,8 +100,8 @@ let isInitialCloudLoaded = false;
 function setSyncStatus(status) {
     const configs = {
         connecting: { text: 'جاري الاتصال بالسحابة...', dot: 'bg-wassalAmber animate-pulse', txt: 'text-wassalAmber' },
-        online: { text: 'متصل بالسحابة (مباشر)', dot: 'bg-statusDone', txt: 'text-statusDone' },
-        offline: { text: 'وضع محلي (يعمل بدون سحابة)', dot: 'bg-wassalOrange', txt: 'text-wassalOrange' }
+        online: { text: 'متصل بالسحابة (مؤمّن)', dot: 'bg-statusDone', txt: 'text-statusDone' },
+        offline: { text: 'وضع محلي (سيتم المزامنة عند الاتصال)', dot: 'bg-wassalOrange', txt: 'text-wassalOrange' }
     };
     const cfg = configs[status];
     ['desktop', 'mobile'].forEach(prefix => {
@@ -114,11 +143,19 @@ function syncRidersAvailability() {
 }
 
 function saveData() {
+    appState.lastUpdated = Date.now();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
     if (cloudBridge && cloudBridge.set && cloudBridge.stateRef) {
-        cloudBridge.set(cloudBridge.stateRef, appState).catch(err => {
-            console.error('Firebase save error:', err);
-        });
+        cloudBridge.set(cloudBridge.stateRef, appState)
+            .then(() => {
+                pendingCloudSave = false;
+            })
+            .catch(err => {
+                pendingCloudSave = true;
+                console.error('Firebase save error (queued for retry):', err);
+            });
+    } else {
+        pendingCloudSave = true;
     }
 }
 
@@ -161,7 +198,10 @@ function loadLocalOrDefaultData() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
 }
 
-function resetDemoData(notify) {
+function resetAllDataSafely() {
+    const confirmed = window.confirm('⚠️ تحذير نهائي: سيتم مسح جميع الطلبات والمناديب والمتاجر والحسابات من الجهاز والسحابة نهائياً!\n\nهل أنت متأكد من المتابعة؟');
+    if (!confirmed) return;
+
     const sysToday = getSystemTodayStr();
     appState = {
         activeDate: sysToday,
@@ -181,7 +221,12 @@ function resetDemoData(notify) {
     syncRidersAvailability();
     saveData();
     renderAll();
-    if (notify) showToast('تم تصفير جميع البيانات بنجاح — النظام جاهز للإدخال');
+    const secModal = document.getElementById('modal-security');
+    if (secModal) {
+        secModal.classList.add('hidden');
+        secModal.classList.remove('flex');
+    }
+    showToast('تم تصفير جميع البيانات بنجاح — النظام جاهز للإدخال');
 }
 
 loadLocalOrDefaultData();
@@ -197,7 +242,11 @@ async function initCloudSync() {
 
         fb.onValue(fb.connectedRef, (snap) => {
             clearTimeout(fallbackTimer);
-            setSyncStatus(snap.val() === true ? 'online' : 'offline');
+            const isOnline = snap.val() === true;
+            setSyncStatus(isOnline ? 'online' : 'offline');
+            if (isOnline && pendingCloudSave) {
+                saveData();
+            }
         });
 
         fb.onValue(fb.stateRef, (snapshot) => {
@@ -369,7 +418,7 @@ function showToast(msg) {
     if (!container) return;
     const el = document.createElement('div');
     el.className = 'pointer-events-auto glass-panel border border-wassalOrange/60 text-white px-4 py-3 rounded-2xl shadow-2xl text-xs font-extrabold flex items-center gap-2.5 transition-all duration-300';
-    el.innerHTML = `<span class="w-2.5 h-2.5 rounded-full wassal-grad shrink-0"></span><span>${msg}</span>`;
+    el.innerHTML = `<span class="w-2.5 h-2.5 rounded-full wassal-grad shrink-0"></span><span>${escapeHTML(msg)}</span>`;
     container.appendChild(el);
     setTimeout(() => {
         el.style.opacity = '0';
@@ -386,8 +435,8 @@ function addOrderItemRow(nameVal = '', priceVal = '') {
     const row = document.createElement('div');
     row.className = 'order-item-row flex items-center gap-2';
     row.innerHTML = `
-        <input type="text" value="${nameVal}" class="item-name flex-1 bg-slateDark border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-wassalOrange" required placeholder="اسم الصنف التالي">
-        <input type="number" value="${priceVal}" class="item-price w-24 bg-slateDark border border-slateBorder rounded-xl px-2.5 py-2 text-white focus:outline-none focus:border-wassalOrange" min="0" required placeholder="السعر">
+        <input type="text" value="${escapeHTML(nameVal)}" class="item-name flex-1 bg-slateDark border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-wassalOrange" required placeholder="اسم الصنف التالي">
+        <input type="number" value="${escapeHTML(priceVal)}" class="item-price w-24 bg-slateDark border border-slateBorder rounded-xl px-2.5 py-2 text-white focus:outline-none focus:border-wassalOrange" min="0" required placeholder="السعر">
         <button type="button" data-action="remove-order-item-row" title="حذف الصنف" class="w-9 h-9 rounded-xl bg-red-500/15 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/40 font-black text-sm flex items-center justify-center shrink-0">✕</button>
     `;
     list.appendChild(row);
@@ -544,16 +593,16 @@ function renderFleetRibbon() {
             const st = getStore(activeOrder.storeId);
             if (activeOrder.status === 'returning') {
                 dotClass = 'bg-red-500 animate-pulse';
-                subText = `مرتجع لـ ${st.name} (${totalMins}د)`;
+                subText = `مرتجع لـ ${escapeHTML(st.name)} (${totalMins}د)`;
             } else if (activeOrder.status === 'delivered') {
                 dotClass = 'bg-statusDone animate-pulse';
-                subText = `توريد لـ ${st.name} (${totalMins}د)`;
+                subText = `توريد لـ ${escapeHTML(st.name)} (${totalMins}د)`;
             } else if (activeOrder.status === 'onway') {
                 dotClass = 'bg-statusOnway animate-pulse';
                 subText = `في الطريق (${totalMins}د) • ${todayCnt}ي/${monthCnt}ش`;
             } else {
                 dotClass = 'bg-statusPicked';
-                subText = `استلام ${st.name} (${totalMins}د)`;
+                subText = `استلام ${escapeHTML(st.name)} (${totalMins}د)`;
             }
         } else if (r.status === 'off') {
             dotClass = 'bg-slate-500';
@@ -562,10 +611,10 @@ function renderFleetRibbon() {
         }
 
         return `
-            <button type="button" data-action="filter-by-rider-pill" data-id="${r.id}" class="shrink-0 flex items-center gap-2.5 px-3 py-2 rounded-xl border ${borderClass} transition-all text-right">
+            <button type="button" data-action="filter-by-rider-pill" data-id="${escapeHTML(r.id)}" class="shrink-0 flex items-center gap-2.5 px-3 py-2 rounded-xl border ${borderClass} transition-all text-right">
                 <span class="w-2.5 h-2.5 rounded-full ${dotClass} shrink-0"></span>
                 <div>
-                    <div class="text-xs font-black text-white leading-tight">${r.name}</div>
+                    <div class="text-xs font-black text-white leading-tight">${escapeHTML(r.name)}</div>
                     <div class="text-[10px] text-slate-400 font-bold mt-0.5">${subText}</div>
                 </div>
             </button>
@@ -601,8 +650,17 @@ function getFilteredActiveOrders() {
         if (!isOrderActiveInRoom(o)) return false;
         const matchText = matchesSearchQuery(o, q);
         const matchRider = uiState.riderFilter === 'all' || o.riderId === uiState.riderFilter;
-        const matchStatus = uiState.statusFilter === 'all' ||
-            (uiState.statusFilter === 'delivered' ? (o.status === 'delivered' || o.status === 'returning') : o.status === uiState.statusFilter);
+
+        let matchStatus = true;
+        if (uiState.statusFilter === 'delivered') {
+            matchStatus = (o.status === 'delivered' || o.status === 'returning');
+        } else if (uiState.statusFilter === 'overdue') {
+            const { totalMins } = getOrderDurations(o);
+            matchStatus = (o.status === 'received' || o.status === 'onway') && totalMins > 35;
+        } else if (uiState.statusFilter !== 'all') {
+            matchStatus = o.status === uiState.statusFilter;
+        }
+
         return matchText && matchRider && matchStatus;
     });
 }
@@ -630,8 +688,8 @@ function renderOrdersBoardAndTable() {
         if (list.length === 0) {
             const emptyMsg = q
                 ? (archiveMatches.length > 0
-                    ? `لا توجد نتائج مطابقة لـ "${searchEl.value}" في الجارية (توجد ${archiveMatches.length} في الأرشيف — اضغط هنا لعرضها)`
-                    : `لا توجد نتائج مطابقة لـ "${searchEl.value}"`)
+                    ? `لا توجد نتائج مطابقة لـ "${escapeHTML(searchEl.value)}" في الجارية (توجد ${archiveMatches.length} في الأرشيف — اضغط هنا لعرضها)`
+                    : `لا توجد نتائج مطابقة لـ "${escapeHTML(searchEl.value)}"`)
                 : (stage === 'delivered'
                     ? 'لا توجد طلبات بانتظار التوريد أو إرجاعها للمتجر'
                     : 'لا توجد طلبات جارية في هذه المرحلة');
@@ -650,7 +708,7 @@ function renderOrdersBoardAndTable() {
     const rowsToRender = filtered.length > 0 ? filtered : archiveMatches;
 
     if (rowsToRender.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="py-10 text-center text-slate-500">${q ? `لا توجد نتائج مطابقة لبحث "${searchEl.value}"` : 'لا توجد طلبات جارية مطابقة'}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="py-10 text-center text-slate-500">${q ? `لا توجد نتائج مطابقة لبحث "${escapeHTML(searchEl.value)}"` : 'لا توجد طلبات جارية مطابقة'}</td></tr>`;
         return;
     }
 
@@ -669,38 +727,38 @@ function renderOrdersBoardAndTable() {
             : o.status === 'onway'
             ? `<span class="px-2.5 py-1 rounded-lg ${isOverdue ? 'bg-red-500/20 border-red-500 text-red-400 animate-pulse' : 'bg-statusOnway/15 border-statusOnway/40 text-statusOnway'} border font-black text-[11px]">2. في الطريق • ${totalMins} د</span>`
             : o.status === 'returning'
-            ? `<span class="px-2.5 py-1 rounded-lg bg-red-500/20 border border-red-500/50 text-red-400 font-black text-[11px]">↩️ مرتجع (${o.returnReason || ''})</span>`
+            ? `<span class="px-2.5 py-1 rounded-lg bg-red-500/20 border border-red-500/50 text-red-400 font-black text-[11px]">↩️ مرتجع (${escapeHTML(o.returnReason || '')})</span>`
             : o.status === 'delivered'
             ? `<span class="px-2.5 py-1 rounded-lg bg-statusDone/15 border border-statusDone/40 text-statusDone font-black text-[11px]">3. تم التسليم (توريد)</span>`
             : `<span class="px-2.5 py-1 rounded-lg bg-slateCard border border-slateBorder text-slate-300 font-black text-[11px]">✓ بالأرشيف</span>`;
 
         const quickAction = o.status === 'received'
-            ? `<button type="button" data-action="move-onway" data-id="${o.id}" class="px-2.5 py-1.5 rounded-lg bg-statusOnway/20 hover:bg-statusOnway text-statusOnway hover:text-obsidian font-black text-[11px] transition-colors">تحرك للعميل ➔</button>`
+            ? `<button type="button" data-action="move-onway" data-id="${escapeHTML(o.id)}" class="px-2.5 py-1.5 rounded-lg bg-statusOnway/20 hover:bg-statusOnway text-statusOnway hover:text-obsidian font-black text-[11px] transition-colors">تحرك للعميل ➔</button>`
             : o.status === 'onway'
             ? `<div class="flex items-center gap-1">
-                <button type="button" data-action="move-delivered" data-id="${o.id}" class="px-2 py-1.5 rounded-lg bg-statusDone/20 hover:bg-statusDone text-statusDone hover:text-obsidian font-black text-[11px]">✓ تسليم</button>
-                <button type="button" data-action="open-return-modal" data-id="${o.id}" class="px-2 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white font-black text-[11px]">↩️ مرتجع</button>
+                <button type="button" data-action="move-delivered" data-id="${escapeHTML(o.id)}" class="px-2 py-1.5 rounded-lg bg-statusDone/20 hover:bg-statusDone text-statusDone hover:text-obsidian font-black text-[11px]">✓ تسليم</button>
+                <button type="button" data-action="open-return-modal" data-id="${escapeHTML(o.id)}" class="px-2 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white font-black text-[11px]">↩️ مرتجع</button>
                </div>`
             : o.status === 'returning'
-            ? `<button type="button" data-action="move-returned-done" data-id="${o.id}" class="px-2.5 py-1.5 rounded-lg bg-red-500 text-white font-black text-[11px]">📦 تسليم المرتجع للمتجر</button>`
+            ? `<button type="button" data-action="move-returned-done" data-id="${escapeHTML(o.id)}" class="px-2.5 py-1.5 rounded-lg bg-red-500 text-white font-black text-[11px]">📦 تسليم المرتجع للمتجر</button>`
             : o.status === 'delivered'
-            ? `<button type="button" data-action="move-settled" data-id="${o.id}" class="px-2.5 py-1.5 rounded-lg wassal-grad text-obsidian font-black text-[11px]">💰 تم التوريد والعودة</button>`
+            ? `<button type="button" data-action="move-settled" data-id="${escapeHTML(o.id)}" class="px-2.5 py-1.5 rounded-lg wassal-grad text-obsidian font-black text-[11px]">💰 تم التوريد والعودة</button>`
             : `<span class="text-[11px] text-slate-400 font-bold">مكتمل</span>`;
 
         return `
-            <tr data-action="open-drawer" data-id="${o.id}" class="hover:bg-slateCard/90 cursor-pointer transition-colors">
+            <tr data-action="open-drawer" data-id="${escapeHTML(o.id)}" class="hover:bg-slateCard/90 cursor-pointer transition-colors">
                 <td class="px-4 py-3.5">
-                    <div class="font-black text-wassalOrange">#${o.id}</div>
-                    <div class="text-[10px] text-slate-500">${o.dateStr || getActiveShiftDate()}</div>
+                    <div class="font-black text-wassalOrange">#${escapeHTML(o.id)}</div>
+                    <div class="text-[10px] text-slate-500">${escapeHTML(o.dateStr || getActiveShiftDate())}</div>
                 </td>
                 <td class="px-4 py-3.5">${statusPill}</td>
-                <td class="px-4 py-3.5 font-bold text-white">${st.name}</td>
+                <td class="px-4 py-3.5 font-bold text-white">${escapeHTML(st.name)}</td>
                 <td class="px-4 py-3.5">
-                    <div class="font-bold text-slate-200">${o.customerName}</div>
-                    <div class="text-[11px] text-slate-400">${o.address}</div>
-                    ${o.items ? `<div class="text-[10px] text-wassalAmber font-bold mt-0.5">🛒 ${o.items}</div>` : ''}
+                    <div class="font-bold text-slate-200">${escapeHTML(o.customerName)}</div>
+                    <div class="text-[11px] text-slate-400">${escapeHTML(o.address)}</div>
+                    ${o.items ? `<div class="text-[10px] text-wassalAmber font-bold mt-0.5">🛒 ${escapeHTML(o.items)}</div>` : ''}
                 </td>
-                <td class="px-4 py-3.5 font-bold text-slate-200">${rd.name}</td>
+                <td class="px-4 py-3.5 font-bold text-slate-200">${escapeHTML(rd.name)}</td>
                 <td class="px-4 py-3.5 text-[11px] text-slate-300">
                     <div>استلام: <strong class="text-statusPicked">${formatTime12(o.receivedTs)}</strong></div>
                     ${o.departedTs ? `<div>تحرك: <strong class="text-statusOnway">${formatTime12(o.departedTs)}</strong></div>` : ''}
@@ -710,7 +768,7 @@ function renderOrdersBoardAndTable() {
                 <td class="px-4 py-3.5 text-center">
                     <div class="flex items-center justify-center gap-1.5">
                         ${quickAction}
-                        <button type="button" data-action="copy-whatsapp" data-id="${o.id}" class="px-2 py-1.5 rounded-lg bg-slateCard hover:bg-slateHover border border-slateBorder text-slate-300 text-[11px] font-bold">واتساب</button>
+                        <button type="button" data-action="copy-whatsapp" data-id="${escapeHTML(o.id)}" class="px-2 py-1.5 rounded-lg bg-slateCard hover:bg-slateHover border border-slateBorder text-slate-300 text-[11px] font-bold">واتساب</button>
                     </div>
                 </td>
             </tr>
@@ -733,35 +791,35 @@ function buildOrderCard(o) {
 
     let actionButton = '';
     if (o.status === 'received') {
-        actionButton = `<button type="button" data-action="move-onway" data-id="${o.id}" class="w-full py-2.5 px-3 rounded-xl bg-statusOnway/20 hover:bg-statusOnway text-statusOnway hover:text-obsidian border border-statusOnway/40 font-black text-xs transition-all">تحرك للعميل ➔</button>`;
+        actionButton = `<button type="button" data-action="move-onway" data-id="${escapeHTML(o.id)}" class="w-full py-2.5 px-3 rounded-xl bg-statusOnway/20 hover:bg-statusOnway text-statusOnway hover:text-obsidian border border-statusOnway/40 font-black text-xs transition-all">تحرك للعميل ➔</button>`;
     } else if (o.status === 'onway') {
         actionButton = `
             <div class="grid grid-cols-3 gap-1.5">
-                <button type="button" data-action="move-delivered" data-id="${o.id}" class="col-span-2 py-2.5 px-2 rounded-xl bg-statusDone/20 hover:bg-statusDone text-statusDone hover:text-obsidian border border-statusDone/40 font-black text-xs transition-all">✓ تم التسليم</button>
-                <button type="button" data-action="open-return-modal" data-id="${o.id}" class="py-2.5 px-2 rounded-xl bg-red-500/15 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/40 font-black text-xs transition-all">↩️ مرتجع</button>
+                <button type="button" data-action="move-delivered" data-id="${escapeHTML(o.id)}" class="col-span-2 py-2.5 px-2 rounded-xl bg-statusDone/20 hover:bg-statusDone text-statusDone hover:text-obsidian border border-statusDone/40 font-black text-xs transition-all">✓ تم التسليم</button>
+                <button type="button" data-action="open-return-modal" data-id="${escapeHTML(o.id)}" class="py-2.5 px-2 rounded-xl bg-red-500/15 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/40 font-black text-xs transition-all">↩️ مرتجع</button>
             </div>
         `;
     } else if (o.status === 'delivered') {
-        actionButton = `<button type="button" data-action="move-settled" data-id="${o.id}" class="w-full py-2.5 px-3 rounded-xl wassal-grad wassal-grad-hover text-obsidian font-black text-xs shadow-md shadow-orange-500/20 transition-all">💰 تم التوريد والعودة للمكتب</button>`;
+        actionButton = `<button type="button" data-action="move-settled" data-id="${escapeHTML(o.id)}" class="w-full py-2.5 px-3 rounded-xl wassal-grad wassal-grad-hover text-obsidian font-black text-xs shadow-md shadow-orange-500/20 transition-all">💰 تم التوريد والعودة للمكتب</button>`;
     } else if (isReturning) {
-        actionButton = `<button type="button" data-action="move-returned-done" data-id="${o.id}" class="w-full py-2.5 px-3 rounded-xl bg-red-500 hover:bg-red-600 text-white font-black text-xs shadow-md shadow-red-500/20 transition-all">📦 تم تسليم المرتجع للمتجر والعودة</button>`;
+        actionButton = `<button type="button" data-action="move-returned-done" data-id="${escapeHTML(o.id)}" class="w-full py-2.5 px-3 rounded-xl bg-red-500 hover:bg-red-600 text-white font-black text-xs shadow-md shadow-red-500/20 transition-all">📦 تم تسليم المرتجع للمتجر والعودة</button>`;
     }
 
     const returnReasonBox = isReturning ? `
         <div class="bg-red-500/15 border border-red-500/40 rounded-xl p-2 text-[11px] text-red-300 font-bold">
-            ⚠️ سبب الإرجاع: ${o.returnReason || 'العميل لم يستلم'}
+            ⚠️ سبب الإرجاع: ${escapeHTML(o.returnReason || 'العميل لم يستلم')}
         </div>
     ` : '';
 
     return `
-        <div data-action="open-drawer" data-id="${o.id}" class="bg-slateCard hover:bg-slateHover border ${isReturning || isOverdue ? 'border-red-500/70' : 'border-slateBorder hover:border-wassalOrange/50'} rounded-2xl p-4 space-y-3 cursor-pointer transition-all shadow-md">
+        <div data-action="open-drawer" data-id="${escapeHTML(o.id)}" class="bg-slateCard hover:bg-slateHover border ${isReturning || isOverdue ? 'border-red-500/70' : 'border-slateBorder hover:border-wassalOrange/50'} rounded-2xl p-4 space-y-3 cursor-pointer transition-all shadow-md">
             <div class="flex items-center justify-between gap-1.5">
                 <div class="flex items-center gap-1.5 flex-wrap">
-                    <span class="px-2.5 py-0.5 rounded-lg bg-obsidian border border-wassalOrange/40 text-wassalOrange font-black text-xs">#${o.id}</span>
+                    <span class="px-2.5 py-0.5 rounded-lg bg-obsidian border border-wassalOrange/40 text-wassalOrange font-black text-xs">#${escapeHTML(o.id)}</span>
                     ${timeBadge}
                 </div>
                 <div class="flex items-center gap-1">
-                    <button type="button" data-action="copy-whatsapp" data-id="${o.id}" class="px-2.5 py-1 rounded-lg bg-obsidian hover:bg-statusDone/20 text-slate-300 hover:text-statusDone border border-slateBorder text-[11px] font-bold transition-colors">واتساب</button>
+                    <button type="button" data-action="copy-whatsapp" data-id="${escapeHTML(o.id)}" class="px-2.5 py-1 rounded-lg bg-obsidian hover:bg-statusDone/20 text-slate-300 hover:text-statusDone border border-slateBorder text-[11px] font-bold transition-colors">واتساب</button>
                 </div>
             </div>
 
@@ -784,22 +842,22 @@ function buildOrderCard(o) {
 
             <div class="bg-slateDark/80 rounded-xl p-2.5 border border-slateBorder space-y-1 text-xs">
                 <div class="flex items-center justify-between">
-                    <span class="font-black text-white">${store.name}</span>
-                    <span class="text-[10px] px-2 py-0.5 rounded bg-wassalOrange/15 text-wassalOrange font-bold">${store.category}</span>
+                    <span class="font-black text-white">${escapeHTML(store.name)}</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded bg-wassalOrange/15 text-wassalOrange font-bold">${escapeHTML(store.category)}</span>
                 </div>
                 <div class="flex items-center justify-between text-slate-300 text-[11px]">
-                    <span>المندوب: <strong class="text-white">${rider.name}</strong></span>
-                    <span class="text-slate-400">${rider.plate}</span>
+                    <span>المندوب: <strong class="text-white">${escapeHTML(rider.name)}</strong></span>
+                    <span class="text-slate-400">${escapeHTML(rider.plate)}</span>
                 </div>
             </div>
 
             <div class="text-xs space-y-1 bg-obsidian/60 p-2.5 rounded-xl border border-slateBorder/60">
                 <div class="flex items-center justify-between">
-                    <span class="font-bold text-slate-100">${o.customerName}</span>
-                    <span class="text-wassalOrange font-mono font-bold text-[11px]">${o.phone}</span>
+                    <span class="font-bold text-slate-100">${escapeHTML(o.customerName)}</span>
+                    <span class="text-wassalOrange font-mono font-bold text-[11px]">${escapeHTML(o.phone)}</span>
                 </div>
-                <p class="text-slate-400 text-[11px] truncate">📍 ${o.address}</p>
-                ${o.items ? `<p class="text-wassalAmber text-[11px] font-bold pt-0.5">🛒 ${o.items}</p>` : ''}
+                <p class="text-slate-400 text-[11px] truncate">📍 ${escapeHTML(o.address)}</p>
+                ${o.items ? `<p class="text-wassalAmber text-[11px] font-bold pt-0.5">🛒 ${escapeHTML(o.items)}</p>` : ''}
             </div>
 
             <div class="grid grid-cols-3 gap-1 bg-obsidian rounded-xl p-2 border border-slateBorder text-center text-xs">
@@ -845,8 +903,8 @@ function renderArchive() {
             const isOpenDay = d === activeD;
             const cnt = appState.orders.filter(o => o.dateStr === d).length;
             return `
-                <button type="button" data-action="archive-select-date" data-date="${d}" class="shrink-0 px-3 py-1.5 rounded-xl border text-xs font-black transition-all ${isSelected ? 'wassal-grad text-obsidian border-wassalOrange' : 'bg-obsidian border-slateBorder text-slate-300 hover:border-wassalOrange'}">
-                    ${d} ${isOpenDay ? '(اليوم المفتوح)' : ''} • [${cnt}]
+                <button type="button" data-action="archive-select-date" data-date="${escapeHTML(d)}" class="shrink-0 px-3 py-1.5 rounded-xl border text-xs font-black transition-all ${isSelected ? 'wassal-grad text-obsidian border-wassalOrange' : 'bg-obsidian border-slateBorder text-slate-300 hover:border-wassalOrange'}">
+                    ${escapeHTML(d)} ${isOpenDay ? '(اليوم المفتوح)' : ''} • [${cnt}]
                 </button>
             `;
         }).join('');
@@ -885,20 +943,20 @@ function renderArchive() {
             const isRet = o.status === 'returning' || o.status === 'returned';
 
             return `
-                <tr data-action="open-drawer" data-id="${o.id}" class="hover:bg-slateCard/80 cursor-pointer">
-                    <td class="px-3.5 py-3 font-black text-wassalOrange">#${o.id}</td>
-                    <td class="px-3.5 py-3 font-mono text-slate-400">${o.dateStr}</td>
+                <tr data-action="open-drawer" data-id="${escapeHTML(o.id)}" class="hover:bg-slateCard/80 cursor-pointer">
+                    <td class="px-3.5 py-3 font-black text-wassalOrange">#${escapeHTML(o.id)}</td>
+                    <td class="px-3.5 py-3 font-mono text-slate-400">${escapeHTML(o.dateStr)}</td>
                     <td class="px-3.5 py-3">
-                        <div>${statusMap[o.status] || o.status}</div>
-                        ${isRet && o.returnReason ? `<div class="text-[10px] text-red-400 mt-0.5">السبب: ${o.returnReason}</div>` : ''}
+                        <div>${statusMap[o.status] || escapeHTML(o.status)}</div>
+                        ${isRet && o.returnReason ? `<div class="text-[10px] text-red-400 mt-0.5">السبب: ${escapeHTML(o.returnReason)}</div>` : ''}
                     </td>
-                    <td class="px-3.5 py-3 font-bold text-white">${st.name}</td>
+                    <td class="px-3.5 py-3 font-bold text-white">${escapeHTML(st.name)}</td>
                     <td class="px-3.5 py-3">
-                        <div class="text-slate-200 font-bold">${o.customerName}</div>
-                        <div class="text-[11px] text-slate-400">${o.address}</div>
-                        ${o.items ? `<div class="text-[10px] text-wassalAmber font-bold mt-0.5">🛒 ${o.items}</div>` : ''}
+                        <div class="text-slate-200 font-bold">${escapeHTML(o.customerName)}</div>
+                        <div class="text-[11px] text-slate-400">${escapeHTML(o.address)}</div>
+                        ${o.items ? `<div class="text-[10px] text-wassalAmber font-bold mt-0.5">🛒 ${escapeHTML(o.items)}</div>` : ''}
                     </td>
-                    <td class="px-3.5 py-3 font-bold text-slate-200">${rd.name}</td>
+                    <td class="px-3.5 py-3 font-bold text-slate-200">${escapeHTML(rd.name)}</td>
                     <td class="px-3.5 py-3 text-[11px]">
                         <span class="text-statusPicked font-bold">${formatTime12(o.receivedTs)}</span> ➔
                         <span class="text-statusOnway font-bold">${formatTime12(o.departedTs)}</span> ➔
@@ -921,7 +979,7 @@ function renderArchive() {
     } else {
         closedBody.innerHTML = appState.closedDays.map(cd => `
             <tr class="hover:bg-slateCard/80">
-                <td class="px-4 py-3 font-black text-white font-mono">${cd.dateStr}</td>
+                <td class="px-4 py-3 font-black text-white font-mono">${escapeHTML(cd.dateStr)}</td>
                 <td class="px-4 py-3 text-slate-400">${formatTime12(cd.closedAt)}</td>
                 <td class="px-4 py-3 font-black text-white">${cd.ordersCount} أوردر</td>
                 <td class="px-4 py-3 font-bold text-slate-200">${Number(cd.settledCash).toLocaleString('ar-EG')} ج.م</td>
@@ -929,7 +987,7 @@ function renderArchive() {
                 <td class="px-4 py-3 font-bold text-red-400">${Number(cd.expenses).toLocaleString('ar-EG')} ج.م</td>
                 <td class="px-4 py-3 font-black text-wassalOrange text-sm">${Number(cd.netProfit).toLocaleString('ar-EG')} ج.م</td>
                 <td class="px-4 py-3 text-center">
-                    <button type="button" data-action="archive-select-date" data-date="${cd.dateStr}" class="px-3 py-1 rounded-lg bg-slateCard hover:bg-wassalOrange text-slate-200 hover:text-obsidian font-black text-[11px] transition-colors">عرض الطلبات</button>
+                    <button type="button" data-action="archive-select-date" data-date="${escapeHTML(cd.dateStr)}" class="px-3 py-1 rounded-lg bg-slateCard hover:bg-wassalOrange text-slate-200 hover:text-obsidian font-black text-[11px] transition-colors">عرض الطلبات</button>
                 </td>
             </tr>
         `).join('');
@@ -948,7 +1006,7 @@ function openCloseDayModal() {
 
     const box = document.getElementById('close-day-summary-box');
     box.innerHTML = `
-        <div class="flex justify-between"><span class="text-slate-400">اليوم الجاري إقفاله:</span><strong class="text-wassalOrange font-mono">${activeD}</strong></div>
+        <div class="flex justify-between"><span class="text-slate-400">اليوم الجاري إقفاله:</span><strong class="text-wassalOrange font-mono">${escapeHTML(activeD)}</strong></div>
         <div class="flex justify-between"><span class="text-slate-400">أوردرات ناجحة / مرتجعة:</span><strong class="text-statusDone">${daySettled.length} ناجح • ${dayOrders.filter(o => o.status === 'returned').length} مرتجع</strong></div>
         <div class="flex justify-between"><span class="text-slate-400">مبالغ موردة للمتاجر:</span><strong class="text-white">${cash.toLocaleString('ar-EG')} ج.م</strong></div>
         <div class="flex justify-between"><span class="text-slate-400">إيراد التوصيل:</span><strong class="text-statusDone">${rev.toLocaleString('ar-EG')} ج.م</strong></div>
@@ -974,6 +1032,30 @@ function openReturnModal(orderId) {
     modal.classList.add('flex');
 }
 
+function openEditOrderModal(orderId) {
+    const o = appState.orders.find(item => item.id === orderId);
+    if (!o) return;
+
+    document.getElementById('edit-order-id').value = o.id;
+    document.getElementById('edit-order-title-id').textContent = `#${o.id}`;
+    document.getElementById('edit-order-customer').value = o.customerName || '';
+    document.getElementById('edit-order-phone').value = o.phone || '';
+    document.getElementById('edit-order-address').value = o.address || '';
+    document.getElementById('edit-order-items').value = o.items || '';
+    document.getElementById('edit-order-amount').value = o.amount || 0;
+    document.getElementById('edit-order-fee').value = o.fee || 0;
+
+    const riderSel = document.getElementById('edit-order-rider');
+    riderSel.innerHTML = appState.riders.map(r => {
+        const statusIcon = r.id === o.riderId ? '🔵 (المندوب الحالي)' : (r.status === 'available' ? '🟢 متاح' : (r.status === 'busy' ? '🟠 في مهمة' : '⚪ خارج العمل'));
+        return `<option value="${escapeHTML(r.id)}" ${r.id === o.riderId ? 'selected' : ''}>${escapeHTML(r.name)} (${escapeHTML(r.plate)}) - ${statusIcon}</option>`;
+    }).join('');
+
+    const modal = document.getElementById('modal-edit-order');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
 function openStoreStatementModal(storeId) {
     const store = getStore(storeId);
     const targetMonth = uiState.reportMonth || getCurrentMonthStr();
@@ -982,21 +1064,23 @@ function openStoreStatementModal(storeId) {
     const settledOrders = storeOrders.filter(o => isOrderSuccessfullySettled(o));
     const returnedOrders = storeOrders.filter(o => o.status === 'returned' || o.status === 'returning');
     const totalMerchantAmount = settledOrders.reduce((s, o) => s + Number(o.amount), 0);
+    const returnedDeliveryFees = returnedOrders.reduce((s, o) => s + Number(o.fee || 0), 0);
+    const netStoreDue = totalMerchantAmount - returnedDeliveryFees;
 
     document.getElementById('statement-store-subtitle').textContent = `${store.name} (${store.category}) — شهر ${targetMonth}`;
 
     const rowsHTML = storeOrders.length === 0
-        ? `<tr><td colspan="6" class="py-8 text-center text-slate-500">لا توجد أوردرات مسجلة لهذا المتجر في شهر ${targetMonth}</td></tr>`
+        ? `<tr><td colspan="6" class="py-8 text-center text-slate-500">لا توجد أوردرات مسجلة لهذا المتجر في شهر ${escapeHTML(targetMonth)}</td></tr>`
         : storeOrders.map(o => {
             const isRet = o.status === 'returned' || o.status === 'returning';
-            const statusTxt = o.status === 'settled' ? '✓ تم التوريد' : (isRet ? `↩️ مرتجع (${o.returnReason || ''})` : 'جاري');
+            const statusTxt = o.status === 'settled' ? '✓ تم التوريد' : (isRet ? `↩️ مرتجع (${escapeHTML(o.returnReason || '')})` : 'جاري');
             return `
                 <tr class="border-b border-slateBorder hover:bg-slateCard/60">
-                    <td class="py-2.5 px-2 font-black text-wassalOrange">#${o.id}</td>
-                    <td class="py-2.5 px-2 text-slate-400 font-mono">${o.dateStr}</td>
+                    <td class="py-2.5 px-2 font-black text-wassalOrange">#${escapeHTML(o.id)}</td>
+                    <td class="py-2.5 px-2 text-slate-400 font-mono">${escapeHTML(o.dateStr)}</td>
                     <td class="py-2.5 px-2 text-white">
-                        <div>${o.customerName}</div>
-                        ${o.items ? `<div class="text-[10px] text-slate-400">${o.items}</div>` : ''}
+                        <div>${escapeHTML(o.customerName)}</div>
+                        ${o.items ? `<div class="text-[10px] text-slate-400">${escapeHTML(o.items)}</div>` : ''}
                     </td>
                     <td class="py-2.5 px-2">${statusTxt}</td>
                     <td class="py-2.5 px-2 font-bold ${isRet ? 'line-through text-slate-500' : 'text-white'}">${o.amount} ج.م</td>
@@ -1016,8 +1100,8 @@ function openStoreStatementModal(storeId) {
                 <div class="text-base font-black text-statusDone mt-1">${totalMerchantAmount.toLocaleString('ar-EG')} ج.م</div>
             </div>
             <div class="bg-obsidian border border-red-500/40 rounded-xl p-3">
-                <div class="text-[10px] text-red-400">طلبات مرتجعة</div>
-                <div class="text-base font-black text-red-400 mt-1">${returnedOrders.length}</div>
+                <div class="text-[10px] text-red-400">رسوم توصيل المرتجعات</div>
+                <div class="text-base font-black text-red-400 mt-1">${returnedDeliveryFees.toLocaleString('ar-EG')} ج.م (${returnedOrders.length})</div>
             </div>
         </div>
 
@@ -1039,10 +1123,10 @@ function openStoreStatementModal(storeId) {
 
         <div class="bg-obsidian border border-wassalOrange/50 rounded-xl p-3.5 space-y-1.5 text-xs">
             <div class="flex justify-between"><span class="text-slate-300">إجمالي مبيعات البضائع للمتجر:</span><strong class="text-white">${totalMerchantAmount.toLocaleString('ar-EG')} ج.م</strong></div>
-            <div class="flex justify-between"><span class="text-slate-300">عدد الطلبات المرتجعة:</span><strong class="text-red-400">${returnedOrders.length} أوردر</strong></div>
+            <div class="flex justify-between"><span class="text-slate-300">(-) يُخصم رسوم توصيل المرتجعات (${returnedOrders.length} مرتجع):</span><strong class="text-red-400">${returnedDeliveryFees.toLocaleString('ar-EG')} ج.م</strong></div>
             <div class="pt-2 border-t border-slateBorder flex justify-between text-sm">
                 <span class="font-black text-wassalOrange">صافي المستحق للمتجر:</span>
-                <strong class="text-statusDone font-black text-base">${totalMerchantAmount.toLocaleString('ar-EG')} ج.م</strong>
+                <strong class="text-statusDone font-black text-base">${netStoreDue.toLocaleString('ar-EG')} ج.م</strong>
             </div>
         </div>
     `;
@@ -1051,11 +1135,13 @@ function openStoreStatementModal(storeId) {
         `📄 *كشف حساب متجر ${store.name}*`,
         `• الفترة: شهر ${targetMonth}`,
         `• إجمالي الأوردرات: ${storeOrders.length} (${settledOrders.length} ناجح، ${returnedOrders.length} مرتجع)`,
-        `• إجمالي قيمة البضائع الموردة: *${totalMerchantAmount.toLocaleString('ar-EG')} ج.م*`,
+        `• إجمالي قيمة البضائع: ${totalMerchantAmount.toLocaleString('ar-EG')} ج.م`,
+        returnedDeliveryFees > 0 ? `• يُخصم رسوم توصيل المرتجعات: -${returnedDeliveryFees.toLocaleString('ar-EG')} ج.م` : null,
+        `• *صافي المستحق للمتجر: ${netStoreDue.toLocaleString('ar-EG')} ج.م*`,
         `_شكراً لتعاملكم مع خدمة وصّل للتوصيل 🧡_`
-    ].join('\n');
+    ].filter(Boolean).join('\n');
 
-    document.getElementById('whatsapp-store-statement-btn').href = `[https://wa.me/$](https://wa.me/$){store.phone}?text=${encodeURIComponent(waText)}`;
+    document.getElementById('whatsapp-store-statement-btn').href = `[https://wa.me/$](https://wa.me/$){encodeURIComponent(store.phone)}?text=${encodeURIComponent(waText)}`;
 
     const modal = document.getElementById('modal-store-statement');
     modal.classList.remove('hidden');
@@ -1101,12 +1187,12 @@ function openOrderDrawer(orderId) {
         ${isRet ? `
         <div class="bg-red-500/15 border border-red-500/40 rounded-2xl p-3.5 text-xs space-y-1">
             <div class="font-black text-red-400">⚠️ طلب مرتجع (لم يتم الاستلام)</div>
-            <div class="text-slate-200 font-bold">السبب: ${o.returnReason || 'غير محدد'}</div>
+            <div class="text-slate-200 font-bold">السبب: ${escapeHTML(o.returnReason || 'غير محدد')}</div>
         </div>` : ''}
 
         <div class="bg-slateCard border border-slateBorder rounded-2xl p-4 space-y-4">
             <div class="flex items-center justify-between">
-                <h4 class="text-xs font-black text-white">⏱️ دورة حياة الطلب الكاملة (${o.dateStr})</h4>
+                <h4 class="text-xs font-black text-white">⏱️ دورة حياة الطلب الكاملة (${escapeHTML(o.dateStr)})</h4>
                 <span class="text-xs font-black text-wassalOrange">المدة: ${deliveryMins} د</span>
             </div>
 
@@ -1114,7 +1200,7 @@ function openOrderDrawer(orderId) {
                 <div class="relative">
                     <span class="absolute -right-6 top-1 w-3.5 h-3.5 rounded-full bg-statusPicked ring-4 ring-statusPicked/20"></span>
                     <div class="flex items-center justify-between text-xs">
-                        <span class="font-black text-statusPicked">1. الاستلام من ${st.name}</span>
+                        <span class="font-black text-statusPicked">1. الاستلام من ${escapeHTML(st.name)}</span>
                         <span class="font-black text-white">${formatTime12(o.receivedTs)}</span>
                     </div>
                 </div>
@@ -1151,19 +1237,19 @@ function openOrderDrawer(orderId) {
         <div class="bg-slateCard border border-slateBorder rounded-2xl p-4 space-y-3 text-xs">
             <div>
                 <div class="text-[11px] text-slate-400">بيانات العميل والأصناف</div>
-                <div class="font-black text-white text-sm mt-0.5">${o.customerName}</div>
-                <div class="text-wassalOrange font-bold mt-0.5">📞 ${o.phone}</div>
-                <div class="text-slate-300 mt-1">📍 ${o.address}</div>
-                ${o.items ? `<div class="mt-2 p-2 rounded-lg bg-obsidian border border-wassalAmber/30 text-wassalAmber font-bold">🛒 الأصناف: ${o.items}</div>` : ''}
+                <div class="font-black text-white text-sm mt-0.5">${escapeHTML(o.customerName)}</div>
+                <div class="text-wassalOrange font-bold mt-0.5">📞 ${escapeHTML(o.phone)}</div>
+                <div class="text-slate-300 mt-1">📍 ${escapeHTML(o.address)}</div>
+                ${o.items ? `<div class="mt-2 p-2 rounded-lg bg-obsidian border border-wassalAmber/30 text-wassalAmber font-bold">🛒 الأصناف: ${escapeHTML(o.items)}</div>` : ''}
             </div>
             <div class="pt-3 border-t border-slateBorder flex items-center justify-between">
                 <div>
                     <div class="text-[11px] text-slate-400">المندوب المكلف</div>
-                    <div class="font-black text-white mt-0.5">${rd.name}</div>
+                    <div class="font-black text-white mt-0.5">${escapeHTML(rd.name)}</div>
                 </div>
                 <div class="text-left">
                     <div class="text-[11px] text-slate-400">الموتوسيكل</div>
-                    <div class="font-bold text-wassalOrange mt-0.5">${rd.bike} (${rd.plate})</div>
+                    <div class="font-bold text-wassalOrange mt-0.5">${escapeHTML(rd.bike)} (${escapeHTML(rd.plate)})</div>
                 </div>
             </div>
         </div>
@@ -1188,31 +1274,32 @@ function openOrderDrawer(orderId) {
                 <span class="font-black text-statusDone">💬 رسالة جروب الواتساب</span>
                 <a href="[https://wa.me/?text=$](https://wa.me/?text=$){encodeURIComponent(waMessage)}" target="_blank" rel="noopener" class="text-[11px] text-statusOnway underline font-bold">فتح واتساب ويب ↗</a>
             </div>
-            <textarea readonly rows="5" class="w-full bg-obsidian border border-slateBorder rounded-xl p-2.5 text-[11px] text-slate-200 leading-relaxed focus:outline-none">${waMessage}</textarea>
+            <textarea readonly rows="4" class="w-full bg-obsidian border border-slateBorder rounded-xl p-2.5 text-[11px] text-slate-200 leading-relaxed focus:outline-none">${escapeHTML(waMessage)}</textarea>
         </div>
     `;
 
     let primaryAction = '';
     if (o.status === 'received') {
-        primaryAction = `<button type="button" data-action="move-onway" data-id="${o.id}" class="w-full py-3 rounded-xl bg-statusOnway text-obsidian font-black text-xs shadow-lg">تحرك للعميل الآن ➔</button>`;
+        primaryAction = `<button type="button" data-action="move-onway" data-id="${escapeHTML(o.id)}" class="w-full py-3 rounded-xl bg-statusOnway text-obsidian font-black text-xs shadow-lg">تحرك للعميل الآن ➔</button>`;
     } else if (o.status === 'onway') {
         primaryAction = `
             <div class="grid grid-cols-3 gap-2">
-                <button type="button" data-action="move-delivered" data-id="${o.id}" class="col-span-2 py-3 rounded-xl bg-statusDone text-obsidian font-black text-xs shadow-lg">✓ تأكيد التسليم</button>
-                <button type="button" data-action="open-return-modal" data-id="${o.id}" class="py-3 rounded-xl bg-red-500 text-white font-black text-xs shadow-lg">↩️ مرتجع</button>
+                <button type="button" data-action="move-delivered" data-id="${escapeHTML(o.id)}" class="col-span-2 py-3 rounded-xl bg-statusDone text-obsidian font-black text-xs shadow-lg">✓ تأكيد التسليم</button>
+                <button type="button" data-action="open-return-modal" data-id="${escapeHTML(o.id)}" class="py-3 rounded-xl bg-red-500 text-white font-black text-xs shadow-lg">↩️ مرتجع</button>
             </div>
         `;
     } else if (o.status === 'delivered') {
-        primaryAction = `<button type="button" data-action="move-settled" data-id="${o.id}" class="w-full py-3 rounded-xl wassal-grad text-obsidian font-black text-xs shadow-lg">💰 تم التوريد للمتجر والعودة للمكتب</button>`;
+        primaryAction = `<button type="button" data-action="move-settled" data-id="${escapeHTML(o.id)}" class="w-full py-3 rounded-xl wassal-grad text-obsidian font-black text-xs shadow-lg">💰 تم التوريد للمتجر والعودة للمكتب</button>`;
     } else if (o.status === 'returning') {
-        primaryAction = `<button type="button" data-action="move-returned-done" data-id="${o.id}" class="w-full py-3 rounded-xl bg-red-500 text-white font-black text-xs shadow-lg">📦 تم تسليم المرتجع للمتجر والعودة</button>`;
+        primaryAction = `<button type="button" data-action="move-returned-done" data-id="${escapeHTML(o.id)}" class="w-full py-3 rounded-xl bg-red-500 text-white font-black text-xs shadow-lg">📦 تم تسليم المرتجع للمتجر والعودة</button>`;
     }
 
     document.getElementById('drawer-footer').innerHTML = `
         ${primaryAction}
-        <div class="flex gap-2">
-            <button type="button" data-action="copy-whatsapp" data-id="${o.id}" class="flex-1 py-2.5 rounded-xl bg-slateCard hover:bg-slateHover border border-slateBorder text-white font-black text-xs">📋 نسخ رسالة الواتساب</button>
-            <button type="button" data-action="delete-order" data-id="${o.id}" class="px-4 py-2.5 rounded-xl bg-red-500/15 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 font-black text-xs transition-colors">حذف</button>
+        <div class="grid grid-cols-3 gap-1.5">
+            <button type="button" data-action="open-edit-order" data-id="${escapeHTML(o.id)}" class="py-2.5 px-2 rounded-xl bg-statusOnway/15 hover:bg-statusOnway text-statusOnway hover:text-obsidian border border-statusOnway/30 font-black text-[11px] transition-colors">✏️ تعديل/تحويل</button>
+            <button type="button" data-action="copy-whatsapp" data-id="${escapeHTML(o.id)}" class="py-2.5 px-2 rounded-xl bg-slateCard hover:bg-slateHover border border-slateBorder text-white font-black text-[11px]">📋 واتساب</button>
+            <button type="button" data-action="delete-order" data-id="${escapeHTML(o.id)}" class="py-2.5 px-2 rounded-xl bg-red-500/15 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 font-black text-[11px] transition-colors">🗑️ حذف</button>
         </div>
     `;
 
@@ -1282,7 +1369,7 @@ function openRiderStatsModal(riderId, period = 'today') {
             const stBadge = o.status === 'settled'
                 ? `<span class="text-statusDone font-black">✓ تم التوريد</span>`
                 : isRet
-                ? `<span class="text-red-400 font-black">↩️ مرتجع (${o.returnReason || ''})</span>`
+                ? `<span class="text-red-400 font-black">↩️ مرتجع (${escapeHTML(o.returnReason || '')})</span>`
                 : o.status === 'delivered'
                 ? `<span class="text-emerald-300 font-bold">سُلّم (توريد)</span>`
                 : o.status === 'onway'
@@ -1290,10 +1377,10 @@ function openRiderStatsModal(riderId, period = 'today') {
                 : `<span class="text-statusPicked font-bold">مستلم</span>`;
             return `
                 <tr class="hover:bg-slateCard/70">
-                    <td class="px-3 py-2.5 font-black text-wassalOrange">#${o.id}</td>
-                    <td class="px-3 py-2.5 font-mono text-slate-400">${o.dateStr}</td>
-                    <td class="px-3 py-2.5 font-bold text-white">${st.name}</td>
-                    <td class="px-3 py-2.5 text-slate-300">${o.customerName}</td>
+                    <td class="px-3 py-2.5 font-black text-wassalOrange">#${escapeHTML(o.id)}</td>
+                    <td class="px-3 py-2.5 font-mono text-slate-400">${escapeHTML(o.dateStr)}</td>
+                    <td class="px-3 py-2.5 font-bold text-white">${escapeHTML(st.name)}</td>
+                    <td class="px-3 py-2.5 text-slate-300">${escapeHTML(o.customerName)}</td>
                     <td class="px-3 py-2.5">${stBadge}</td>
                     <td class="px-3 py-2.5 font-black text-white">${isRet ? 'مرتجع' : o.amount + ' ج.م'} + <span class="text-wassalOrange">${o.fee} ج.م</span> ${o.deliveredTs ? `(${deliveryMins}د)` : ''}</td>
                 </tr>
@@ -1301,7 +1388,7 @@ function openRiderStatsModal(riderId, period = 'today') {
         }).join('');
 
     document.getElementById('rstats-body').innerHTML = `
-        <div class="text-xs font-bold text-wassalOrange">الفترة المعروضة: ${periodNames[period]}</div>
+        <div class="text-xs font-bold text-wassalOrange">الفترة المعروضة: ${escapeHTML(periodNames[period])}</div>
 
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 text-center text-xs">
             <div class="bg-obsidian border border-statusPicked/40 rounded-xl p-3">
@@ -1395,10 +1482,10 @@ function renderRiders() {
             destHTML = `
                 <div class="text-xs bg-statusOnway/10 border border-statusOnway/30 rounded-xl p-2.5 space-y-1">
                     <div class="flex justify-between font-black text-statusOnway">
-                        <span>مهمة حالية (#${activeOrder.id})</span>
+                        <span>مهمة حالية (#${escapeHTML(activeOrder.id)})</span>
                         <span>منذ ${totalMins} د</span>
                     </div>
-                    <div class="text-white font-bold">${st.name} ➔ ${activeOrder.address}</div>
+                    <div class="text-white font-bold">${escapeHTML(st.name)} ➔ ${escapeHTML(activeOrder.address)}</div>
                 </div>
             `;
         } else if (r.status === 'off') {
@@ -1406,17 +1493,17 @@ function renderRiders() {
         }
 
         return `
-            <div data-action="open-rider-stats" data-id="${r.id}" class="cursor-pointer bg-slateDark border ${isTopMonth ? 'border-wassalOrange/70 shadow-lg shadow-orange-500/10' : 'border-slateBorder hover:border-wassalOrange/60'} ${r.status === 'off' ? 'opacity-75' : ''} transition-all rounded-2xl p-5 flex flex-col justify-between space-y-4">
+            <div data-action="open-rider-stats" data-id="${escapeHTML(r.id)}" class="cursor-pointer bg-slateDark border ${isTopMonth ? 'border-wassalOrange/70 shadow-lg shadow-orange-500/10' : 'border-slateBorder hover:border-wassalOrange/60'} ${r.status === 'off' ? 'opacity-75' : ''} transition-all rounded-2xl p-5 flex flex-col justify-between space-y-4">
                 <div class="space-y-3">
                     <div class="flex items-start justify-between gap-2">
                         <div class="flex items-center gap-3">
                             <div class="w-11 h-11 rounded-xl wassal-grad text-obsidian font-black flex items-center justify-center text-sm shadow-md shrink-0">#${idx + 1}</div>
                             <div>
                                 <div class="flex items-center gap-1.5">
-                                    <h3 class="font-black text-base text-white">${r.name}</h3>
+                                    <h3 class="font-black text-base text-white">${escapeHTML(r.name)}</h3>
                                     ${isTopMonth ? `<span class="text-xs">👑</span>` : ''}
                                 </div>
-                                <p class="text-xs text-slate-400">${r.bike} • <span class="text-wassalOrange font-bold">${r.plate}</span></p>
+                                <p class="text-xs text-slate-400">${escapeHTML(r.bike)} • <span class="text-wassalOrange font-bold">${escapeHTML(r.plate)}</span></p>
                             </div>
                         </div>
                         <span class="px-2.5 py-1 rounded-lg text-[11px] font-black shrink-0 ${stObj.cls}">${stObj.label}</span>
@@ -1444,16 +1531,16 @@ function renderRiders() {
                         </div>
                     </div>
                     <div class="flex items-center gap-1.5">
-                        <button type="button" data-action="open-rider-stats" data-id="${r.id}" class="flex-1 py-2 px-2 rounded-xl wassal-grad text-obsidian text-xs font-black">
+                        <button type="button" data-action="open-rider-stats" data-id="${escapeHTML(r.id)}" class="flex-1 py-2 px-2 rounded-xl wassal-grad text-obsidian text-xs font-black">
                             📊 كشف الأداء
                         </button>
-                        <button type="button" data-action="toggle-rider-avail" data-id="${r.id}" class="px-2.5 py-2 rounded-xl bg-slateCard hover:bg-slateHover border border-slateBorder text-xs font-bold text-slate-200">
+                        <button type="button" data-action="toggle-rider-avail" data-id="${escapeHTML(r.id)}" class="px-2.5 py-2 rounded-xl bg-slateCard hover:bg-slateHover border border-slateBorder text-xs font-bold text-slate-200">
                             ${r.status === 'off' ? '🟢 تفعيل' : '⚪ إيقاف'}
                         </button>
-                        <button type="button" data-action="edit-rider" data-id="${r.id}" class="px-2.5 py-2 rounded-xl bg-statusOnway/15 hover:bg-statusOnway text-statusOnway hover:text-obsidian border border-statusOnway/30 text-xs font-black">
+                        <button type="button" data-action="edit-rider" data-id="${escapeHTML(r.id)}" class="px-2.5 py-2 rounded-xl bg-statusOnway/15 hover:bg-statusOnway text-statusOnway hover:text-obsidian border border-statusOnway/30 text-xs font-black">
                             تعديل
                         </button>
-                        <button type="button" data-action="delete-rider" data-id="${r.id}" class="px-2.5 py-2 rounded-xl bg-red-500/15 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 text-xs font-black">
+                        <button type="button" data-action="delete-rider" data-id="${escapeHTML(r.id)}" class="px-2.5 py-2 rounded-xl bg-red-500/15 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 text-xs font-black">
                             حذف
                         </button>
                     </div>
@@ -1476,7 +1563,7 @@ function renderStores() {
                     <div class="w-14 h-14 rounded-2xl wassal-grad text-obsidian flex items-center justify-center text-2xl shadow-lg shadow-orange-500/25 shrink-0">👑</div>
                     <div>
                         <div class="text-xs font-black text-statusPicked">أكثر تاجر / متجر عملاً مع وصّل هذا الشهر</div>
-                        <h3 class="text-xl font-black text-white mt-0.5">${top.store.name} <span class="text-xs px-2.5 py-0.5 rounded-full bg-wassalOrange/20 text-wassalOrange font-bold mr-1">${top.store.category}</span></h3>
+                        <h3 class="text-xl font-black text-white mt-0.5">${escapeHTML(top.store.name)} <span class="text-xs px-2.5 py-0.5 rounded-full bg-wassalOrange/20 text-wassalOrange font-bold mr-1">${escapeHTML(top.store.category)}</span></h3>
                         <p class="text-xs text-slate-400 mt-1">يستحوذ على <strong class="text-white">${top.sharePct}%</strong> من إجمالي أوردرات الشهر بمبيعات موردة قدرها <strong class="text-statusDone">${top.settledMonth.toLocaleString('ar-EG')} ج.م</strong></p>
                     </div>
                 </div>
@@ -1515,9 +1602,9 @@ function renderStores() {
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="px-2 py-0.5 rounded-md ${isFirst ? 'bg-statusPicked text-obsidian font-black' : 'bg-obsidian text-slate-300 border border-slateBorder font-bold'} text-[11px]">#${idx + 1}</span>
-                            <span class="text-[10px] px-2.5 py-0.5 rounded-md bg-wassalOrange/15 border border-wassalOrange/30 text-wassalOrange font-black">${s.category}</span>
+                            <span class="text-[10px] px-2.5 py-0.5 rounded-md bg-wassalOrange/15 border border-wassalOrange/30 text-wassalOrange font-black">${escapeHTML(s.category)}</span>
                         </div>
-                        <h3 class="font-black text-base text-white mt-2">${s.name} ${isFirst ? '👑' : ''}</h3>
+                        <h3 class="font-black text-base text-white mt-2">${escapeHTML(s.name)} ${isFirst ? '👑' : ''}</h3>
                     </div>
                     <span class="text-xs font-black text-wassalOrange bg-obsidian px-2.5 py-1 rounded-lg border border-wassalOrange/30">توصيل: ${s.fee} ج.م</span>
                 </div>
@@ -1533,8 +1620,8 @@ function renderStores() {
                 </div>
 
                 <div class="text-xs text-slate-400 space-y-1">
-                    <p>📍 ${s.address}</p>
-                    <p>📞 ${s.phone}</p>
+                    <p>📍 ${escapeHTML(s.address)}</p>
+                    <p>📞 ${escapeHTML(s.phone)}</p>
                 </div>
 
                 <div class="grid grid-cols-3 gap-2 text-center text-xs pt-2 border-t border-slateBorder">
@@ -1553,10 +1640,10 @@ function renderStores() {
                 </div>
 
                 <div class="pt-2 flex items-center gap-2">
-                    <button type="button" data-action="open-store-statement" data-id="${s.id}" class="flex-1 py-2.5 rounded-xl wassal-grad wassal-grad-hover text-obsidian font-black text-xs shadow-md">
+                    <button type="button" data-action="open-store-statement" data-id="${escapeHTML(s.id)}" class="flex-1 py-2.5 rounded-xl wassal-grad wassal-grad-hover text-obsidian font-black text-xs shadow-md">
                         📄 كشف حساب وتصفية
                     </button>
-                    <button type="button" data-action="delete-store" data-id="${s.id}" class="px-3 py-2.5 rounded-xl bg-red-500/15 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 text-xs font-black transition-colors">
+                    <button type="button" data-action="delete-store" data-id="${escapeHTML(s.id)}" class="px-3 py-2.5 rounded-xl bg-red-500/15 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 text-xs font-black transition-colors">
                         حذف
                     </button>
                 </div>
@@ -1598,14 +1685,14 @@ function renderAccounting() {
     const catEntries = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
     const barsContainer = document.getElementById('expense-categories-bars');
     if (catEntries.length === 0) {
-        barsContainer.innerHTML = `<div class="col-span-full text-center text-xs text-slate-500 py-1">لا توجد مصروفات مسجلة في شهر ${targetMonth}</div>`;
+        barsContainer.innerHTML = `<div class="col-span-full text-center text-xs text-slate-500 py-1">لا توجد مصروفات مسجلة في شهر ${escapeHTML(targetMonth)}</div>`;
     } else {
         barsContainer.innerHTML = catEntries.map(([cat, val]) => {
             const pct = stats.monthExp > 0 ? Math.round((val / stats.monthExp) * 100) : 0;
             return `
                 <div class="bg-slateDark border border-slateBorder rounded-xl p-2.5 space-y-1.5">
                     <div class="flex justify-between text-[11px]">
-                        <span class="font-bold text-slate-200 truncate">${cat}</span>
+                        <span class="font-bold text-slate-200 truncate">${escapeHTML(cat)}</span>
                         <span class="font-black text-red-400">${val} ج.م (${pct}%)</span>
                     </div>
                     <div class="w-full h-1.5 bg-obsidian rounded-full overflow-hidden">
@@ -1625,16 +1712,16 @@ function renderAccounting() {
             const rdName = e.riderId ? getRider(e.riderId).name : 'مصروف إداري عام';
             return `
                 <tr class="hover:bg-slateCard/80">
-                    <td class="px-3.5 py-3 text-slate-400 font-mono">${e.dateStr}</td>
+                    <td class="px-3.5 py-3 text-slate-400 font-mono">${escapeHTML(e.dateStr)}</td>
                     <td class="px-3.5 py-3">
-                        <div class="font-bold text-white">${e.title}</div>
-                        ${e.notes ? `<div class="text-[10px] text-slate-400">${e.notes}</div>` : ''}
+                        <div class="font-bold text-white">${escapeHTML(e.title)}</div>
+                        ${e.notes ? `<div class="text-[10px] text-slate-400">${escapeHTML(e.notes)}</div>` : ''}
                     </td>
-                    <td class="px-3.5 py-3"><span class="px-2 py-0.5 rounded bg-obsidian border border-slateBorder text-[11px] text-slate-300">${e.category}</span></td>
-                    <td class="px-3.5 py-3 text-slate-300 font-bold">${rdName}</td>
+                    <td class="px-3.5 py-3"><span class="px-2 py-0.5 rounded bg-obsidian border border-slateBorder text-[11px] text-slate-300">${escapeHTML(e.category)}</span></td>
+                    <td class="px-3.5 py-3 text-slate-300 font-bold">${escapeHTML(rdName)}</td>
                     <td class="px-3.5 py-3 font-black text-red-400">${Number(e.amount).toLocaleString('ar-EG')} ج.م</td>
                     <td class="px-3.5 py-3 text-center no-print">
-                        <button type="button" data-action="delete-expense" data-id="${e.id}" class="px-2 py-1 rounded-lg bg-red-500/15 hover:bg-red-500 text-red-400 hover:text-white text-[11px] font-bold transition-colors">✕</button>
+                        <button type="button" data-action="delete-expense" data-id="${escapeHTML(e.id)}" class="px-2 py-1 rounded-lg bg-red-500/15 hover:bg-red-500 text-red-400 hover:text-white text-[11px] font-bold transition-colors">✕</button>
                     </td>
                 </tr>
             `;
@@ -1651,8 +1738,8 @@ function renderAccounting() {
             return `
                 <tr class="hover:bg-slateCard/80 ${idx === 0 && item.monthCount > 0 ? 'bg-statusPicked/5' : ''}">
                     <td class="px-4 py-3 font-black ${idx === 0 && item.monthCount > 0 ? 'text-statusPicked' : 'text-slate-400'}">${rankBadge}</td>
-                    <td class="px-4 py-3 font-black text-white">${s.name}</td>
-                    <td class="px-4 py-3 text-slate-400">${s.category}</td>
+                    <td class="px-4 py-3 font-black text-white">${escapeHTML(s.name)}</td>
+                    <td class="px-4 py-3 text-slate-400">${escapeHTML(s.category)}</td>
                     <td class="px-4 py-3 font-bold text-white">${item.todayCount}</td>
                     <td class="px-4 py-3 font-black text-wassalOrange text-sm">${item.monthCount}</td>
                     <td class="px-4 py-3">
@@ -1680,8 +1767,8 @@ function renderAccounting() {
             return `
                 <tr class="hover:bg-slateCard/80">
                     <td class="px-4 py-3 font-black ${idx === 0 && item.monthCount > 0 ? 'text-wassalOrange' : 'text-slate-400'}">${rankBadge}</td>
-                    <td class="px-4 py-3 font-black text-white">${r.name}</td>
-                    <td class="px-4 py-3 text-slate-400">${r.bike} (${r.plate})</td>
+                    <td class="px-4 py-3 font-black text-white">${escapeHTML(r.name)}</td>
+                    <td class="px-4 py-3 text-slate-400">${escapeHTML(r.bike)} (${escapeHTML(r.plate)})</td>
                     <td class="px-4 py-3 font-black text-statusDone text-sm">${item.todayCount}</td>
                     <td class="px-4 py-3 font-black text-wassalOrange text-sm">${item.monthCount}</td>
                     <td class="px-4 py-3 font-bold text-statusOnway">${item.avgMins !== null ? item.avgMins + ' دقيقة' : '—'}</td>
@@ -1691,6 +1778,64 @@ function renderAccounting() {
             `;
         }).join('');
     }
+}
+
+// ==================== BACKUP, RESTORE & CSV EXPORT ====================
+function downloadFullBackupJSON() {
+    const payload = {
+        exportedAt: new Date().toISOString(),
+        system: 'WASSAL Delivery Operations',
+        data: appState
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `WASSAL_Backup_${getActiveShiftDate()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('💾 تم تحميل النسخة الاحتياطية الكاملة بنجاح');
+}
+
+function handleRestoreBackupFile(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+        try {
+            const parsed = JSON.parse(ev.target.result);
+            const restored = parsed.data || parsed;
+            if (!restored || typeof restored !== 'object' || !Array.isArray(restored.orders)) {
+                showToast('⚠️ ملف النسخة الاحتياطية غير صالح');
+                return;
+            }
+            const ok = window.confirm(`هل تريد استعادة النسخة الاحتياطية؟\nتحتوي على: ${restored.orders.length} طلب، ${restored.riders?.length || 0} مندوب، ${restored.stores?.length || 0} متجر.`);
+            if (!ok) return;
+
+            appState = {
+                activeDate: restored.activeDate || getSystemTodayStr(),
+                closedDays: normalizeArray(restored.closedDays, []),
+                riders: normalizeArray(restored.riders, []),
+                stores: normalizeArray(restored.stores, []),
+                orders: normalizeArray(restored.orders, []),
+                expenses: normalizeArray(restored.expenses, []),
+                nextOrderNum: restored.nextOrderNum || 101
+            };
+            syncRidersAvailability();
+            saveData();
+            renderAll();
+            const secModal = document.getElementById('modal-security');
+            if (secModal) {
+                secModal.classList.add('hidden');
+                secModal.classList.remove('flex');
+            }
+            showToast('✅ تمت استعادة البيانات ومزامنتها مع السحابة بنجاح');
+        } catch (err) {
+            showToast('⚠️ تعذر قراءة الملف — تأكد أنه ملف JSON صحيح');
+        }
+    };
+    reader.readAsText(file);
 }
 
 function exportMonthlyCSV() {
@@ -1703,19 +1848,19 @@ function exportMonthlyCSV() {
     lines.push('--- أداء المناديب ---');
     lines.push('المندوب,أوردرات اليوم,أوردرات الشهر,إيراد التوصيل الشهري,مبالغ موردة للتجار');
     stats.riderStats.forEach(r => {
-        lines.push(`${r.rider.name},${r.todayCount},${r.monthCount},${r.feeMonth},${r.settledMonth}`);
+        lines.push(`"${r.rider.name}",${r.todayCount},${r.monthCount},${r.feeMonth},${r.settledMonth}`);
     });
     lines.push('');
     lines.push('--- ترتيب المتاجر ---');
     lines.push('المتجر,التصنيف,أوردرات اليوم,أوردرات الشهر,نسبة المساهمة %,مبيعات موردة');
     stats.storeStats.forEach(s => {
-        lines.push(`${s.store.name},${s.store.category},${s.todayCount},${s.monthCount},${s.sharePct}%,${s.settledMonth}`);
+        lines.push(`"${s.store.name}","${s.store.category}",${s.todayCount},${s.monthCount},${s.sharePct}%,${s.settledMonth}`);
     });
     lines.push('');
     lines.push('--- سجل المصروفات ---');
     lines.push('التاريخ,البيان,التصنيف,المبلغ,ملاحظات');
     stats.monthExpensesList.forEach(e => {
-        lines.push(`${e.dateStr},"${e.title}",${e.category},${e.amount},"${e.notes || ''}"`);
+        lines.push(`${e.dateStr},"${e.title}","${e.category}",${e.amount},"${e.notes || ''}"`);
     });
 
     const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
@@ -1734,7 +1879,7 @@ function populateExpenseFormDefaults() {
     const expRiderSel = document.getElementById('exp-rider');
     if (expRiderSel) {
         expRiderSel.innerHTML = `<option value="">— مصروف عام للإدارة —</option>` +
-            appState.riders.map(r => `<option value="${r.id}">${r.name} (${r.plate})</option>`).join('');
+            appState.riders.map(r => `<option value="${escapeHTML(r.id)}">${escapeHTML(r.name)} (${escapeHTML(r.plate)})</option>`).join('');
     }
     const expDateInput = document.getElementById('exp-date');
     if (expDateInput && !expDateInput.value) {
@@ -1835,7 +1980,7 @@ function openNewOrderModal() {
     if (dayBadge) dayBadge.textContent = activeD;
 
     const storeSel = document.getElementById('input-order-store');
-    storeSel.innerHTML = appState.stores.map(s => `<option value="${s.id}">${s.name} (${s.category}) - توصيل ${s.fee} ج.م</option>`).join('');
+    storeSel.innerHTML = appState.stores.map(s => `<option value="${escapeHTML(s.id)}">${escapeHTML(s.name)} (${escapeHTML(s.category)}) - توصيل ${s.fee} ج.م</option>`).join('');
     if (appState.stores.length > 0) {
         document.getElementById('input-order-fee').value = appState.stores[0].fee;
     }
@@ -1845,7 +1990,7 @@ function openNewOrderModal() {
     if (availableRiders.length === 0) {
         riderSel.innerHTML = `<option value="">⚠️ لا يوجد مناديب متاحين بالمكتب حالياً!</option>`;
     } else {
-        riderSel.innerHTML = availableRiders.map(r => `<option value="${r.id}">🟢 ${r.name} (${r.plate})</option>`).join('');
+        riderSel.innerHTML = availableRiders.map(r => `<option value="${escapeHTML(r.id)}">🟢 ${escapeHTML(r.name)} (${escapeHTML(r.plate)})</option>`).join('');
     }
 
     resetOrderItemsRows();
@@ -1890,7 +2035,17 @@ document.addEventListener('click', (e) => {
     const action = btn.getAttribute('data-action');
     const id = btn.getAttribute('data-id');
 
-    if (action === 'toggle-sidebar') {
+    if (action === 'lock-system') {
+        lockSystemNow();
+    } else if (action === 'open-security-modal') {
+        const m = document.getElementById('modal-security');
+        if (m) {
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+        }
+    } else if (action === 'download-backup') {
+        downloadFullBackupJSON();
+    } else if (action === 'toggle-sidebar') {
         document.getElementById('sidebar').classList.toggle('translate-x-full');
         document.getElementById('sidebar-backdrop').classList.toggle('hidden');
     } else if (action === 'switch-tab') {
@@ -1923,6 +2078,8 @@ document.addEventListener('click', (e) => {
         openOrderDrawer(id);
     } else if (action === 'close-drawer') {
         closeOrderDrawer();
+    } else if (action === 'open-edit-order') {
+        openEditOrderModal(id);
     } else if (action === 'open-new-order') {
         openNewOrderModal();
     } else if (action === 'open-new-store') {
@@ -1939,6 +2096,7 @@ document.addEventListener('click', (e) => {
             showToast(`⚠️ لا يمكن حذف ${store.name} لوجود طلب جاري خاص به حالياً`);
             return;
         }
+        if (!window.confirm(`هل أنت متأكد من حذف المتجر "${store.name}"؟`)) return;
         appState.stores = appState.stores.filter(s => s.id !== id);
         saveData();
         renderAll();
@@ -1973,6 +2131,7 @@ document.addEventListener('click', (e) => {
             showToast(`⚠️ لا يمكن حذف ${rider.name} لوجود طلب جاري مكلف به حالياً`);
             return;
         }
+        if (!window.confirm(`هل أنت متأكد من حذف المندوب "${rider.name}" من الأسطول؟`)) return;
         appState.riders = appState.riders.filter(r => r.id !== id);
         if (uiState.riderFilter === id) uiState.riderFilter = 'all';
         saveData();
@@ -1986,12 +2145,13 @@ document.addEventListener('click', (e) => {
             m.classList.remove('flex');
         }
     } else if (action === 'reset-demo') {
-        resetDemoData(true);
+        resetAllDataSafely();
     } else if (action === 'print-report') {
         window.print();
     } else if (action === 'export-csv') {
         exportMonthlyCSV();
     } else if (action === 'delete-expense') {
+        if (!window.confirm('هل أنت متأكد من حذف هذا المصروف؟')) return;
         appState.expenses = appState.expenses.filter(ex => ex.id !== id);
         saveData();
         renderAll();
@@ -2043,6 +2203,7 @@ document.addEventListener('click', (e) => {
             showToast(`📦 تم تسليم المرتجع #${order.id} للمتجر وعودة المندوب للمكتب (نُقل للأرشيف)`);
         }
     } else if (action === 'delete-order') {
+        if (!window.confirm(`⚠️ هل أنت متأكد من حذف الطلب #${id} نهائياً؟`)) return;
         appState.orders = appState.orders.filter(o => o.id !== id);
         syncRidersAvailability();
         saveData();
@@ -2073,6 +2234,63 @@ document.addEventListener('click', (e) => {
 });
 
 // ==================== FORM & SEARCH LISTENERS ====================
+document.getElementById('form-unlock-system').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const entered = document.getElementById('input-unlock-pin').value.trim();
+    const errEl = document.getElementById('unlock-error-msg');
+    if (entered === getStoredPin()) {
+        sessionStorage.setItem(SESSION_UNLOCK_KEY, 'true');
+        errEl.classList.add('hidden');
+        document.getElementById('auth-lock-screen').classList.add('hidden');
+        showToast('🔓 تم فتح النظام بنجاح');
+    } else {
+        errEl.classList.remove('hidden');
+        document.getElementById('input-unlock-pin').value = '';
+    }
+});
+
+document.getElementById('form-change-pin').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const newPin = document.getElementById('input-new-pin').value.trim();
+    if (newPin.length < 4) {
+        showToast('⚠️ يجب أن يتكون الرمز من 4 أرقام على الأقل');
+        return;
+    }
+    localStorage.setItem(PIN_STORAGE_KEY, newPin);
+    document.getElementById('input-new-pin').value = '';
+    showToast('🔑 تم تحديث رمز الدخول السري بنجاح');
+});
+
+document.getElementById('input-restore-backup').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    handleRestoreBackupFile(file);
+    e.target.value = '';
+});
+
+document.getElementById('form-edit-order').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const id = document.getElementById('edit-order-id').value;
+    const order = appState.orders.find(o => o.id === id);
+    if (!order) return;
+
+    order.riderId = document.getElementById('edit-order-rider').value;
+    order.customerName = document.getElementById('edit-order-customer').value.trim();
+    order.phone = document.getElementById('edit-order-phone').value.trim();
+    order.address = document.getElementById('edit-order-address').value.trim();
+    order.items = document.getElementById('edit-order-items').value.trim();
+    order.amount = Number(document.getElementById('edit-order-amount').value) || 0;
+    order.fee = Number(document.getElementById('edit-order-fee').value) || 0;
+
+    syncRidersAvailability();
+    saveData();
+    renderAll();
+
+    const modal = document.getElementById('modal-edit-order');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    showToast(`✅ تم تحديث بيانات الطلب #${order.id}`);
+});
+
 document.getElementById('input-order-store').addEventListener('change', (e) => {
     const st = getStore(e.target.value);
     document.getElementById('input-order-fee').value = st.fee;
@@ -2122,17 +2340,18 @@ document.getElementById('form-new-order').addEventListener('submit', (e) => {
         return;
     }
 
+    const activeD = getActiveShiftDate();
     let receivedTs = Date.now();
     if (manualTime) {
         const [hh, mm] = manualTime.split(':').map(Number);
-        const d = new Date();
-        d.setHours(hh, mm, 0, 0);
+        const [sy, sm, sd] = activeD.split('-').map(Number);
+        const d = new Date(sy, sm - 1, sd, hh, mm, 0, 0);
         receivedTs = d.getTime();
     }
 
     const newOrder = {
         id: `W-${appState.nextOrderNum++}`,
-        dateStr: getActiveShiftDate(),
+        dateStr: activeD,
         storeId,
         customerName,
         address,
@@ -2171,11 +2390,13 @@ document.getElementById('form-return-order').addEventListener('submit', (e) => {
     const order = appState.orders.find(o => o.id === orderId);
     if (!order) return;
 
+    const fullReason = reasonNote ? `${reasonSel} — ${reasonNote}` : reasonSel;
     const now = Date.now();
     if (!order.departedTs) order.departedTs = now;
+
     order.status = 'returning';
     order.returnedTs = now;
-    order.returnReason = reasonNote ? `${reasonSel} — ${reasonNote}` : reasonSel;
+    order.returnReason = fullReason;
 
     if (feeMode === 'zero') {
         order.fee = 0;
@@ -2190,7 +2411,7 @@ document.getElementById('form-return-order').addEventListener('submit', (e) => {
     const modal = document.getElementById('modal-return-order');
     modal.classList.add('hidden');
     modal.classList.remove('flex');
-    showToast(`↩️ تم تحويل الطلب #${order.id} إلى مرتجع (${order.returnReason})`);
+    showToast(`↩️ تم تحويل الطلب #${order.id} إلى مرتجع — جاري إعادته للمتجر`);
 });
 
 document.getElementById('form-close-day').addEventListener('submit', (e) => {
@@ -2202,25 +2423,29 @@ document.getElementById('form-close-day').addEventListener('submit', (e) => {
     const dayOrders = appState.orders.filter(o => o.dateStr === closingDate);
     const daySettled = dayOrders.filter(o => isOrderSuccessfullySettled(o));
     const dayArchived = dayOrders.filter(o => isOrderArchived(o));
-    const settledCash = daySettled.reduce((s, o) => s + Number(o.amount), 0);
-    const revenue = dayArchived.reduce((s, o) => s + Number(o.fee), 0);
-    const expenses = appState.expenses.filter(ex => ex.dateStr === closingDate).reduce((s, ex) => s + Number(ex.amount), 0);
+    const rev = dayArchived.reduce((s, o) => s + Number(o.fee), 0);
+    const cash = daySettled.reduce((s, o) => s + Number(o.amount), 0);
+    const exp = appState.expenses.filter(ex => ex.dateStr === closingDate).reduce((s, ex) => s + Number(ex.amount), 0);
 
     appState.closedDays.unshift({
-        id: 'CLOSE-' + Date.now(),
         dateStr: closingDate,
         closedAt: Date.now(),
         ordersCount: dayOrders.length,
         settledCount: daySettled.length,
-        settledCash,
-        revenue,
-        expenses,
-        netProfit: revenue - expenses
+        settledCash: cash,
+        revenue: rev,
+        expenses: exp,
+        netProfit: rev - exp
     });
 
     appState.activeDate = nextDate;
     uiState.archiveDateFilter = nextDate;
     uiState.reportMonth = nextDate.slice(0, 7);
+
+    const expDateInp = document.getElementById('exp-date');
+    if (expDateInp) expDateInp.value = nextDate;
+    const monthPicker = document.getElementById('report-month-picker');
+    if (monthPicker) monthPicker.value = uiState.reportMonth;
 
     saveData();
     renderAll();
@@ -2228,80 +2453,12 @@ document.getElementById('form-close-day').addEventListener('submit', (e) => {
     const modal = document.getElementById('modal-close-day');
     modal.classList.add('hidden');
     modal.classList.remove('flex');
-    showToast(`🔒 تم إقفال يومية ${closingDate} وبدء يوم جديد (${nextDate})`);
-});
-
-document.getElementById('archive-date-picker').addEventListener('change', (e) => {
-    uiState.archiveDateFilter = e.target.value;
-    renderArchive();
-});
-
-document.getElementById('form-new-expense').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const title = document.getElementById('exp-title').value.trim();
-    const category = document.getElementById('exp-category').value;
-    const amount = Number(document.getElementById('exp-amount').value) || 0;
-    const riderId = document.getElementById('exp-rider').value;
-    const dateStr = document.getElementById('exp-date').value || getActiveShiftDate();
-    const notes = document.getElementById('exp-notes').value.trim();
-
-    appState.expenses.unshift({
-        id: 'EXP-' + Date.now(),
-        dateStr,
-        title,
-        category,
-        amount,
-        riderId,
-        notes
-    });
-    saveData();
-    renderAll();
-
-    document.getElementById('exp-title').value = '';
-    document.getElementById('exp-amount').value = '';
-    document.getElementById('exp-notes').value = '';
-    showToast(`💸 تم تسجيل مصروف "${title}" بقيمة ${amount} ج.م`);
-});
-
-document.getElementById('report-month-picker').addEventListener('change', (e) => {
-    uiState.reportMonth = e.target.value || getCurrentMonthStr();
-    renderAccounting();
-});
-
-document.getElementById('filter-expense-cat').addEventListener('change', (e) => {
-    uiState.expenseCatFilter = e.target.value;
-    renderAccounting();
-});
-
-document.getElementById('form-new-store').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const name = document.getElementById('input-store-name').value.trim();
-    const category = document.getElementById('input-store-category').value;
-    const fee = Number(document.getElementById('input-store-fee').value) || 25;
-    const phone = document.getElementById('input-store-phone').value.trim();
-    const address = document.getElementById('input-store-address').value.trim();
-
-    appState.stores.push({
-        id: 'S' + Date.now(),
-        name,
-        category,
-        fee,
-        phone,
-        address
-    });
-    saveData();
-    renderAll();
-
-    e.target.reset();
-    const modal = document.getElementById('modal-new-store');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-    showToast(`تمت إضافة ${name} إلى المتاجر المتعاقدة`);
+    showToast(`🔒 تم إقفال يوم ${closingDate} وفتح يوم جديد (${nextDate})`);
 });
 
 document.getElementById('form-rider').addEventListener('submit', (e) => {
     e.preventDefault();
-    const editId = document.getElementById('input-rider-id').value;
+    const editId = document.getElementById('input-rider-id').value.trim();
     const name = document.getElementById('input-rider-name').value.trim();
     const bike = document.getElementById('input-rider-bike').value.trim();
     const plate = document.getElementById('input-rider-plate').value.trim();
@@ -2314,27 +2471,87 @@ document.getElementById('form-rider').addEventListener('submit', (e) => {
             rider.bike = bike;
             rider.plate = plate;
             rider.phone = phone;
-            showToast(`✅ تم تحديث بيانات المندوب ${name}`);
+            saveData();
+            renderAll();
+            showToast(`✅ تم تحديث بيانات المندوب: ${name}`);
         }
     } else {
-        appState.riders.push({
-            id: 'R' + Date.now(),
+        const newRider = {
+            id: `r${Date.now()}`,
             name,
             bike,
             plate,
             phone,
             status: 'available'
-        });
-        showToast(`🏍️ تمت إضافة المندوب ${name} إلى الأسطول`);
+        };
+        appState.riders.push(newRider);
+        saveData();
+        renderAll();
+        showToast(`🏍️ تم إضافة المندوب الجديد: ${name}`);
     }
 
+    e.target.reset();
+    document.getElementById('input-rider-id').value = '';
+    const modal = document.getElementById('modal-rider');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+});
+
+document.getElementById('form-new-store').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const newStore = {
+        id: `s${Date.now()}`,
+        name: document.getElementById('input-store-name').value.trim(),
+        category: document.getElementById('input-store-category').value,
+        fee: Number(document.getElementById('input-store-fee').value) || 25,
+        phone: document.getElementById('input-store-phone').value.trim(),
+        address: document.getElementById('input-store-address').value.trim()
+    };
+    appState.stores.push(newStore);
     saveData();
     renderAll();
 
     e.target.reset();
-    const modal = document.getElementById('modal-rider');
+    const modal = document.getElementById('modal-new-store');
     modal.classList.add('hidden');
     modal.classList.remove('flex');
+    showToast(`تمت إضافة المتجر "${newStore.name}"`);
+});
+
+document.getElementById('form-new-expense').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const newExp = {
+        id: `e${Date.now()}`,
+        dateStr: document.getElementById('exp-date').value || getActiveShiftDate(),
+        category: document.getElementById('exp-category').value,
+        title: document.getElementById('exp-title').value.trim(),
+        amount: Number(document.getElementById('exp-amount').value) || 0,
+        riderId: document.getElementById('exp-rider').value,
+        notes: document.getElementById('exp-notes').value.trim()
+    };
+    appState.expenses.unshift(newExp);
+    saveData();
+    renderAll();
+
+    document.getElementById('exp-title').value = '';
+    document.getElementById('exp-amount').value = '';
+    document.getElementById('exp-notes').value = '';
+    showToast(`💸 تم تسجيل مصروف (${newExp.title}) بقيمة ${newExp.amount} ج.م`);
+});
+
+document.getElementById('report-month-picker').addEventListener('change', (e) => {
+    uiState.reportMonth = e.target.value || getCurrentMonthStr();
+    renderAccounting();
+});
+
+document.getElementById('filter-expense-cat').addEventListener('change', (e) => {
+    uiState.expenseCatFilter = e.target.value;
+    renderAccounting();
+});
+
+document.getElementById('archive-date-picker').addEventListener('change', (e) => {
+    uiState.archiveDateFilter = e.target.value;
+    renderArchive();
 });
 
 document.getElementById('search-input').addEventListener('input', () => {
@@ -2345,20 +2562,21 @@ document.getElementById('search-input').addEventListener('input', () => {
     }
 });
 
-// ==================== INIT & LIVE TIMER ====================
+// ==================== LIVE CLOCK & AUTO REFRESH ====================
+function updateClock() {
+    const el = document.getElementById('live-clock');
+    if (el) el.textContent = formatTime12(Date.now());
+}
+
+initAuthLock();
+updateClock();
 renderAll();
 initCloudSync();
 
-let seconds = 0;
-const tick = () => {
-    const clock = document.getElementById('live-clock');
-    if (clock) clock.textContent = formatTime12(Date.now());
-    seconds++;
-    if (seconds % 30 === 0) {
-        renderFleetRibbon();
+setInterval(updateClock, 15000);
+setInterval(() => {
+    if (uiState.activeTab === 'operations') {
         renderOrdersBoardAndTable();
-        renderRiders();
+        renderFleetRibbon();
     }
-};
-tick();
-setInterval(tick, 1000);
+}, 20000);

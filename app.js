@@ -37,18 +37,23 @@ function applyUiPreferences() {
     if (themeButton) themeButton.textContent = theme === 'dark' ? '☀️' : '🌙';
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     while (walker.nextNode()) {
-        const node = walker.currentNode;
-        if (node.__wassalOriginal === undefined) node.__wassalOriginal = node.nodeValue;
-        const original = node.__wassalOriginal.trim();
-        const translated = lang === 'en' ? UI_TRANSLATIONS[original] : null;
-        if (translated) node.nodeValue = node.__wassalOriginal.replace(original, translated);
-        else if (lang === 'ar') node.nodeValue = node.__wassalOriginal;
+        applyLanguageToTextNode(walker.currentNode, lang);
     }
+}
+function applyLanguageToTextNode(node, lang = document.documentElement.lang) {
+    if (node.__wassalOriginal === undefined) node.__wassalOriginal = node.nodeValue;
+    const original = node.__wassalOriginal.trim();
+    const translated = lang === 'en' ? UI_TRANSLATIONS[original] : null;
+    const nextValue = translated
+        ? node.__wassalOriginal.replace(original, translated)
+        : node.__wassalOriginal;
+    if (node.nodeValue !== nextValue) node.nodeValue = nextValue;
 }
 document.addEventListener('click', event => {
     if (event.target.closest('#language-toggle')) {
-        localStorage.setItem('wassal_language', document.documentElement.lang === 'ar' ? 'en' : 'ar');
-        location.reload();
+        const nextLanguage = document.documentElement.lang === 'ar' ? 'en' : 'ar';
+        localStorage.setItem('wassal_language', nextLanguage);
+        applyUiPreferences();
     }
     if (event.target.closest('#theme-toggle')) {
         const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
@@ -59,20 +64,14 @@ document.addEventListener('click', event => {
 document.addEventListener('DOMContentLoaded', applyUiPreferences);
 document.addEventListener('DOMContentLoaded', () => {
     new MutationObserver(records => {
-        if (document.documentElement.lang !== 'en') return;
         records.forEach(record => {
             const nodes = record.type === 'characterData' ? [record.target] : [...record.addedNodes];
             nodes.forEach(node => {
                 if (node.nodeType === Node.TEXT_NODE) {
-                    const key = node.nodeValue.trim();
-                    if (UI_TRANSLATIONS[key]) node.nodeValue = node.nodeValue.replace(key, UI_TRANSLATIONS[key]);
+                    applyLanguageToTextNode(node);
                 } else if (node.nodeType === Node.ELEMENT_NODE) {
                     const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
-                    while (walker.nextNode()) {
-                        const textNode = walker.currentNode;
-                        const key = textNode.nodeValue.trim();
-                        if (UI_TRANSLATIONS[key]) textNode.nodeValue = textNode.nodeValue.replace(key, UI_TRANSLATIONS[key]);
-                    }
+                    while (walker.nextNode()) applyLanguageToTextNode(walker.currentNode);
                 }
             });
         });

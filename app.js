@@ -2,7 +2,7 @@ let fb = null;
 let isFirestoreConnected = false;
 let unsubscribers = [];
 
-// User preferences and a lightweight bilingual shell. Text remains Arabic by default.
+// User preferences and bilingual interface translation. Arabic remains the default.
 const UI_TRANSLATIONS = {
     'غرفة العمليات ومتابعة الطلبات الجارية': 'Operations and active orders',
     'اليوم المفتوح:': 'Open day:', 'فتح القائمة الرئيسية': 'Open main menu',
@@ -25,12 +25,249 @@ const UI_TRANSLATIONS = {
     'إدارة كاملة للأسطول وكشوف أداء لكل مندوب': 'Manage the fleet and view rider performance',
     'قائمة الدخل اليومية والشهرية، إدارة المصروفات، وتصدير التقارير المحمية': 'Daily and monthly income, expenses, and protected report exports'
 };
+Object.assign(UI_TRANSLATIONS, {
+    '(-) إجمالي مصروفات التشغيل اليوم': '(-) Total operating expenses today',
+    '(-) إجمالي مصروفات الشهر (': '(-) Total monthly expenses (',
+    '(+) إيرادات التوصيل الشهرية (': '(+) Monthly delivery revenue (',
+    '(+) إيرادات التوصيل المحققة اليوم': '(+) Delivery revenue collected today',
+    '(=) صافي الربح الشهري': '(=) Net monthly profit', '(=) صافي ربح اليومية': '(=) Net shift profit',
+    '• الكل:': '• All:', '• مساهمة': '• Contribution', '• مصروف:': '• Expense:',
+    '+ إضافة متجر جديد': '+ Add store', '+ إضافة مندوب جديد': '+ Add rider',
+    '+ إنشاء حساب موظف / أدمن جديد': '+ Create staff/admin account', '+ تسجيل أوردر جديد': '+ New order',
+    '+ تسجيل مصروف': '+ Add expense', '+ لقطة فورية': '+ Snapshot now',
+    '● 0 بالمكتب': '● 0 available', '● 0 في مهمة': '● 0 on delivery',
+    '⚠️ بيانات الدخول غير صحيحة': '⚠️ Invalid login details', '0 أوردر': '0 orders',
+    '0 استلام': '0 received', '0 توريد': '0 settled', '0 طريق': '0 en route',
+    '1. تم الاستلام': '1. Received', '1. تم الاستلام من المتجر': '1. Picked up from store',
+    '2. في الطريق': '2. En route', '2. في الطريق (للعميل)': '2. On the way to customer',
+    '3. تسليم / مرتجع': '3. Delivered / returned', '3. تسليم / مرتجع (بانتظار التوريد)': '3. Delivered / returned (awaiting settlement)',
+    'آخر 7 أيام': 'Last 7 days', 'أدخل البريد الإلكتروني وكلمة المرور المعتمدة': 'Enter your authorized email and password',
+    'أدمن': 'Admin', 'أوردر ناجح)': 'successful orders)', 'أوردرات الشهر': 'Monthly orders',
+    'أوردرات اليوم': 'Today’s orders', 'أوردرات اليوم / الشهر': 'Orders today / this month',
+    'أوردرات جارية الآن': 'Active orders', 'إجراءات': 'Actions', 'إجمالي الأصناف (ج.م) *': 'Items total (EGP) *',
+    'إجمالي طلبات اليوم': 'Total orders today', 'إحصائيات المندوب': 'Rider statistics',
+    'إدارة المستخدمين والصلاحيات والنسخ': 'Users, permissions, and backups',
+    'إدارة وتسجيل المصروفات التشغيلية': 'Manage and record operating expenses',
+    'إرسال الكشف للمتجر (واتساب)': 'Send statement to store (WhatsApp)',
+    'إضافة متجر / مطعم جديد': 'Add a store / restaurant', 'إغلاق': 'Close', 'إقفال اليوم': 'Close shift',
+    'إقفال اليوم الحالي وبدء يوم جديد': 'Close current shift and start a new day', 'إلغاء': 'Cancel',
+    'إنترنت واتصالات': 'Internet and communications', 'إنشاء الحساب وتفعيل الصلاحية فوراً': 'Create account and activate permissions',
+    'إنشاء حسابات جديدة للموظفين وتحديد صلاحياتهم والنسخ الاحتياطي': 'Create staff accounts, set permissions, and manage backups',
+    'إيجار ومرافق مكتب': 'Office rent and utilities', 'إيراد التوصيل': 'Delivery revenue', 'إيراد توصيل وصّل': 'WASSAL delivery revenue',
+    'إيراد:': 'Revenue:', 'إيرادات توصيل اليوم': 'Delivery revenue today',
+    'احتساب رسوم التوصيل كاملة على المتجر': 'Charge the full delivery fee to the store',
+    'احتساب نصف رسوم التوصيل (50%)': 'Charge half of the delivery fee (50%)', 'استعادة من ملف': 'Restore from file',
+    'استعراض': 'Browse', 'اسم العميل *': 'Customer name *', 'اسم المتجر': 'Store name', 'اسم المتجر *': 'Store name *',
+    'اسم المندوب (الطيار) *': 'Rider name *', 'اسم الموظف *': 'Employee name *', 'اضغط (+) لإضافة صنف': 'Click (+) to add an item',
+    'اضغط على أي مندوب لعرض كشف أدائه، أو قم بإضافة/تعديل بيانات الطيارين': 'Select a rider to view performance, or add/edit rider details',
+    'الأرشيف وإقفال اليوم': 'Archive and shift closing', 'الأصناف': 'Items', 'الأكثر عملاً (التاجر #1)': 'Top store (#1)',
+    'الأكثر نشاطاً:': 'Most active:', 'الإجمالي': 'Total', 'البريد الإلكتروني': 'Email address',
+    'البريد الإلكتروني للدخول *': 'Login email *', 'التاريخ': 'Date', 'التحصيل والتوصيل': 'Collections and delivery',
+    'الترتيب': 'Ranking', 'التشغيل': 'Operations', 'التصنيف': 'Category', 'التصنيف *': 'Category *',
+    'التوقيتات': 'Timestamps', 'التوقيتات الكاملة للطلب، التعديل، ورسالة الواتساب': 'Full order, edit, and WhatsApp timestamps',
+    'الجدول السريع': 'Quick table', 'الحالة': 'Status', 'الشهر': 'Month', 'الشهر الحالي': 'Current month',
+    'الشهر المحدد': 'Selected month', 'الصلاحية *': 'Role *', 'العميل ألغى الطلب عند الوصول': 'Customer cancelled on arrival',
+    'العميل لا يرد على الهاتف': 'Customer is not answering', 'العميل والأصناف': 'Customer and items',
+    'العنوان بالتفصيل *': 'Full address *', 'العنوان غير واضح أو خارج النطاق': 'Address unclear or outside delivery area',
+    'الفترة الزمنية:': 'Date range:', 'الكل': 'All', 'المبلغ': 'Amount', 'المتأخرة (+35د)': 'Overdue (+35 min)',
+    'المتاجر الأكثر عملاً': 'Top stores', 'المتاجر المتعاقدة وترتيب الأكثر عملاً': 'Partner stores and rankings',
+    'المتجر': 'Store', 'المتجر / المطعم *': 'Store / restaurant *', 'المحاسبة والمصروفات': 'Accounting and expenses',
+    'المرحلة': 'Stage', 'المستخدمون المسجلون وتعديل صلاحياتهم': 'Registered users and role management',
+    'المستخدمين والنسخ': 'Users and backups', 'المصروفات': 'Expenses', 'المناديب المتاحين بالمكتب': 'Available riders',
+    'المناديب والموتوسيكلات': 'Riders and motorcycles', 'المندوب': 'Rider', 'المندوب / الجهة': 'Rider / payee',
+    'المندوب المكلف (المتاح بالمكتب فقط) *': 'Assigned rider (available riders only) *', 'الموتوسيكل': 'Motorcycle',
+    'الموتوسيكل واللوحة': 'Motorcycle and plate', 'الموردة / المرتجعة': 'Settled / returned',
+    'الموظف / المستخدم': 'Employee / user', 'النسخ الاحتياطي المحلي (JSON)': 'Local backup (JSON)', 'الهدف': 'Target',
+    'الوقت والتاريخ': 'Time and date', 'اليوم': 'Day', 'اليوم المفتوح': 'Open day', 'اليوم المفتوح حالياً:': 'Current open day:',
+    'اليوم المفتوح:': 'Open day:', 'بند)': 'item)', 'بنزين ووقود موتوسيكلات': 'Motorcycle fuel',
+    'بنزين، صيانة موتوسيكلات، باقات إنترنت، رواتب، مطبوعات (للمدير فقط)': 'Fuel, maintenance, internet, payroll, and printing (admin only)',
+    'بيان المصروف': 'Expense description', 'تأخر تجهيز الطلب من المتجر': 'Store prepared the order late',
+    'تأكيد إقفال اليوم وبدء الجديد': 'Confirm shift closing and start the next day',
+    'تأكيد المرتجع وإعادته للمتجر': 'Confirm return and send it back to the store',
+    'تاريخ اليوم الجديد الذي سيبدأ العمل به *': 'Start date for the new day *', 'تاريخ اليومية': 'Shift date',
+    'تاريخ اليومية:': 'Shift date:', 'تحميل نسخة احتياطية': 'Download backup', 'تحويل / تعيين المندوب *': 'Assign / reassign rider *',
+    'ترتيب تلقائي للمطاعم والصيدليات والسوبرماركت حسب حجم الأوردرات وكشف حساب لكل متجر': 'Rank stores by order volume and view each store statement',
+    'تسجيل أوردر جديد (تم الاستلام)': 'Create order (received)', 'تسجيل الاستلام الآن': 'Record pickup now',
+    'تسجيل الدخول للنظام': 'Sign in', 'تسجيل الطلب كمرتجع': 'Mark order as returned', 'تسويق ومطبوعات': 'Marketing and printing',
+    'تصدير Excel / CSV': 'Export Excel / CSV', 'تصفية محاسبية معتمدة مع نسخة احتياطية تلقائية': 'Finalize accounts with an automatic backup',
+    'تصفير النظام': 'Reset system', 'تعديل الطلب أو تحويله لمندوب آخر': 'Edit order or reassign rider',
+    'تفاصيل إضافية للسبب (اختياري)': 'Additional details (optional)', 'تفاصيل التغيير': 'Change details',
+    'تقرير إنتاجية المناديب ومعدل السرعة': 'Rider productivity and delivery speed report',
+    'تقرير المتاجر وترتيب الأكثر عملاً': 'Store activity and ranking report', 'تقفيل شهري': 'Monthly closing', 'تقفيل يومي': 'Daily closing',
+    'جاهزية الأسطول': 'Fleet availability', 'حالة المناديب اللحظية (اضغط على المندوب لفلترة طلباته):': 'Live rider status (select a rider to filter orders):',
+    'حذف': 'Delete', 'حفظ التعديلات': 'Save changes', 'حفظ المتجر': 'Save store', 'حفظ بيانات المندوب': 'Save rider',
+    'حلويات ومخبوزات': 'Desserts and bakery', 'خروج': 'Sign out', 'دخول النظام': 'Sign in',
+    'رسوم التوصيل (للأدمن)': 'Delivery fee (admin)', 'رسوم التوصيل *': 'Delivery fee *', 'رسوم التوصيل الافتراضية *': 'Default delivery fee *',
+    'رقم الطلب': 'Order number', 'رقم الطلب:': 'Order number:', 'رقم اللوحة المعدنية *': 'License plate *',
+    'رقم هاتف المندوب (اختياري)': 'Rider phone (optional)', 'رواتب وحوافز': 'Payroll and incentives',
+    'سبب آخر (اكتبه بالأسفل)': 'Other reason (enter below)', 'سبب عدم الاستلام / الإرجاع *': 'Reason for failed pickup / return *',
+    'سجل الأوقات': 'Timeline', 'سجل التدقيق والرقابة': 'Audit and monitoring',
+    'سجل غير قابل للتعديل أو الحذف يوثّق كل عملية تعديل أو حذف أو إقفال يومية ومن قام بها وتوقيتها.': 'An immutable log of edits, deletions, and shift closings, including who performed them and when.',
+    'سوبرماركت': 'Supermarket', 'شهر التقرير المحاسبي:': 'Accounting report month:', 'صافي الربح': 'Net profit',
+    'صافي ربح اليوم (المُحصّل)': 'Collected net profit today', 'صيانة وقطع غيار': 'Maintenance and spare parts',
+    'صيدلية': 'Pharmacy', 'طباعة التقرير الشهري': 'Print monthly report', 'طباعة الكشف': 'Print statement', 'عرض الكل': 'Show all',
+    'عرض جميع المناديب': 'Show all riders', 'عنوان التوصيل بالتفصيل *': 'Full delivery address *', 'عنوان المتجر *': 'Store address *',
+    'عُهدة التجار الموردة': 'Merchant settlements', 'عُهدة بضائع موردة للتجار اليوم (خارج الإيراد):': 'Goods settled to merchants today (not revenue):',
+    'عُهدة بضائع موردة للتجار خلال الشهر:': 'Goods settled to merchants this month:',
+    'غرفة العمليات (الجاري)': 'Operations (active)', 'قيمة الأوردر للمتجر (للأدمن)': 'Order value for store (admin)',
+    'كشف حساب وتصفية المتجر': 'Store statement and settlement', 'كل الجارية': 'All active', 'كل بنود المصروفات': 'All expense categories',
+    'كلمة المرور': 'Password', 'كلمة المرور (6 أحرف على الأقل) *': 'Password (at least 6 characters) *',
+    'لقطات النسخ الاحتياطي السحابية': 'Cloud backups', 'لوحة المتابعة (3 مراحل)': 'Operations board (3 stages)',
+    'مبالغ موردة للتجار': 'Merchant settlements', 'مبالغ موردة للمتاجر': 'Settled to stores', 'مبيعات موردة (الشهر)': 'Monthly settled sales',
+    'متوسط زمن التوصيل': 'Average delivery time', 'محتويات الأوردر وسعر كل صنف *': 'Order items and price per item *',
+    'محمي على مستوى السيرفر': 'Server protected', 'مدير نظام (صلاحيات كاملة)': 'Administrator (full access)',
+    'مرتب تنازلياً حسب عدد الأوردرات': 'Sorted by order count, descending', 'مرتجع مجاني (0 ج.م رسوم توصيل)': 'Free return (EGP 0 delivery fee)',
+    'مسح جميع البيانات من قاعدة البيانات نهائياً': 'Permanently delete all database data', 'مصروفات نثرية أخرى': 'Other expenses',
+    'مطعم': 'Restaurant', 'ملخص قائمة الدخل — الشهرية': 'Monthly income summary', 'ملخص قائمة الدخل — اليومية': 'Daily income summary',
+    'منطقة الخطر (للأدمن فقط)': 'Danger zone (admin only)', 'موظف عمليات (تسجيل ومتابعة فقط)': 'Operations staff (record and track only)',
+    'موقف رسوم التوصيل للمرتجع:': 'Delivery fee for returned order:', 'ناجح / مرتجع': 'Delivered / returned',
+    'نجم الشهر: —': 'Rider of the month: —', 'نجم اليوم: —': 'Rider of the day: —', 'نسبة المساهمة': 'Contribution rate',
+    'نوع العملية': 'Action type', 'نوع الموتوسيكل *': 'Motorcycle type *', 'هاتف العميل *': 'Customer phone *',
+    'هاتف العميل مغلق أو غير متاح': 'Customer phone is off or unavailable', 'هاتف المتجر *': 'Store phone *',
+    'هامش الربح: 0%': 'Profit margin: 0%', 'وردية اليوم': 'Today’s shift', 'وقت الإقفال': 'Closing time', 'وقت الاستلام': 'Pickup time',
+    'يتم احتساب الإيراد وصافي الربح عند الإقفال من الطلبات المغلقة فعلياً فقط، مع حفظ لقطة احتياطية تلقائية قبل الإقفال.': 'Revenue and net profit use only orders actually closed. An automatic backup is saved before closing.',
+    'يُسجل على يوم:': 'Recorded for day:',
+    'إضافة صنف آخر': 'Add another item', 'اسم الصنف': 'Item name', 'الحي - الشارع - علامة مميزة': 'District - street - landmark',
+    'السعر': 'Price', 'الشارع والمنطقة': 'Street and area', 'المبلغ (ج.م)': 'Amount (EGP)',
+    'بيان المصروف (مثال: تفويل بنزين 92)': 'Expense description (e.g. motorcycle fuel)',
+    'مثال: أ. محمود سالم': 'Example: Mahmoud Salem', 'مثال: أحمد علي': 'Example: Ahmed Ali',
+    'مثال: بجاج بوكسر 150': 'Example: Bajaj Boxer 150', 'مثال: تم الاتصال 4 مرات دون رد...': 'Example: Called 4 times with no answer...',
+    'مثال: س أ 734': 'Example: AB 734', 'مثال: عبد الرحمن سامي': 'Example: Abdelrahman Sami',
+    'مثال: مطعم البركة': 'Example: Al Baraka Restaurant', 'ملاحظات إضافية اختيارية...': 'Optional additional notes...',
+    'لا توجد طلبات مسجلة في هذا التاريخ': 'No orders recorded on this date',
+    'لم يتم إقفال أي يومية سابقة بعد.': 'No previous shifts have been closed yet.',
+    'لا توجد طلبات جارية مطابقة': 'No matching active orders', 'لا توجد نتائج مطابقة لبحث': 'No results match your search',
+    'لا توجد سجلات تدقيق مسجلة بعد.': 'No audit records yet.', 'لا يوجد مناديب مضافين بعد': 'No riders added yet',
+    'لا يوجد مناديب مسجلون حالياً.': 'No riders registered yet.', 'لا توجد متاجر مسجلة حالياً.': 'No stores registered yet.',
+    'لا توجد مصروفات مطابقة': 'No matching expenses', 'لا توجد متاجر مسجلة بعد': 'No stores registered yet',
+    'لا يوجد مناديب مسجلون بعد': 'No riders registered yet', 'هذا السجل متاح لمدير النظام فقط': 'This log is available to administrators only',
+    '⛔ هذا السجل متاح لمدير النظام فقط': '⛔ This log is available to administrators only',
+    '⛔ سجل التدقيق متاح لمدير النظام فقط': '⛔ Audit log is available to administrators only',
+    '⛔ إقفال اليومية متاح لمدير النظام فقط': '⛔ Only administrators can close shifts',
+    '⛔ الحذف متاح لمدير النظام فقط': '⛔ Only administrators can delete records',
+    '⚠️ تعذر الحفظ على السيرفر — تحقق من الصلاحيات أو الاتصال': '⚠️ Could not save to server. Check your permissions or connection.',
+    '⚠️ تعذر الحذف من السيرفر': '⚠️ Could not delete from server',
+    '⚠️ فشل تسجيل الطلب على السيرفر — تأكد من الاتصال والصلاحيات': '⚠️ Could not create order. Check your connection and permissions.',
+    '⚠️ لا يوجد مناديب متاحين حالياً بالمكتب': '⚠️ No riders are currently available',
+    '⚠️ يرجى اختيار أو إضافة متجر أولاً': '⚠️ Select or add a store first',
+    '⚠️ هذا المندوب لم يعد متاحاً، يرجى اختيار مندوب متاح بالمكتب': '⚠️ This rider is no longer available. Select another rider.',
+    '⚠️ حدث خطأ أثناء تصفير البيانات': '⚠️ An error occurred while resetting the data',
+    '✅ تم حفظ نسخة احتياطية وتصفير قاعدة البيانات بالكامل': '✅ Backup saved and database reset',
+    '👑 مدير النظام': '👑 System administrator', '🎧 موظف عمليات': '🎧 Operations staff',
+    '— شهر ': '— month ', 'مرتجع:': 'Returned:', 'في مهمة': 'on delivery', 'بالمكتب': 'available',
+    'طريق': 'en route', 'استلام': 'pickup', 'توريد': 'settled', 'ج.م': 'EGP', 'أوردر': 'order',
+    'أوردرات': 'orders', 'مندوب': 'rider', 'مناديب': 'riders', 'المتجر': 'store', 'المتاجر': 'stores',
+    'الموظف': 'employee', 'المصروفات': 'expenses', 'مصروفات': 'expenses', 'مصروف': 'expense',
+    'التوصيل': 'delivery', 'إيراد': 'revenue', 'الربح': 'profit', 'اليوم': 'today', 'الشهر': 'month',
+    'الحالة': 'status', 'العميل': 'customer', 'الطلب': 'order', 'الطلبات': 'orders', 'مرتجع': 'returned',
+    'مرتجعات': 'returns', 'الكل': 'all', 'متاح': 'available', 'مشغول': 'busy', 'دقيقة': 'min', 'ساعة': 'hr'
+});
+Object.assign(UI_TRANSLATIONS, {
+    '0 ج.م': 'EGP 0', 'سجل اليوميات المقفلة السابقة': 'Previously closed shifts', 'مورد اليوم:': 'Settled today:',
+    'وصّل .. هتشوف الفرق': 'WASSAL — See the difference',
+    '⚠️ هذا المندوب تم تكليفه بطلب آخر للتو! اختر مندوباً متاحاً.': '⚠️ This rider was just assigned another order. Choose an available rider.',
+    '⛔ تصفير النظام متاح لمدير النظام فقط': '⛔ Only administrators can reset the system',
+    '✅ تم حفظ نسخة احتياطية وتصفير قاعدة البيانات بالكامل': '✅ Backup saved and database reset',
+    '⛔ إقفال اليومية متاح لمدير النظام فقط': '⛔ Only administrators can close shifts',
+    '💾 تم تحميل النسخة الاحتياطية الكاملة بنجاح': '💾 Full backup downloaded',
+    '⛔ استعادة النسخة الاحتياطية متاحة لمدير النظام فقط': '⛔ Only administrators can restore backups',
+    '✅ تم التحقق من البيانات واستعادتها للسحابة بنجاح': '✅ Data validated and restored to the cloud',
+    '⚠️ تعذر قراءة أو رفع ملف النسخة الاحتياطية': '⚠️ Could not read or upload the backup file',
+    '🔓 مرحباً بك في نظام وصّل المؤمّن': '🔓 Welcome to the secure WASSAL system',
+    '⛔ إنشاء الحسابات متاح لمدير النظام فقط': '⛔ Only administrators can create accounts',
+    '🔒 تم تسجيل الخروج بنجاح': '🔒 Signed out successfully',
+    '☁️ تم حفظ لقطة احتياطية على السحابة بنجاح': '☁️ Cloud backup snapshot saved',
+    '⬇️ تم تحميل اللقطة السحابية': '⬇️ Cloud snapshot downloaded',
+    '⛔ حذف الطلبات متاح لمدير النظام فقط': '⛔ Only administrators can delete orders',
+    '⛔ حذف المتاجر متاح لمدير النظام فقط': '⛔ Only administrators can delete stores',
+    '⛔ إضافة وتعديل المناديب متاح لمدير النظام فقط': '⛔ Only administrators can add or edit riders',
+    '⚠️ لا يمكن إيقاف مندوب لديه طلب جاري الآن': '⚠️ A rider with an active order cannot be taken offline',
+    '⚠️ لا يمكن حذف مندوب لديه أوردرات جارية حالياً': '⚠️ A rider with active orders cannot be deleted',
+    '⛔ إضافة المتاجر متاح لمدير النظام فقط': '⛔ Only administrators can add stores',
+    '🗑️ تم حذف بند المصروف وتسجيل العملية': '🗑️ Expense deleted and action recorded',
+    '⚠️ يرجى اختيار أو إضافة متجر أولاً': '⚠️ Please select or add a store first',
+    '✅ تم تحديث بيانات المندوب ': '✅ Rider details updated: ',
+    '🏍️ تمت إضافة المندوب ': '🏍️ Rider added: ', '🏪 تمت إضافة متجر ': '🏪 Store added: ',
+    '💸 تم تسجيل مصروف ': '💸 Expense recorded: ', 'تم تحديث حالة ': 'Status updated for ',
+    ' إلى: ': ' to: ', 'تم تحديث صلاحية الموظف إلى ': 'Employee role changed to ',
+    'تم إنشاء حساب (': 'Account created for ', 'وتفعيل صلاحيته فوراً': ' and permissions activated',
+    'تم تصدير تقرير شهر ': 'Exported report for ', 'تم استدعاء بيانات العميل (': 'Loaded customer details for ',
+    'تم حذف الطلب #': 'Deleted order #', 'وتسجيل العملية في سجل التدقيق': ' and recorded the action in the audit log',
+    'تم حذف المتجر "': 'Deleted store "', 'تم تسجيل تحرك #': 'Marked order # as en route at ',
+    'تم تسليم #': 'Delivered order #', 'بانتظار توريد المبلغ للمتجر': ' — awaiting store settlement',
+    'تم توريد #': 'Settled order #', 'وأصبح المندوب متاحاً بالمكتب': ' — rider is now available',
+    'تم تسليم مرتجع #': 'Returned order #', 'تم نسخ رسالة الواتساب للطلب #': 'WhatsApp message copied for order #',
+    ' للمتجر وعاد المندوب متاحاً بالمكتب': ' — returned to store; rider is available',
+    'تم حذف المندوب ': 'Deleted rider ', 'تم حفظ نسخة احتياطية وإقفال يوم ': 'Backup saved and shift closed for ',
+    'بدأ الآن يوم ': ' — new day started: ', 'تم تسجيل الطلب #': 'Order #', 'كمرتجع': ' marked as returned',
+    'تم حفظ تعديلات الطلب #': 'Changes saved for order #', 'تم تسجيل #': 'Recorded order #',
+    'على يوم ': ' for day ', 'وتأكيده من السيرفر': ' and confirmed by the server',
+    'تم حفظ التعديلات': 'Changes saved', 'لا يوجد مستخدمون آخرون مسجلون بعد.': 'No other users registered yet.',
+    'لا توجد لقطات سحابية محفوظة بعد (تُنشأ تلقائياً عند إقفال اليوم).': 'No cloud snapshots yet (created automatically when a shift closes).',
+    'لا يوجد مناديب مضافين بعد — انتقل إلى تبويب ': 'No riders added yet — go to the ',
+    ' لإضافة طياريك.': ' tab to add riders.',
+    'تم فحص الملف بنجاح (': 'Backup validated (', ' طلب، ': ' orders, ',
+    ' مندوب). هل تريد استبدال قاعدة البيانات السحابية بهذه النسخة؟': ' riders). Replace the current cloud database with this backup?',
+    'هل أنت متأكد من حذف الطلب #': 'Are you sure you want to permanently delete order #',
+    'هل أنت متأكد من حذف المتجر "': 'Are you sure you want to delete store "',
+    'هل أنت متأكد من حذف المندوب "': 'Are you sure you want to remove rider "',
+    'نهائياً؟': 'permanently?',
+    ' — تحليل حجم الطلبات لكل متجر وكشوف الحساب والتصفية': ' — Analyze order volume and store statements',
+    'تحليل حجم الطلبات لكل متجر وكشوف الحساب والتصفية': 'Analyze order volume and store statements',
+    'تسجيل الطلب كمرتجع': 'Mark order as returned', 'جارٍ الاتصال...': 'Connecting...', 'جاري الاتصال...': 'Connecting...'
+});
+Object.assign(UI_TRANSLATIONS, {
+    'العربية': 'Arabic', 'م': 'PM', 'ص': 'AM', 'مستخدم': 'User',
+    'صلاحية كاملة (مدير)': 'Full access (admin)', 'تسجيل ومتابعة طلبات فقط': 'Create and track orders only',
+    'بنية الملف غير صالحة.': 'Invalid file structure.',
+    'الملف يفتقد إلى قوائم الطلبات أو المناديب أو المتاجر.': 'The file is missing its orders, riders, or stores lists.',
+    'يوجد طلب بدون رقم تعريفي صالح.': 'An order is missing a valid ID.',
+    'يوجد مندوب بدون اسم أو معرف.': 'A rider is missing a name or ID.', 'يوجد متجر بدون اسم أو معرف.': 'A store is missing a name or ID.',
+    'يوجد مصروف بمبلغ غير صالح.': 'An expense has an invalid amount.', 'متجر': 'Store',
+    '🟡 تم الاستلام من المتجر': '🟡 Picked up from store', '🔵 في الطريق للعميل': '🔵 On the way to the customer',
+    '🟢 تم التسليم للعميل (جاري التوريد)': '🟢 Delivered (awaiting settlement)',
+    '✅ تم التوريد للمتجر والعودة للمكتب': '✅ Settled to store; rider returned to office', 'لم يستلم': 'Not received',
+    'اسم الصنف التالي': 'Next item name', 'حذف الصنف': 'Remove item', 'اسم الصنف (مثال: 2 وجبة شيش طاووق)': 'Item name (e.g. 2 chicken meals)',
+    'لا توجد طلبات بانتظار التوريد أو إرجاعها للمتجر': 'No orders awaiting settlement or return to store',
+    'لا توجد طلبات جارية في هذه المرحلة': 'No active orders at this stage', ' ج.م (توصيل)': ' EGP (delivery)',
+    'العميل لم يستلم': 'Customer did not receive the order', '3. تسليم': '3. Delivery', '🔵 (المندوب الحالي)': '🔵 (current rider)',
+    '🟢 متاح': '🟢 Available', '⚪ خارج العمل': '⚪ Off duty', '✓ تم التوريد': '✓ Settled', 'جاري': 'In progress',
+    '2. في الطريق للعميل': '2. On the way to the customer', '3. تم التسليم (بانتظار التوريد)': '3. Delivered (awaiting settlement)',
+    '↩️ مرتجع (جاري إعادته للمتجر)': '↩️ Return in progress', '↩️ مرتجع أُعيد للمتجر': '↩️ Returned to store',
+    '4. تم التوريد والعودة': '4. Settled and returned', 'غير محدد': 'Unspecified',
+    '3. تعذر التسليم (مرتجع)': '3. Delivery failed (returned)', '3. التسليم للعميل': '3. Delivered to customer',
+    '4. إعادة المرتجع للمتجر والعودة': '4. Return to store and rider back', '4. التوريد للمتجر والعودة للمكتب': '4. Settled to store and rider back',
+    'في انتظار عودة المندوب للمكتب': 'Waiting for rider to return to the office', 'منذ بداية التشغيل': 'Since operations began',
+    '🟢 متاح في المكتب': '🟢 Available at office', '⚪ خارج العمل / غير متاح': '⚪ Off duty / unavailable',
+    '🟢 تفعيل': '🟢 Activate', '⚪ إيقاف': '⚪ Disable', ' د': ' days', 'مصروف إداري عام': 'General administrative expense',
+    'استعادة نسخة احتياطية': 'Restore backup', 'ملخص الأرباح والخسائر': 'Profit and loss summary', 'القيمة (ج.م)': 'Amount (EGP)',
+    'إيرادات التوصيل المحققة': 'Collected delivery revenue', 'إجمالي المصروفات': 'Total expenses',
+    'صافي الربح الشهري': 'Net monthly profit', 'مبالغ بضائع موردة للتجار': 'Goods settled to merchants',
+    'الهاتف': 'Phone', 'العنوان': 'Address', 'قيمة الأوردر': 'Order value', 'رسوم التوصيل': 'Delivery fee', 'سبب المرتجع': 'Return reason',
+    'جاري التحقق والدخول...': 'Verifying and signing in...', '⚠️ البريد الإلكتروني أو كلمة المرور غير صحيحة': '⚠️ Incorrect email or password',
+    'تسجيل الدخول لغرفة العمليات': 'Sign in to operations', 'جاري إنشاء الحساب...': 'Creating account...',
+    'إنشاء حساب موظف': 'Create staff account', '⚠️ هذا البريد الإلكتروني مسجل بالفعل': '⚠️ This email is already registered',
+    '⚠️ تعذر إنشاء الحساب (تأكد أن كلمة المرور 6 أحرف على الأقل)': '⚠️ Could not create account (password must be at least 6 characters)',
+    'تعديل صلاحية موظف': 'Change staff role', 'موظف عمليات': 'Operations staff', 'لقطة احتياطية سحابية': 'Cloud backup snapshot',
+    'تم حفظ نسخة احتياطية فورية على السيرفر': 'Immediate server backup saved',
+    'توثيق غير قابل للتعديل لكل عملية تعديل أو حذف أو إقفال يومية': 'Immutable record of edits, deletions, and shift closings',
+    '⚠️ تحذير نهائي: سيتم أخذ نسخة احتياطية سحابية أولاً ثم مسح جميع الطلبات والمناديب والمتاجر والحسابات!\n\nهل أنت متأكد من المتابعة؟': '⚠️ Final warning: a cloud backup will be saved, then all orders, riders, stores, and accounts will be deleted.\n\nAre you sure you want to continue?',
+    'حذف طلب': 'Delete order', 'حذف متجر': 'Delete store', 'متاح بالمكتب': 'Available at office', 'خارج العمل': 'Off duty',
+    'حذف مندوب': 'Delete rider', 'حذف مصروف': 'Delete expense', 'إقفال يومية': 'Close shift', 'تسجيل مرتجع': 'Record return',
+    'تعديل طلب': 'Edit order', 'جاري الحفظ والتأكيد...': 'Saving and confirming...', 'تعديل مندوب': 'Edit rider',
+    'إضافة مندوب': 'Add rider', 'إضافة متجر': 'Add store', 'تسجيل مصروف': 'Record expense',
+    'تم تصدير تقرير شهر ': 'Exported report for month ', 'هامش الربح: ': 'Profit margin: ',
+    ' إلى: ': ' to: '
+});
+const UI_TRANSLATION_KEYS = Object.keys(UI_TRANSLATIONS).sort((a, b) => b.length - a.length);
+const UI_ARABIC_TITLE = 'وصّل - WASSAL | نظام إدارة عمليات التوصيل';
 function applyUiPreferences() {
     const lang = localStorage.getItem('wassal_language') === 'en' ? 'en' : 'ar';
     const theme = localStorage.getItem('wassal_theme') === 'light' ? 'light' : 'dark';
     document.documentElement.lang = lang;
     document.documentElement.dir = lang === 'en' ? 'ltr' : 'rtl';
     document.documentElement.dataset.theme = theme;
+    document.title = lang === 'en' ? UI_TRANSLATIONS[UI_ARABIC_TITLE] : UI_ARABIC_TITLE;
     const langButton = document.getElementById('language-toggle');
     const themeButton = document.getElementById('theme-toggle');
     if (langButton) langButton.textContent = lang === 'ar' ? 'English' : 'العربية';
@@ -39,15 +276,55 @@ function applyUiPreferences() {
     while (walker.nextNode()) {
         applyLanguageToTextNode(walker.currentNode, lang);
     }
+    applyUiAttributes(document, lang);
 }
 function applyLanguageToTextNode(node, lang = document.documentElement.lang) {
     if (node.__wassalOriginal === undefined) node.__wassalOriginal = node.nodeValue;
-    const original = node.__wassalOriginal.trim();
-    const translated = lang === 'en' ? UI_TRANSLATIONS[original] : null;
-    const nextValue = translated
-        ? node.__wassalOriginal.replace(original, translated)
-        : node.__wassalOriginal;
+    const original = node.__wassalOriginal;
+    const translated = lang === 'en' ? translateUiText(original) : original;
+    const nextValue = translated;
     if (node.nodeValue !== nextValue) node.nodeValue = nextValue;
+}
+function translateUiText(value) {
+    const trimmed = value.trim();
+    if (UI_TRANSLATIONS[trimmed]) return value.replace(trimmed, UI_TRANSLATIONS[trimmed]);
+    let translated = value;
+    for (const source of UI_TRANSLATION_KEYS) {
+        // Phrase-only substitutions avoid translating customer, store, and rider names.
+        if (source.trim().split(/\s+/).length < 2 && !/[:!?؟.]$/.test(source.trim())) continue;
+        if (translated.includes(source)) translated = translated.split(source).join(UI_TRANSLATIONS[source]);
+    }
+    translated = translated
+        .replace(/(\d[\d,]*)\s*أوردر(?:ات)?/g, '$1 orders')
+        .replace(/(\d[\d,]*)\s*استلام/g, '$1 pickups')
+        .replace(/(\d[\d,]*)\s*طريق/g, '$1 en route')
+        .replace(/(\d[\d,]*)\s*توريد/g, '$1 settled')
+        .replace(/(\d[\d,]*)\s*مناديب/g, '$1 riders')
+        .replace(/(\d[\d,]*)\s*بالمكتب/g, '$1 available')
+        .replace(/(\d[\d,]*)\s*في مهمة/g, '$1 on delivery')
+        .replace(/(\d[\d,]*)\s*د(?=\s|$)/g, '$1 days')
+        .replace(/(\d{1,2}:\d{2})\s*م(?=\s|$)/g, '$1 PM')
+        .replace(/(\d{1,2}:\d{2})\s*ص(?=\s|$)/g, '$1 AM')
+        .replace(/\s*ج\.م/g, ' EGP');
+    return translated;
+}
+function uiText(value) {
+    return document.documentElement.lang === 'en' ? translateUiText(value) : value;
+}
+function applyUiAttributes(root = document, lang = document.documentElement.lang) {
+    const elements = [];
+    if (root.nodeType === Node.ELEMENT_NODE && root.matches('[placeholder],[title],[aria-label]')) elements.push(root);
+    if (root.querySelectorAll) elements.push(...root.querySelectorAll('[placeholder],[title],[aria-label]'));
+    elements.forEach(element => {
+        element.__wassalAttributes ||= {};
+        ['placeholder', 'title', 'aria-label'].forEach(attribute => {
+            if (!element.hasAttribute(attribute)) return;
+            if (element.__wassalAttributes[attribute] === undefined) element.__wassalAttributes[attribute] = element.getAttribute(attribute);
+            const original = element.__wassalAttributes[attribute];
+            const nextValue = lang === 'en' ? translateUiText(original) : original;
+            if (element.getAttribute(attribute) !== nextValue) element.setAttribute(attribute, nextValue);
+        });
+    });
 }
 document.addEventListener('click', event => {
     if (event.target.closest('#language-toggle')) {
@@ -65,17 +342,22 @@ document.addEventListener('DOMContentLoaded', applyUiPreferences);
 document.addEventListener('DOMContentLoaded', () => {
     new MutationObserver(records => {
         records.forEach(record => {
+            if (record.type === 'attributes') {
+                applyUiAttributes(record.target);
+                return;
+            }
             const nodes = record.type === 'characterData' ? [record.target] : [...record.addedNodes];
             nodes.forEach(node => {
                 if (node.nodeType === Node.TEXT_NODE) {
                     applyLanguageToTextNode(node);
                 } else if (node.nodeType === Node.ELEMENT_NODE) {
+                    applyUiAttributes(node);
                     const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
                     while (walker.nextNode()) applyLanguageToTextNode(walker.currentNode);
                 }
             });
         });
-    }).observe(document.body, { childList: true, characterData: true, subtree: true });
+        }).observe(document.body, { childList: true, characterData: true, attributes: true, attributeFilter: ['placeholder', 'title', 'aria-label'], subtree: true });
 });
 
 // ==================== CLEANUP LEGACY INSECURE STORAGE ====================
@@ -511,7 +793,7 @@ async function resetAllDataSafely() {
         showToast('⛔ تصفير النظام متاح لمدير النظام فقط');
         return;
     }
-    const confirmed = window.confirm('⚠️ تحذير نهائي: سيتم أخذ نسخة احتياطية سحابية أولاً ثم مسح جميع الطلبات والمناديب والمتاجر والحسابات!\n\nهل أنت متأكد من المتابعة؟');
+    const confirmed = window.confirm(uiText('⚠️ تحذير نهائي: سيتم أخذ نسخة احتياطية سحابية أولاً ثم مسح جميع الطلبات والمناديب والمتاجر والحسابات!\n\nهل أنت متأكد من المتابعة؟'));
     if (!confirmed) return;
 
     await withActionLock('reset-system', async () => {
@@ -2344,7 +2626,7 @@ function handleRestoreBackupFile(file) {
                 return;
             }
 
-            if (!window.confirm(`تم فحص الملف بنجاح (${restored.orders.length} طلب، ${restored.riders.length} مندوب). هل تريد استبدال قاعدة البيانات السحابية بهذه النسخة؟`)) {
+            if (!window.confirm(uiText(`تم فحص الملف بنجاح (${restored.orders.length} طلب، ${restored.riders.length} مندوب). هل تريد استبدال قاعدة البيانات السحابية بهذه النسخة؟`))) {
                 return;
             }
 
@@ -2838,7 +3120,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const o = appState.orders.find(item => item.id === id);
             if (!o) return;
-            if (!window.confirm(`هل أنت متأكد من حذف الطلب #${o.id} (${o.customerName}) نهائياً؟`)) return;
+            if (!window.confirm(uiText(`هل أنت متأكد من حذف الطلب #${o.id} (${o.customerName}) نهائياً؟`))) return;
 
             await withActionLock(`del-order-${id}`, async () => {
                 const ok = await fsDeleteDoc('wassal_orders', id);
@@ -2865,7 +3147,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const st = appState.stores.find(item => item.id === id);
             if (!st) return;
-            if (!window.confirm(`هل أنت متأكد من حذف المتجر "${st.name}"؟`)) return;
+            if (!window.confirm(uiText(`هل أنت متأكد من حذف المتجر "${st.name}"؟`))) return;
             await withActionLock(`del-store-${id}`, async () => {
                 const ok = await fsDeleteDoc('wassal_stores', id);
                 if (ok) {
@@ -3086,7 +3368,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     showToast('⚠️ لا يمكن حذف مندوب لديه أوردرات جارية حالياً');
                     return;
                 }
-                if (!window.confirm(`هل أنت متأكد من حذف المندوب "${r.name}" من الأسطول؟`)) return;
+            if (!window.confirm(uiText(`هل أنت متأكد من حذف المندوب "${r.name}" من الأسطول؟`))) return;
                 const ok = await fsDeleteDoc('wassal_riders', r.id);
                 if (ok) {
                     await writeAuditLog('حذف مندوب', r.name, `تم حذف المندوب (${r.plate})`);

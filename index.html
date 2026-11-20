@@ -14,29 +14,29 @@
                 extend: {
                     fontFamily: { sans: ['Cairo', 'sans-serif'] },
                     colors: {
-                        obsidian: '#090D16',
-                        slateDark: '#111827',
-                        slateCard: '#182234',
-                        slateHover: '#1F2C44',
-                        slateBorder: '#26334D',
+                        obsidian: '#080808',
+                        slateDark: '#111111',
+                        slateCard: '#171717',
+                        slateHover: '#222222',
+                        slateBorder: '#2A2A2A',
                         wassalOrange: '#FF6B00',
-                        wassalAmber: '#FF9E2C',
-                        statusPicked: '#F59E0B',
-                        statusOnway: '#38BDF8',
-                        statusDone: '#10B981'
+                        wassalAmber: '#FF9900',
+                        statusPicked: '#FF9900',
+                        statusOnway: '#FF6B00',
+                        statusDone: '#FFFFFF'
                     }
                 }
             }
         }
     </script>
     <style>
-        body { background-color: #090D16; color: #F8FAFC; }
-        .wassal-grad { background: linear-gradient(135deg, #FF6B00 0%, #FF9E2C 100%); }
-        .wassal-grad-hover:hover { background: linear-gradient(135deg, #E65F00 0%, #F58F1D 100%); }
-        .glass-panel { background: rgba(17, 24, 39, 0.88); backdrop-filter: blur(12px); }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #090D16; }
-        ::-webkit-scrollbar-thumb { background: #26334D; border-radius: 999px; }
+        body { background-color: #080808; color: #FFFFFF; }
+        .wassal-grad { background: linear-gradient(135deg, #FF6B00 0%, #FF9900 100%); }
+        .wassal-grad-hover:hover { background: linear-gradient(135deg, #E65F00 0%, #F58F00 100%); }
+        .glass-panel { background: rgba(12, 12, 12, 0.94); backdrop-filter: blur(14px); }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #080808; }
+        ::-webkit-scrollbar-thumb { background: #2A2A2A; border-radius: 999px; }
         ::-webkit-scrollbar-thumb:hover { background: #FF6B00; }
         @media print {
             body { background: #ffffff !important; color: #000000 !important; }
@@ -47,312 +47,280 @@
         }
     </style>
 </head>
-<body class="font-sans antialiased selection:bg-wassalOrange selection:text-white overflow-x-hidden">
+<body class="font-sans antialiased selection:bg-wassalOrange selection:text-black overflow-x-hidden">
 
     <!-- FIREBASE AUTH LOGIN SCREEN -->
     <div id="auth-lock-screen" class="fixed inset-0 z-[100] bg-obsidian/98 backdrop-blur-xl flex items-center justify-center p-4">
         <div class="bg-slateDark border border-wassalOrange/50 rounded-3xl max-w-sm w-full p-6 text-center space-y-5 shadow-2xl shadow-orange-500/10">
             <div class="flex flex-col items-center select-none" dir="ltr">
-                <svg class="w-36 h-16 drop-shadow-[0_4px_12px_rgba(255,107,0,0.3)]" viewBox="0 0 270 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg class="w-40 h-20" viewBox="0 0 280 130" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <defs>
-                        <linearGradient id="lockGrad" x1="15" y1="15" x2="255" y2="115" gradientUnits="userSpaceOnUse">
+                        <linearGradient id="lockGrad" x1="15" y1="15" x2="265" y2="115" gradientUnits="userSpaceOnUse">
                             <stop offset="0%" stop-color="#FFA800"/>
                             <stop offset="100%" stop-color="#FF6200"/>
                         </linearGradient>
                     </defs>
-                    <path d="M10 38 L88 30 L85 41 L10 38 Z" fill="url(#lockGrad)"/>
-                    <path d="M24 55 L92 48 L89 58 L24 55 Z" fill="url(#lockGrad)"/>
-                    <path d="M42 71 L97 65 L95 74 L42 71 Z" fill="url(#lockGrad)"/>
-                    <path d="M72 30 C86 29 96 36 101 49 L116 92 L139 46 C143 38 153 38 157 46 L176 92 L198 34 L212 43 L186 100 C181 109 169 109 164 100 L148 63 L127 100 C122 109 109 109 105 100 L85 48 C81 39 76 36 68 35 Z" fill="url(#lockGrad)"/>
-                    <path d="M225 8 C207 8 193 22 193 39.5 C193 60 225 88 225 88 C225 88 257 60 257 39.5 C257 22 243 8 225 8 Z" fill="url(#lockGrad)"/>
-                    <circle cx="225" cy="39" r="11.5" fill="#FFFFFF"/>
+                    <path d="M12 40 L90 32 L87 42 L12 40 Z" fill="url(#lockGrad)"/>
+                    <path d="M26 56 L94 49 L91 59 L26 56 Z" fill="url(#lockGrad)"/>
+                    <path d="M44 72 L99 66 L97 75 L44 72 Z" fill="url(#lockGrad)"/>
+                    <path d="M74 32 C88 31 98 38 103 51 L118 94 L141 48 C145 40 155 40 159 48 L178 94 L200 36 L214 45 L188 102 C183 111 171 111 166 102 L150 65 L129 102 C124 111 111 111 107 102 L87 50 C83 41 78 38 70 37 Z" fill="url(#lockGrad)"/>
+                    <path d="M137 113 C137 118 143 118 143 113 L143 109 L146 109 L146 113 C146 118 152 118 152 113 L152 109 L156 109 L156 114 C156 121 148 123 144.5 119 C141 123 133 121 133 114 L133 109 L137 109 Z" fill="url(#lockGrad)"/>
+                    <path d="M227 10 C209 10 195 24 195 41.5 C195 62 227 90 227 90 C227 90 259 62 259 41.5 C259 24 245 10 227 10 Z" fill="url(#lockGrad)"/>
+                    <circle cx="227" cy="41" r="11.5" fill="#FFFFFF"/>
                 </svg>
-                <div class="font-black italic text-2xl tracking-wider leading-none mt-1">
+                <div class="font-black italic text-[28px] tracking-wider leading-none -mt-1">
                     <span class="text-white">WA</span><span class="text-wassalOrange">SS</span><span class="text-white">AL</span>
                 </div>
+                <div class="flex items-center justify-center gap-2.5 w-full mt-1.5" dir="rtl">
+                    <span class="h-[2.5px] w-10 bg-gradient-to-l from-wassalOrange to-transparent rounded-full"></span>
+                    <span class="text-white font-black text-2xl leading-none">وص<span class="text-wassalOrange">ّ</span>ل</span>
+                    <span class="h-[2.5px] w-10 bg-gradient-to-r from-wassalOrange to-transparent rounded-full"></span>
+                </div>
+                <div class="mt-2 px-4 py-1 rounded-md wassal-grad text-black font-black text-[11px]" dir="rtl">
+                    وصّل .. هتشوف الفرق
+                </div>
             </div>
+
             <div>
-                <h2 class="font-black text-base text-white">🔐 تسجيل الدخول الآمن للنظام</h2>
-                <p class="text-xs text-slate-400 mt-1">أدخل البريد الإلكتروني وكلمة المرور المعتمدة</p>
+                <h2 class="font-black text-sm text-white">تسجيل الدخول للنظام</h2>
+                <p class="text-[11px] text-neutral-400 mt-0.5">أدخل البريد الإلكتروني وكلمة المرور المعتمدة</p>
             </div>
             <form id="form-firebase-login" class="space-y-3 text-right">
                 <div>
-                    <label class="block text-[11px] font-bold text-slate-300 mb-1">البريد الإلكتروني</label>
-                    <input id="input-login-email" type="email" required placeholder="admin@wassal.com" dir="ltr" class="w-full bg-obsidian border border-slateBorder rounded-2xl py-2.5 px-4 text-xs text-white focus:outline-none focus:border-wassalOrange">
+                    <label class="block text-[11px] font-bold text-neutral-300 mb-1">البريد الإلكتروني</label>
+                    <input id="input-login-email" type="email" required placeholder="admin@wassal.com" dir="ltr" class="w-full bg-obsidian border border-slateBorder rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-wassalOrange">
                 </div>
                 <div>
-                    <label class="block text-[11px] font-bold text-slate-300 mb-1">كلمة المرور</label>
-                    <input id="input-login-password" type="password" required placeholder="••••••••" dir="ltr" class="w-full bg-obsidian border border-slateBorder rounded-2xl py-2.5 px-4 text-xs text-white focus:outline-none focus:border-wassalOrange">
+                    <label class="block text-[11px] font-bold text-neutral-300 mb-1">كلمة المرور</label>
+                    <input id="input-login-password" type="password" required placeholder="••••••••" dir="ltr" class="w-full bg-obsidian border border-slateBorder rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-wassalOrange">
                 </div>
-                <p id="login-error-msg" class="hidden text-xs font-bold text-red-400 text-center">⚠️ بيانات الدخول غير صحيحة</p>
-                <button id="btn-login-submit" type="submit" class="w-full wassal-grad wassal-grad-hover text-obsidian font-black py-3 rounded-2xl text-sm shadow-lg shadow-orange-500/20">
-                    تسجيل الدخول لغرفة العمليات
+                <p id="login-error-msg" class="hidden text-xs font-bold text-wassalOrange text-center">⚠️ بيانات الدخول غير صحيحة</p>
+                <button id="btn-login-submit" type="submit" class="w-full wassal-grad wassal-grad-hover text-black font-black py-3 rounded-xl text-sm shadow-lg shadow-orange-500/20">
+                    دخول النظام
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- MOBILE HEADER -->
-    <div class="lg:hidden sticky top-0 z-30 glass-panel border-b border-slateBorder px-4 py-3 flex items-center justify-between">
-        <div class="flex items-center gap-2.5">
-            <div class="w-10 h-10 rounded-xl bg-obsidian border border-wassalOrange/40 flex items-center justify-center shadow-lg shadow-orange-500/15 shrink-0">
-                <svg class="w-8 h-6" viewBox="0 0 260 115" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <linearGradient id="mobGrad" x1="0" y1="0" x2="260" y2="115" gradientUnits="userSpaceOnUse">
-                            <stop offset="0%" stop-color="#FF6200"/>
-                            <stop offset="100%" stop-color="#FFA800"/>
-                        </linearGradient>
-                    </defs>
-                    <path d="M12 36 L82 32 L78 42 L12 36 Z" fill="url(#mobGrad)"/>
-                    <path d="M25 54 L88 50 L84 60 L25 54 Z" fill="url(#mobGrad)"/>
-                    <path d="M74 28 C86 27 95 34 99 46 L112 84 L136 45 C140 39 148 39 152 45 L174 84 L196 36 L212 46 L186 98 C181 107 169 107 164 98 L144 62 L122 98 C117 107 104 107 100 98 L82 46 C79 38 74 35 66 34 Z" fill="url(#mobGrad)"/>
-                    <path d="M222 10 C205 10 192 23 192 40 C192 59 222 86 222 86 C222 86 252 59 252 40 C252 23 239 10 222 10 Z" fill="url(#mobGrad)"/>
-                    <circle cx="222" cy="39" r="11" fill="#FFFFFF"/>
-                </svg>
-            </div>
-            <div>
-                <h1 class="font-black text-base leading-none text-white">وصّل <span class="text-wassalOrange text-xs font-extrabold">WASSAL</span></h1>
-                <div class="flex items-center gap-1.5 mt-1">
-                    <span id="mobile-sync-dot" class="w-1.5 h-1.5 rounded-full bg-wassalAmber animate-pulse"></span>
-                    <span id="mobile-sync-text" class="text-[10px] text-slate-400 font-bold">يوم: <strong id="mobile-active-day" class="text-white">--</strong></span>
-                </div>
-            </div>
-        </div>
-        <button type="button" data-action="toggle-sidebar" class="p-2 rounded-xl bg-slateCard border border-slateBorder text-slate-200 hover:text-wassalOrange">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-        </button>
-    </div>
-
     <!-- SIDEBAR BACKDROP -->
-    <div id="sidebar-backdrop" data-action="toggle-sidebar" class="fixed inset-0 bg-black/70 z-30 hidden lg:hidden"></div>
+    <div id="sidebar-backdrop" data-action="toggle-sidebar" class="fixed inset-0 bg-black/75 backdrop-blur-xs z-40 hidden"></div>
 
-    <!-- FIXED RIGHT SIDEBAR -->
-    <aside id="sidebar" class="fixed top-0 right-0 z-40 h-screen w-72 bg-slateDark border-l border-slateBorder flex flex-col justify-between transition-transform duration-300 translate-x-full lg:translate-x-0">
-        <div class="p-5 space-y-4 overflow-y-auto">
-            <!-- Brand Identity -->
-            <div class="pb-3 border-b border-slateBorder flex flex-col items-center text-center select-none" dir="ltr">
-                <svg class="w-48 h-20 drop-shadow-[0_6px_14px_rgba(255,107,0,0.28)]" viewBox="0 0 270 128" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <linearGradient id="wMainGrad" x1="15" y1="15" x2="255" y2="115" gradientUnits="userSpaceOnUse">
-                            <stop offset="0%" stop-color="#FFA800"/>
-                            <stop offset="55%" stop-color="#FF6B00"/>
-                            <stop offset="100%" stop-color="#E54D00"/>
-                        </linearGradient>
-                        <linearGradient id="wShadowGrad" x1="90" y1="40" x2="180" y2="105" gradientUnits="userSpaceOnUse">
-                            <stop offset="0%" stop-color="#C23B00"/>
-                            <stop offset="100%" stop-color="#FF7A00"/>
-                        </linearGradient>
-                    </defs>
-                    <path d="M10 38 L88 30 L85 41 L10 38 Z" fill="url(#wMainGrad)"/>
-                    <path d="M24 55 L92 48 L89 58 L24 55 Z" fill="url(#wMainGrad)"/>
-                    <path d="M42 71 L97 65 L95 74 L42 71 Z" fill="url(#wMainGrad)"/>
-                    <path d="M138 44 L112 96 L124 102 L150 50 Z" fill="url(#wShadowGrad)"/>
-                    <path d="M196 34 L168 96 L180 102 L208 42 Z" fill="url(#wShadowGrad)"/>
-                    <path d="M72 30 C86 29 96 36 101 49 L116 92 L139 46 C143 38 153 38 157 46 L176 92 L198 34 L212 43 L186 100 C181 109 169 109 164 100 L148 63 L127 100 C122 109 109 109 105 100 L85 48 C81 39 76 36 68 35 Z" fill="url(#wMainGrad)"/>
-                    <path d="M135 111 C135 116 141 116 141 111 L141 107 L144 107 L144 111 C144 116 150 116 150 111 L150 107 L154 107 L154 112 C154 119 146 121 142.5 117 C139 121 131 119 131 112 L131 107 L135 107 Z" fill="url(#wMainGrad)"/>
-                    <path d="M225 8 C207 8 193 22 193 39.5 C193 60 225 88 225 88 C225 88 257 60 257 39.5 C257 22 243 8 225 8 Z" fill="url(#wMainGrad)"/>
-                    <circle cx="225" cy="39" r="11.5" fill="#FFFFFF"/>
-                </svg>
-
-                <div class="font-black italic text-[26px] tracking-wider leading-none -mt-1">
-                    <span class="text-white">WA</span><span class="text-transparent bg-clip-text bg-gradient-to-b from-[#FFA800] to-[#FF6200]">SS</span><span class="text-white">AL</span>
-                </div>
-
-                <div class="flex items-center justify-center gap-2.5 w-full mt-1" dir="rtl">
-                    <span class="h-[2.5px] w-9 bg-gradient-to-l from-[#FF6B00] to-[#FFA800] rounded-full"></span>
-                    <span class="relative text-white font-black text-xl leading-none tracking-tight">
-                        وص<span class="relative inline-block">ل<span class="absolute -top-2.5 right-0.5 text-[#FF7A00] text-sm font-black">ّ</span></span>
-                    </span>
-                    <span class="h-[2.5px] w-9 bg-gradient-to-r from-[#FF6B00] to-[#FFA800] rounded-full"></span>
-                </div>
-            </div>
-
-            <!-- Logged-in User & Role Badge -->
-            <div class="bg-obsidian/90 border border-slateBorder rounded-xl px-3 py-2 flex items-center justify-between">
-                <div class="truncate">
-                    <div id="current-user-email" class="text-[11px] font-bold text-slate-300 truncate" dir="ltr">—</div>
-                </div>
-                <span id="current-user-role-badge" class="px-2 py-0.5 rounded-md bg-wassalOrange/20 text-wassalOrange text-[10px] font-black shrink-0">—</span>
-            </div>
-
-            <!-- Active Shift Day & Cloud Status -->
-            <div class="space-y-1.5">
-                <div class="bg-obsidian/90 border border-wassalOrange/40 rounded-xl px-3 py-2 flex items-center justify-between">
-                    <span class="text-[11px] text-slate-400 font-bold">📅 اليوم المفتوح:</span>
-                    <span id="sidebar-active-day" class="text-xs font-black text-wassalOrange font-mono">----/--/--</span>
-                </div>
-                <div class="bg-obsidian/90 border border-slateBorder rounded-xl px-3 py-2 flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <span id="desktop-sync-dot" class="w-2 h-2 rounded-full bg-wassalAmber animate-pulse"></span>
-                        <span id="desktop-sync-text" class="text-[11px] font-black text-slate-300 tracking-wide">جاري الاتصال...</span>
+    <!-- SLIDE-OVER RIGHT SIDEBAR (NO SCROLL, FULL FIT) -->
+    <aside id="sidebar" class="fixed top-0 right-0 z-50 h-screen w-72 bg-slateDark border-l border-slateBorder flex flex-col justify-between p-4 transition-transform duration-300 translate-x-full shadow-2xl">
+        <!-- Top Brand & Close Button -->
+        <div class="space-y-3">
+            <div class="flex items-center justify-between border-b border-slateBorder pb-2.5">
+                <div class="flex items-center gap-2" dir="ltr">
+                    <svg class="w-9 h-7" viewBox="0 0 280 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 40 L90 32 L87 42 L12 40 Z" fill="#FF6B00"/>
+                        <path d="M26 56 L94 49 L91 59 L26 56 Z" fill="#FF6B00"/>
+                        <path d="M74 32 C88 31 98 38 103 51 L118 94 L141 48 C145 40 155 40 159 48 L178 94 L200 36 L214 45 L188 102 C183 111 171 111 166 102 L150 65 L129 102 C124 111 111 111 107 102 L87 50 C83 41 78 38 70 37 Z" fill="#FF6B00"/>
+                        <path d="M227 10 C209 10 195 24 195 41.5 C195 62 227 90 227 90 C227 90 259 62 259 41.5 C259 24 245 10 227 10 Z" fill="#FF6B00"/>
+                        <circle cx="227" cy="41" r="11.5" fill="#FFFFFF"/>
+                    </svg>
+                    <div class="font-black italic text-base tracking-wider leading-none">
+                        <span class="text-white">WA</span><span class="text-wassalOrange">SS</span><span class="text-white">AL</span>
+                        <span class="text-xs not-italic text-white mr-1">وص<span class="text-wassalOrange">ّ</span>ل</span>
                     </div>
                 </div>
+                <button type="button" data-action="toggle-sidebar" class="w-8 h-8 rounded-lg bg-obsidian border border-slateBorder text-neutral-400 hover:text-white flex items-center justify-center text-sm font-black">✕</button>
+            </div>
+
+            <!-- Shift Day & Cloud Status Compact -->
+            <div class="bg-obsidian border border-slateBorder rounded-xl px-3 py-2 flex items-center justify-between text-[11px]">
+                <span class="text-neutral-400 font-bold">اليوم المفتوح: <strong id="sidebar-active-day" class="text-wassalOrange font-mono">----/--/--</strong></span>
+                <span class="flex items-center gap-1.5">
+                    <span id="desktop-sync-dot" class="w-2 h-2 rounded-full bg-wassalOrange animate-pulse"></span>
+                    <span id="desktop-sync-text" class="font-bold text-neutral-300">متصل</span>
+                </span>
             </div>
 
             <!-- Primary CTA -->
-            <button type="button" data-action="open-new-order" class="w-full wassal-grad wassal-grad-hover text-obsidian font-black py-3 px-4 rounded-xl shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2 transition-all active:scale-[0.99]">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                <span>تسجيل أوردر جديد</span>
+            <button type="button" data-action="open-new-order" class="w-full wassal-grad wassal-grad-hover text-black font-black py-2.5 px-4 rounded-xl shadow-lg shadow-orange-500/15 flex items-center justify-center gap-2 text-xs transition-all">
+                <span>+ تسجيل أوردر جديد</span>
             </button>
 
-            <!-- Navigation Links -->
-            <nav class="space-y-1.5">
-                <button type="button" data-action="switch-tab" data-tab="operations" id="tab-btn-operations" class="nav-tab w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-extrabold wassal-grad text-obsidian shadow-lg shadow-orange-500/20 transition-all">
-                    <span class="flex items-center gap-2.5">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
-                        غرفة العمليات (الجاري)
-                    </span>
-                    <span id="nav-badge-active" class="px-2 py-0.5 text-xs rounded-full bg-obsidian/20 font-black">0</span>
+            <!-- Navigation Links (Compact, Zero Scroll) -->
+            <nav class="space-y-1">
+                <button type="button" data-action="switch-tab" data-tab="operations" id="tab-btn-operations" class="nav-tab w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-extrabold wassal-grad text-black transition-all">
+                    <span>غرفة العمليات (الجاري)</span>
+                    <span id="nav-badge-active" class="px-2 py-0.5 text-[11px] rounded-full bg-black/20 font-black">0</span>
                 </button>
 
-                <button type="button" data-action="switch-tab" data-tab="archive" id="tab-btn-archive" class="nav-tab w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold text-slate-300 hover:text-white hover:bg-slateCard transition-all">
-                    <span class="flex items-center gap-2.5">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
-                        الأرشيف وإقفال اليوم
-                    </span>
-                    <span id="nav-badge-settled" class="px-2 py-0.5 text-xs rounded-full bg-statusDone/15 text-statusDone font-extrabold">0</span>
+                <button type="button" data-action="switch-tab" data-tab="archive" id="tab-btn-archive" class="nav-tab w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-neutral-300 hover:text-white hover:bg-slateCard transition-all">
+                    <span>الأرشيف وإقفال اليوم</span>
+                    <span id="nav-badge-settled" class="px-2 py-0.5 text-[11px] rounded-full bg-obsidian text-white font-extrabold">0</span>
                 </button>
 
-                <button type="button" data-action="switch-tab" data-tab="riders" id="tab-btn-riders" class="nav-tab w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold text-slate-300 hover:text-white hover:bg-slateCard transition-all">
-                    <span class="flex items-center gap-2.5">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                        <span id="nav-label-riders">المناديب والموتوسيكلات</span>
-                    </span>
-                    <span id="nav-badge-riders" class="px-2 py-0.5 text-xs rounded-full bg-slateCard text-slate-300 font-extrabold">0/0</span>
+                <button type="button" data-action="switch-tab" data-tab="riders" id="tab-btn-riders" class="nav-tab w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-neutral-300 hover:text-white hover:bg-slateCard transition-all">
+                    <span id="nav-label-riders">المناديب والموتوسيكلات</span>
+                    <span id="nav-badge-riders" class="px-2 py-0.5 text-[11px] rounded-full bg-obsidian text-neutral-300 font-extrabold">0/0</span>
                 </button>
 
-                <button type="button" data-action="switch-tab" data-tab="stores" id="tab-btn-stores" class="nav-tab w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold text-slate-300 hover:text-white hover:bg-slateCard transition-all">
-                    <span class="flex items-center gap-2.5">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                        المتاجر الأكثر عملاً
-                    </span>
-                    <span id="nav-badge-stores" class="px-2 py-0.5 text-xs rounded-full bg-slateCard text-slate-300 font-extrabold">0</span>
+                <button type="button" data-action="switch-tab" data-tab="stores" id="tab-btn-stores" class="nav-tab w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-neutral-300 hover:text-white hover:bg-slateCard transition-all">
+                    <span>المتاجر الأكثر عملاً</span>
+                    <span id="nav-badge-stores" class="px-2 py-0.5 text-[11px] rounded-full bg-obsidian text-neutral-300 font-extrabold">0</span>
                 </button>
 
-                <button type="button" data-action="switch-tab" data-tab="accounting" id="tab-btn-accounting" class="nav-tab w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold text-slate-300 hover:text-white hover:bg-slateCard transition-all">
-                    <span class="flex items-center gap-2.5">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                        المحاسبة والمصروفات
-                    </span>
-                    <span id="nav-badge-profit" class="px-2 py-0.5 text-[11px] rounded-full bg-statusDone/15 text-statusDone font-extrabold">0 ج.م</span>
+                <button type="button" data-action="switch-tab" data-tab="accounting" id="tab-btn-accounting" class="nav-tab w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-neutral-300 hover:text-white hover:bg-slateCard transition-all">
+                    <span>المحاسبة والمصروفات</span>
+                    <span id="nav-badge-profit" class="px-2 py-0.5 text-[11px] rounded-full bg-obsidian text-wassalOrange font-extrabold">0 ج.م</span>
                 </button>
 
-                <button type="button" data-action="switch-tab" data-tab="audit" id="tab-btn-audit" class="admin-only-btn nav-tab w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold text-slate-300 hover:text-white hover:bg-slateCard transition-all">
-                    <span class="flex items-center gap-2.5">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                        سجل التدقيق والرقابة
-                    </span>
-                    <span id="nav-badge-audit" class="px-2 py-0.5 text-[11px] rounded-full bg-slateCard text-slate-300 font-extrabold">0</span>
+                <button type="button" data-action="switch-tab" data-tab="audit" id="tab-btn-audit" class="admin-only-btn nav-tab w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-neutral-300 hover:text-white hover:bg-slateCard transition-all">
+                    <span>سجل التدقيق والرقابة</span>
+                    <span id="nav-badge-audit" class="px-2 py-0.5 text-[11px] rounded-full bg-obsidian text-neutral-300 font-extrabold">0</span>
                 </button>
             </nav>
         </div>
 
-        <!-- Fleet Quick Summary & Security Footer -->
-        <div class="p-4 border-t border-slateBorder space-y-2.5 bg-obsidian/50">
-            <div class="bg-slateCard border border-slateBorder rounded-xl p-3 space-y-2">
-                <div class="flex items-center justify-between text-xs">
-                    <span id="sidebar-fleet-title" class="text-slate-400 font-bold">جاهزية الأسطول</span>
-                    <span id="sidebar-fleet-pct" class="font-black text-statusDone">0%</span>
+        <!-- Bottom Fleet & Controls (Fixed at bottom, no scroll) -->
+        <div class="space-y-2 border-t border-slateBorder pt-2.5">
+            <div class="bg-obsidian border border-slateBorder rounded-xl p-2.5 space-y-1.5">
+                <div class="flex items-center justify-between text-[11px]">
+                    <span id="sidebar-fleet-title" class="text-neutral-400 font-bold">جاهزية الأسطول</span>
+                    <span id="sidebar-fleet-pct" class="font-black text-wassalOrange">0%</span>
                 </div>
-                <div class="w-full h-2 bg-obsidian rounded-full overflow-hidden">
-                    <div id="sidebar-fleet-bar" class="h-full bg-statusDone rounded-full transition-all duration-500" style="width: 0%"></div>
+                <div class="w-full h-1.5 bg-slateCard rounded-full overflow-hidden">
+                    <div id="sidebar-fleet-bar" class="h-full wassal-grad rounded-full transition-all duration-500" style="width: 0%"></div>
                 </div>
-                <div class="flex justify-between text-[11px] text-slate-400">
-                    <span id="sidebar-office-txt" class="text-statusDone font-bold">● 0 بالمكتب</span>
-                    <span id="sidebar-busy-txt" class="text-statusOnway font-bold">● 0 في مهمة</span>
+                <div class="flex justify-between text-[10px] text-neutral-400">
+                    <span id="sidebar-office-txt" class="text-white font-bold">● 0 بالمكتب</span>
+                    <span id="sidebar-busy-txt" class="text-wassalOrange font-bold">● 0 في مهمة</span>
                 </div>
             </div>
+
             <div class="grid grid-cols-3 gap-1.5">
-                <button type="button" data-action="open-close-day-modal" class="admin-only-btn py-2 px-1.5 rounded-lg bg-wassalOrange/15 hover:bg-wassalOrange text-wassalOrange hover:text-obsidian border border-wassalOrange/40 text-[10px] font-black transition-colors">
-                    🔒 إقفال اليوم
+                <button type="button" data-action="open-close-day-modal" class="admin-only-btn py-2 px-1 rounded-lg bg-wassalOrange/15 hover:bg-wassalOrange text-wassalOrange hover:text-black border border-wassalOrange/40 text-[10px] font-black transition-colors">
+                    إقفال اليوم
                 </button>
-                <button type="button" data-action="open-security-modal" class="py-2 px-1.5 rounded-lg bg-slateCard hover:bg-slateHover border border-slateBorder text-[10px] text-slate-200 font-black transition-colors">
-                    🛡️ الأمان والنسخ
+                <button type="button" data-action="open-security-modal" class="py-2 px-1 rounded-lg bg-slateCard hover:bg-slateHover border border-slateBorder text-[10px] text-white font-black transition-colors">
+                    المستخدمين والنسخ
                 </button>
-                <button type="button" data-action="logout-firebase" class="py-2 px-1.5 rounded-lg bg-slateCard hover:bg-red-500/20 border border-slateBorder text-[10px] text-red-400 font-black transition-colors">
-                    تسجيل خروج
+                <button type="button" data-action="logout-firebase" class="py-2 px-1 rounded-lg bg-slateCard hover:bg-wassalOrange/20 border border-slateBorder text-[10px] text-neutral-300 hover:text-wassalOrange font-black transition-colors">
+                    خروج
                 </button>
             </div>
         </div>
     </aside>
 
-    <!-- MAIN WORKSPACE -->
-    <main class="lg:mr-72 min-h-screen flex flex-col">
-        <!-- Top Bar -->
-        <header class="sticky top-0 z-20 glass-panel border-b border-slateBorder px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
-            <div>
-                <h2 id="header-title" class="font-black text-lg sm:text-xl text-white">غرفة العمليات ومتابعة الطلبات الجارية</h2>
-                <p id="header-subtitle" class="text-xs text-slate-400">تم الاستلام ➔ تحرك للعميل ➔ تم التسليم (أو مرتجع) ➔ تم التوريد والعودة</p>
-            </div>
+    <!-- FULL-WIDTH MAIN WORKSPACE -->
+    <main class="w-full min-h-screen flex flex-col">
+        <!-- STICKY TOP BAR WITH HAMBURGER + ADMIN NAME ON THE RIGHT -->
+        <header class="sticky top-0 z-30 glass-panel border-b border-slateBorder px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+            <!-- Right Side: 3-Lines Button + Admin Name + Brand Logo -->
+            <div class="flex items-center gap-3">
+                <button type="button" data-action="toggle-sidebar" title="فتح القائمة الرئيسية" class="w-10 h-10 rounded-xl bg-slateCard hover:bg-wassalOrange text-white hover:text-black border border-slateBorder hover:border-wassalOrange flex items-center justify-center transition-all shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
 
-            <div class="flex items-center gap-2.5 flex-1 sm:flex-initial justify-end">
-                <div class="relative flex-1 sm:w-64">
-                    <input id="search-input" type="text" placeholder="ابحث برقم الطلب، العميل، المندوب..." class="w-full bg-slateDark border border-slateBorder rounded-xl pr-9 pl-3 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-wassalOrange transition-colors">
-                    <svg class="w-4 h-4 text-slate-400 absolute right-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <!-- Admin Name & Role Pill -->
+                <div class="flex items-center gap-2.5 bg-slateDark border border-slateBorder rounded-xl px-3 py-1.5">
+                    <div class="w-2 h-2 rounded-full bg-wassalOrange"></div>
+                    <div class="leading-tight">
+                        <div class="flex items-center gap-1.5">
+                            <span id="current-user-display-name" class="text-xs font-black text-white">مدير النظام</span>
+                            <span id="current-user-role-badge" class="px-1.5 py-0.5 rounded bg-wassalOrange/20 text-wassalOrange text-[10px] font-black">أدمن</span>
+                        </div>
+                        <div id="current-user-email" class="text-[10px] text-neutral-400 font-mono" dir="ltr">—</div>
+                    </div>
                 </div>
 
-                <div class="hidden md:flex items-center gap-2 bg-slateDark border border-slateBorder px-3 py-2 rounded-xl text-xs">
-                    <span class="w-2 h-2 rounded-full bg-statusDone animate-ping"></span>
-                    <span id="live-clock" class="font-extrabold text-slate-200 tracking-wide">--:--</span>
+                <!-- Clean Logo Mark (Black/White/Orange) -->
+                <div class="hidden md:flex items-center gap-2 pr-2 border-r border-slateBorder select-none" dir="ltr">
+                    <svg class="w-10 h-7" viewBox="0 0 280 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 40 L90 32 L87 42 L12 40 Z" fill="#FF6B00"/>
+                        <path d="M26 56 L94 49 L91 59 L26 56 Z" fill="#FF6B00"/>
+                        <path d="M74 32 C88 31 98 38 103 51 L118 94 L141 48 C145 40 155 40 159 48 L178 94 L200 36 L214 45 L188 102 C183 111 171 111 166 102 L150 65 L129 102 C124 111 111 111 107 102 L87 50 C83 41 78 38 70 37 Z" fill="#FF6B00"/>
+                        <path d="M227 10 C209 10 195 24 195 41.5 C195 62 227 90 227 90 C227 90 259 62 259 41.5 C259 24 245 10 227 10 Z" fill="#FF6B00"/>
+                        <circle cx="227" cy="41" r="11.5" fill="#FFFFFF"/>
+                    </svg>
+                    <div class="leading-none">
+                        <span class="font-black italic text-sm tracking-wider text-white">WA<span class="text-wassalOrange">SS</span>AL</span>
+                        <span class="text-white font-black text-sm mr-1.5">وص<span class="text-wassalOrange">ّ</span>ل</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Title (Desktop) -->
+            <div class="hidden xl:block text-center">
+                <h2 id="header-title" class="font-black text-sm text-white">غرفة العمليات ومتابعة الطلبات الجارية</h2>
+                <p id="header-subtitle" class="text-[11px] text-neutral-400">اليوم المفتوح: <strong id="top-header-active-day" class="text-wassalOrange font-mono">----/--/--</strong></p>
+            </div>
+
+            <!-- Left Side: Quick New Order + Search + Clock -->
+            <div class="flex items-center gap-2 flex-1 sm:flex-initial justify-end">
+                <div class="relative flex-1 sm:w-56">
+                    <input id="search-input" type="text" placeholder="بحث برقم الطلب، العميل، المندوب..." class="w-full bg-slateDark border border-slateBorder rounded-xl pr-8 pl-3 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-wassalOrange transition-colors">
+                    <svg class="w-3.5 h-3.5 text-neutral-500 absolute right-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </div>
+
+                <button type="button" data-action="open-new-order" class="wassal-grad wassal-grad-hover text-black font-black px-3.5 py-2 rounded-xl text-xs shadow-md shadow-orange-500/15 shrink-0">
+                    + أوردر جديد
+                </button>
+
+                <div class="hidden lg:flex items-center gap-2 bg-slateDark border border-slateBorder px-3 py-2 rounded-xl text-xs">
+                    <span class="w-2 h-2 rounded-full bg-wassalOrange animate-ping"></span>
+                    <span id="live-clock" class="font-extrabold text-white tracking-wide">--:--</span>
                 </div>
             </div>
         </header>
 
-        <!-- 5-CARD EXECUTIVE KPI RIBBON -->
+        <!-- 5-CARD EXECUTIVE KPI RIBBON (STRICT BLACK / WHITE / ORANGE) -->
         <section id="kpi-ribbon" class="px-4 sm:px-6 pt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
             <div class="bg-slateDark border border-slateBorder rounded-2xl p-4 flex flex-col justify-between">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs text-slate-400 font-bold">أوردرات اليوم / الشهر</span>
-                    <span class="px-2 py-0.5 rounded-md bg-wassalOrange/15 text-wassalOrange text-[10px] font-black">حجم التشغيل</span>
+                    <span class="text-xs text-neutral-400 font-bold">أوردرات اليوم / الشهر</span>
+                    <span class="px-2 py-0.5 rounded-md bg-wassalOrange/15 text-wassalOrange text-[10px] font-black">التشغيل</span>
                 </div>
                 <div class="flex items-baseline gap-2 my-1.5">
                     <span id="kpi-today-orders" class="text-2xl font-black text-white">0</span>
-                    <span class="text-xs text-slate-400 font-bold">اليوم</span>
-                    <span class="text-slate-600">|</span>
+                    <span class="text-xs text-neutral-400 font-bold">اليوم</span>
+                    <span class="text-neutral-700">|</span>
                     <span id="kpi-month-orders" class="text-lg font-black text-wassalOrange">0</span>
-                    <span class="text-[11px] text-slate-400">الشهر</span>
+                    <span class="text-[11px] text-neutral-400">الشهر</span>
                 </div>
-                <p class="text-[11px] text-slate-400">مورد اليوم: <strong id="kpi-delivered-sub" class="text-statusDone">0</strong> • الإجمالي: <strong id="kpi-total" class="text-slate-200">0</strong></p>
+                <p class="text-[11px] text-neutral-400">مورد اليوم: <strong id="kpi-delivered-sub" class="text-white">0</strong> • الكل: <strong id="kpi-total" class="text-neutral-300">0</strong></p>
             </div>
 
             <div class="bg-slateDark border border-slateBorder rounded-2xl p-4 flex flex-col justify-between">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs text-slate-400 font-bold">أوردرات جارية الآن</span>
-                    <span class="w-2.5 h-2.5 rounded-full bg-statusOnway animate-pulse"></span>
+                    <span class="text-xs text-neutral-400 font-bold">أوردرات جارية الآن</span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-wassalOrange animate-pulse"></span>
                 </div>
-                <div id="kpi-active" class="text-2xl font-black text-statusOnway my-1.5">0</div>
+                <div id="kpi-active" class="text-2xl font-black text-wassalOrange my-1.5">0</div>
                 <div class="flex items-center gap-1.5 text-[11px] flex-wrap">
-                    <span id="kpi-picked-count" class="px-1.5 py-0.5 rounded bg-statusPicked/15 text-statusPicked font-bold">0 استلام</span>
-                    <span id="kpi-onway-count" class="px-1.5 py-0.5 rounded bg-statusOnway/15 text-statusOnway font-bold">0 طريق</span>
-                    <span id="kpi-deliv-wait-count" class="px-1.5 py-0.5 rounded bg-statusDone/15 text-statusDone font-bold">0 توريد</span>
+                    <span id="kpi-picked-count" class="px-1.5 py-0.5 rounded bg-obsidian border border-slateBorder text-neutral-200 font-bold">0 استلام</span>
+                    <span id="kpi-onway-count" class="px-1.5 py-0.5 rounded bg-wassalOrange/15 text-wassalOrange font-bold">0 طريق</span>
+                    <span id="kpi-deliv-wait-count" class="px-1.5 py-0.5 rounded bg-white/10 text-white font-bold">0 توريد</span>
                 </div>
             </div>
 
-            <div data-action="switch-tab" data-tab="stores" class="cursor-pointer bg-slateDark border border-slateBorder hover:border-wassalOrange/60 transition-colors rounded-2xl p-4 flex flex-col justify-between">
+            <div data-action="switch-tab" data-tab="stores" class="cursor-pointer bg-slateDark border border-slateBorder hover:border-wassalOrange transition-colors rounded-2xl p-4 flex flex-col justify-between">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs text-slate-400 font-bold">الأكثر عملاً (التاجر #1)</span>
-                    <span class="text-sm">🏆</span>
+                    <span class="text-xs text-neutral-400 font-bold">الأكثر عملاً (التاجر #1)</span>
+                    <span class="text-xs font-black text-wassalOrange">#1</span>
                 </div>
                 <div id="kpi-top-merchant-name" class="text-base font-black text-white truncate my-1.5">—</div>
-                <p class="text-[11px] text-slate-400"><strong id="kpi-top-merchant-count" class="text-wassalOrange">0 أوردر</strong> • مساهمة <strong id="kpi-top-merchant-share" class="text-statusDone">0%</strong></p>
+                <p class="text-[11px] text-neutral-400"><strong id="kpi-top-merchant-count" class="text-wassalOrange">0 أوردر</strong> • مساهمة <strong id="kpi-top-merchant-share" class="text-white">0%</strong></p>
             </div>
 
-            <div data-action="switch-tab" data-tab="riders" class="cursor-pointer bg-slateDark border border-slateBorder hover:border-wassalOrange/60 transition-colors rounded-2xl p-4 flex flex-col justify-between">
+            <div data-action="switch-tab" data-tab="riders" class="cursor-pointer bg-slateDark border border-slateBorder hover:border-wassalOrange transition-colors rounded-2xl p-4 flex flex-col justify-between">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs text-slate-400 font-bold">المناديب المتاحين بالمكتب</span>
-                    <span class="w-2.5 h-2.5 rounded-full bg-statusDone"></span>
+                    <span class="text-xs text-neutral-400 font-bold">المناديب المتاحين بالمكتب</span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-white"></span>
                 </div>
-                <div class="text-2xl font-black text-statusDone my-1.5"><span id="kpi-riders-avail">0</span><span id="kpi-riders-total" class="text-sm text-slate-500 font-bold"> / 0</span></div>
-                <p class="text-[11px] text-slate-400 truncate">الأكثر نشاطاً: <strong id="kpi-top-rider-mini" class="text-white">—</strong></p>
+                <div class="text-2xl font-black text-white my-1.5"><span id="kpi-riders-avail">0</span><span id="kpi-riders-total" class="text-sm text-neutral-500 font-bold"> / 0</span></div>
+                <p class="text-[11px] text-neutral-400 truncate">الأكثر نشاطاً: <strong id="kpi-top-rider-mini" class="text-wassalOrange">—</strong></p>
             </div>
 
-            <div data-action="switch-tab" data-tab="accounting" class="cursor-pointer bg-slateDark border border-wassalOrange/40 hover:border-wassalOrange transition-colors rounded-2xl p-4 flex flex-col justify-between">
+            <div data-action="switch-tab" data-tab="accounting" class="cursor-pointer bg-slateDark border border-wassalOrange/50 hover:border-wassalOrange transition-colors rounded-2xl p-4 flex flex-col justify-between">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs text-slate-300 font-bold">صافي ربح اليوم (المُحصّل فعلياً)</span>
+                    <span class="text-xs text-neutral-300 font-bold">صافي ربح اليوم (المُحصّل)</span>
                     <span class="text-xs font-black text-wassalOrange">ج.م</span>
                 </div>
                 <div id="kpi-today-profit" class="text-2xl font-black text-wassalOrange my-1.5">0</div>
-                <p class="text-[11px] text-slate-400">إيراد مُغلق: <strong id="kpi-revenue" class="text-statusDone">0</strong> • مصروف: <strong id="kpi-today-expense" class="text-red-400">0</strong></p>
+                <p class="text-[11px] text-neutral-400">إيراد: <strong id="kpi-revenue" class="text-white">0</strong> • مصروف: <strong id="kpi-today-expense" class="text-neutral-300">0</strong></p>
             </div>
         </section>
 
@@ -360,7 +328,7 @@
         <section id="view-operations" class="view-section p-4 sm:p-6 space-y-4">
             <div class="bg-slateDark border border-slateBorder rounded-2xl p-3">
                 <div class="flex items-center justify-between mb-2 px-1">
-                    <span class="text-xs font-black text-slate-300">🏍️ حالة المناديب اللحظية (اضغط على المندوب لفلترة طلباته):</span>
+                    <span class="text-xs font-black text-neutral-300">حالة المناديب اللحظية (اضغط على المندوب لفلترة طلباته):</span>
                     <button type="button" id="clear-rider-pill-btn" data-action="filter-by-rider-pill" data-id="all" class="hidden text-[11px] text-wassalOrange font-extrabold underline">عرض جميع المناديب</button>
                 </div>
                 <div id="fleet-ribbon-list" class="flex items-center gap-2 overflow-x-auto pb-1"></div>
@@ -368,53 +336,53 @@
 
             <div class="bg-slateDark border border-slateBorder rounded-2xl p-3 flex flex-wrap items-center justify-between gap-3">
                 <div class="flex items-center gap-1.5 bg-obsidian p-1 rounded-xl border border-slateBorder">
-                    <button type="button" id="view-btn-kanban" data-action="set-view-mode" data-mode="kanban" class="px-3 py-1.5 rounded-lg text-xs font-black wassal-grad text-obsidian flex items-center gap-1.5 transition-all">
+                    <button type="button" id="view-btn-kanban" data-action="set-view-mode" data-mode="kanban" class="px-3 py-1.5 rounded-lg text-xs font-black wassal-grad text-black flex items-center gap-1.5 transition-all">
                         <span>لوحة المتابعة (3 مراحل)</span>
                     </button>
-                    <button type="button" id="view-btn-table" data-action="set-view-mode" data-mode="table" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white flex items-center gap-1.5 transition-all">
+                    <button type="button" id="view-btn-table" data-action="set-view-mode" data-mode="table" class="px-3 py-1.5 rounded-lg text-xs font-bold text-neutral-400 hover:text-white flex items-center gap-1.5 transition-all">
                         <span>الجدول السريع</span>
                     </button>
                 </div>
 
                 <div class="flex flex-wrap items-center gap-1.5">
                     <button type="button" data-action="set-status-filter" data-status="all" class="status-chip px-3 py-1.5 rounded-lg text-xs font-black bg-slateCard text-white">كل الجارية</button>
-                    <button type="button" data-action="set-status-filter" data-status="received" class="status-chip px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white">1. تم الاستلام</button>
-                    <button type="button" data-action="set-status-filter" data-status="onway" class="status-chip px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white">2. في الطريق</button>
-                    <button type="button" data-action="set-status-filter" data-status="delivered" class="status-chip px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white">3. تسليم / مرتجع</button>
-                    <button type="button" data-action="set-status-filter" data-status="overdue" class="status-chip px-3 py-1.5 rounded-lg text-xs font-bold text-red-400 hover:text-white">⚠️ المتأخرة (+35د)</button>
+                    <button type="button" data-action="set-status-filter" data-status="received" class="status-chip px-3 py-1.5 rounded-lg text-xs font-bold text-neutral-400 hover:text-white">1. تم الاستلام</button>
+                    <button type="button" data-action="set-status-filter" data-status="onway" class="status-chip px-3 py-1.5 rounded-lg text-xs font-bold text-neutral-400 hover:text-white">2. في الطريق</button>
+                    <button type="button" data-action="set-status-filter" data-status="delivered" class="status-chip px-3 py-1.5 rounded-lg text-xs font-bold text-neutral-400 hover:text-white">3. تسليم / مرتجع</button>
+                    <button type="button" data-action="set-status-filter" data-status="overdue" class="status-chip px-3 py-1.5 rounded-lg text-xs font-bold text-wassalOrange hover:text-white">المتأخرة (+35د)</button>
                 </div>
             </div>
 
             <div id="operations-kanban-container" class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
-                <div class="bg-slateDark/90 border border-slateBorder rounded-2xl flex flex-col">
+                <div class="bg-slateDark border border-slateBorder rounded-2xl flex flex-col">
                     <div class="p-3.5 border-b border-slateBorder flex items-center justify-between">
                         <div class="flex items-center gap-2">
-                            <span class="w-3 h-3 rounded-full bg-statusPicked"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-neutral-400"></span>
                             <h3 class="font-black text-sm text-white">1. تم الاستلام من المتجر</h3>
                         </div>
-                        <span id="col-count-received" class="px-2.5 py-0.5 rounded-full text-xs font-black bg-statusPicked/15 text-statusPicked">0</span>
+                        <span id="col-count-received" class="px-2.5 py-0.5 rounded-full text-xs font-black bg-obsidian border border-slateBorder text-white">0</span>
                     </div>
                     <div id="col-list-received" class="p-3 space-y-3 min-h-[340px]"></div>
                 </div>
 
-                <div class="bg-slateDark/90 border border-slateBorder rounded-2xl flex flex-col">
+                <div class="bg-slateDark border border-slateBorder rounded-2xl flex flex-col">
                     <div class="p-3.5 border-b border-slateBorder flex items-center justify-between">
                         <div class="flex items-center gap-2">
-                            <span class="w-3 h-3 rounded-full bg-statusOnway animate-pulse"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-wassalOrange animate-pulse"></span>
                             <h3 class="font-black text-sm text-white">2. في الطريق (للعميل)</h3>
                         </div>
-                        <span id="col-count-onway" class="px-2.5 py-0.5 rounded-full text-xs font-black bg-statusOnway/15 text-statusOnway">0</span>
+                        <span id="col-count-onway" class="px-2.5 py-0.5 rounded-full text-xs font-black bg-wassalOrange/15 text-wassalOrange">0</span>
                     </div>
                     <div id="col-list-onway" class="p-3 space-y-3 min-h-[340px]"></div>
                 </div>
 
-                <div class="bg-slateDark/90 border border-slateBorder rounded-2xl flex flex-col">
+                <div class="bg-slateDark border border-slateBorder rounded-2xl flex flex-col">
                     <div class="p-3.5 border-b border-slateBorder flex items-center justify-between">
                         <div class="flex items-center gap-2">
-                            <span class="w-3 h-3 rounded-full bg-statusDone"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-white"></span>
                             <h3 class="font-black text-sm text-white">3. تسليم / مرتجع (بانتظار التوريد)</h3>
                         </div>
-                        <span id="col-count-delivered" class="px-2.5 py-0.5 rounded-full text-xs font-black bg-statusDone/15 text-statusDone">0</span>
+                        <span id="col-count-delivered" class="px-2.5 py-0.5 rounded-full text-xs font-black bg-white/15 text-white">0</span>
                     </div>
                     <div id="col-list-delivered" class="p-3 space-y-3 min-h-[340px]"></div>
                 </div>
@@ -423,7 +391,7 @@
             <div id="operations-table-container" class="hidden bg-slateDark border border-slateBorder rounded-2xl overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-right text-xs">
-                        <thead class="bg-obsidian text-slate-400 border-b border-slateBorder">
+                        <thead class="bg-obsidian text-neutral-400 border-b border-slateBorder">
                             <tr>
                                 <th class="px-4 py-3.5 font-extrabold">رقم الطلب</th>
                                 <th class="px-4 py-3.5 font-extrabold">المرحلة</th>
@@ -443,51 +411,49 @@
 
         <!-- ==================== VIEW 2: ARCHIVE & DAY CLOSE ==================== -->
         <section id="view-archive" class="view-section hidden p-4 sm:p-6 space-y-5">
-            <div class="bg-slateDark border border-wassalOrange/40 rounded-2xl p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div class="bg-slateDark border border-wassalOrange/50 rounded-2xl p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div>
-                    <div class="flex items-center gap-2">
-                        <span class="px-2.5 py-0.5 rounded-lg bg-wassalOrange/15 text-wassalOrange text-xs font-black">اليوم المفتوح حالياً: <span id="archive-current-day-label" class="font-mono">----/--/--</span></span>
-                    </div>
+                    <span class="px-2.5 py-0.5 rounded-lg bg-wassalOrange/15 text-wassalOrange text-xs font-black">اليوم المفتوح حالياً: <span id="archive-current-day-label" class="font-mono">----/--/--</span></span>
                     <h3 class="text-lg font-black text-white mt-1.5">أرشيف الطلبات المنتهية وإقفال اليوميات</h3>
-                    <p class="text-xs text-slate-400">يتم احتساب الإيراد وصافي الربح عند الإقفال من الطلبات المغلقة فعلياً فقط، مع حفظ لقطة احتياطية سحابية تلقائية قبل الإقفال.</p>
+                    <p class="text-xs text-neutral-400">يتم احتساب الإيراد وصافي الربح عند الإقفال من الطلبات المغلقة فعلياً فقط، مع حفظ لقطة احتياطية تلقائية قبل الإقفال.</p>
                 </div>
-                <button type="button" data-action="open-close-day-modal" class="admin-only-btn wassal-grad wassal-grad-hover text-obsidian font-black px-5 py-3 rounded-xl text-xs shadow-lg shadow-orange-500/20 shrink-0">
-                    🔒 إقفال اليوم الحالي وبدء يوم جديد
+                <button type="button" data-action="open-close-day-modal" class="admin-only-btn wassal-grad wassal-grad-hover text-black font-black px-5 py-3 rounded-xl text-xs shadow-lg shadow-orange-500/20 shrink-0">
+                    إقفال اليوم الحالي وبدء يوم جديد
                 </button>
             </div>
 
             <div class="bg-slateDark border border-slateBorder rounded-2xl p-4 space-y-4">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <div class="flex flex-wrap items-center gap-2">
-                        <label class="text-xs font-black text-slate-300">اختر تاريخ اليومية للاستعراض:</label>
+                        <label class="text-xs font-black text-neutral-300">تاريخ اليومية:</label>
                         <input type="date" id="archive-date-picker" class="bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-wassalOrange">
-                        <button type="button" data-action="archive-show-all" class="px-3 py-2 rounded-xl bg-slateCard hover:bg-slateHover border border-slateBorder text-xs font-bold text-slate-200">عرض كل الأيام</button>
+                        <button type="button" data-action="archive-show-all" class="px-3 py-2 rounded-xl bg-slateCard hover:bg-slateHover border border-slateBorder text-xs font-bold text-neutral-200">عرض الكل</button>
                     </div>
                     <div id="archive-quick-dates" class="flex items-center gap-1.5 overflow-x-auto"></div>
                 </div>
 
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
                     <div class="bg-obsidian border border-slateBorder rounded-xl p-3">
-                        <div class="text-slate-400">إجمالي طلبات اليوم المحدد</div>
+                        <div class="text-neutral-400">إجمالي طلبات اليوم</div>
                         <div id="arch-stat-count" class="text-lg font-black text-white mt-0.5">0</div>
                     </div>
-                    <div class="bg-obsidian border border-statusDone/30 rounded-xl p-3">
-                        <div class="text-statusDone font-bold">الطلبات الموردة / المرتجعة</div>
-                        <div id="arch-stat-settled-count" class="text-lg font-black text-statusDone mt-0.5">0</div>
+                    <div class="bg-obsidian border border-slateBorder rounded-xl p-3">
+                        <div class="text-neutral-400 font-bold">الموردة / المرتجعة</div>
+                        <div id="arch-stat-settled-count" class="text-lg font-black text-white mt-0.5">0</div>
                     </div>
                     <div class="bg-obsidian border border-slateBorder rounded-xl p-3">
-                        <div class="text-slate-400">مبالغ موردة للمتاجر</div>
+                        <div class="text-neutral-400">مبالغ موردة للمتاجر</div>
                         <div id="arch-stat-merchant-cash" class="text-lg font-black text-white mt-0.5">0 ج.م</div>
                     </div>
-                    <div class="bg-obsidian border border-wassalOrange/30 rounded-xl p-3">
-                        <div class="text-wassalOrange font-bold">إيرادات توصيل اليوم (المغلقة)</div>
+                    <div class="bg-obsidian border border-wassalOrange/40 rounded-xl p-3">
+                        <div class="text-wassalOrange font-bold">إيرادات توصيل اليوم</div>
                         <div id="arch-stat-fees" class="text-lg font-black text-wassalOrange mt-0.5">0 ج.م</div>
                     </div>
                 </div>
 
                 <div class="overflow-x-auto border border-slateBorder rounded-xl">
                     <table class="w-full text-right text-xs">
-                        <thead class="bg-obsidian text-slate-400 border-b border-slateBorder">
+                        <thead class="bg-obsidian text-neutral-400 border-b border-slateBorder">
                             <tr>
                                 <th class="px-3.5 py-3">رقم الطلب</th>
                                 <th class="px-3.5 py-3">التاريخ</th>
@@ -506,11 +472,11 @@
 
             <div class="bg-slateDark border border-slateBorder rounded-2xl overflow-hidden">
                 <div class="p-4 border-b border-slateBorder">
-                    <h4 class="font-black text-sm text-white">📚 سجل اليوميات المقفلة السابقة (تقفيل محاسبي معتمد)</h4>
+                    <h4 class="font-black text-sm text-white">سجل اليوميات المقفلة السابقة</h4>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-right text-xs">
-                        <thead class="bg-obsidian text-slate-400 border-b border-slateBorder">
+                        <thead class="bg-obsidian text-neutral-400 border-b border-slateBorder">
                             <tr>
                                 <th class="px-4 py-3">تاريخ اليومية</th>
                                 <th class="px-4 py-3">وقت الإقفال</th>
@@ -533,12 +499,12 @@
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <div>
                     <h3 id="riders-view-heading" class="text-lg font-black text-white">أسطول المناديب والموتوسيكلات</h3>
-                    <p class="text-xs text-slate-400">اضغط على أي مندوب لعرض إحصائياته اليومية والأسبوعية والشهرية، أو قم بإضافة/تعديل/تغيير حالة المندوب</p>
+                    <p class="text-xs text-neutral-400">اضغط على أي مندوب لعرض كشف أدائه، أو قم بإضافة/تعديل بيانات الطيارين</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
-                    <span id="riders-top-today-badge" class="px-3 py-1.5 rounded-xl bg-statusDone/15 border border-statusDone/40 text-statusDone text-xs font-black">⚡ نجم اليوم: —</span>
-                    <span id="riders-top-month-badge" class="px-3 py-1.5 rounded-xl bg-wassalOrange/15 border border-wassalOrange/40 text-wassalOrange text-xs font-black">🏆 نجم الشهر: —</span>
-                    <button type="button" data-action="open-rider-modal" class="admin-only-btn wassal-grad wassal-grad-hover text-obsidian font-black px-4 py-2 rounded-xl text-xs shadow-lg shadow-orange-500/20">+ إضافة مندوب جديد</button>
+                    <span id="riders-top-today-badge" class="px-3 py-1.5 rounded-xl bg-slateDark border border-slateBorder text-white text-xs font-black">نجم اليوم: —</span>
+                    <span id="riders-top-month-badge" class="px-3 py-1.5 rounded-xl bg-wassalOrange/15 border border-wassalOrange/40 text-wassalOrange text-xs font-black">نجم الشهر: —</span>
+                    <button type="button" data-action="open-rider-modal" class="admin-only-btn wassal-grad wassal-grad-hover text-black font-black px-4 py-2 rounded-xl text-xs shadow-lg shadow-orange-500/20">+ إضافة مندوب جديد</button>
                 </div>
             </div>
             <div id="riders-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
@@ -549,12 +515,12 @@
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <div>
                     <h3 class="text-lg font-black text-white">المتاجر المتعاقدة وترتيب الأكثر عملاً</h3>
-                    <p class="text-xs text-slate-400">ترتيب تلقائي للمطاعم والصيدليات والسوبرماركت حسب حجم الأوردرات ونسبة المساهمة، مع كشف حساب لكل متجر</p>
+                    <p class="text-xs text-neutral-400">ترتيب تلقائي للمطاعم والصيدليات والسوبرماركت حسب حجم الأوردرات وكشف حساب لكل متجر</p>
                 </div>
-                <button type="button" data-action="open-new-store" class="admin-only-btn wassal-grad wassal-grad-hover text-obsidian font-black px-4 py-2.5 rounded-xl text-xs shadow-lg shadow-orange-500/20">+ إضافة متجر جديد</button>
+                <button type="button" data-action="open-new-store" class="admin-only-btn wassal-grad wassal-grad-hover text-black font-black px-4 py-2.5 rounded-xl text-xs shadow-lg shadow-orange-500/20">+ إضافة متجر جديد</button>
             </div>
 
-            <div id="top-merchant-banner" class="bg-gradient-to-l from-wassalOrange/20 via-slateDark to-slateDark border border-wassalOrange/50 rounded-2xl p-5"></div>
+            <div id="top-merchant-banner" class="bg-slateDark border border-wassalOrange/50 rounded-2xl p-5"></div>
             <div id="stores-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </section>
 
@@ -562,12 +528,12 @@
         <section id="view-accounting" class="view-section hidden p-4 sm:p-6 space-y-6">
             <div class="bg-slateDark border border-slateBorder rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
                 <div class="flex items-center gap-3">
-                    <span class="text-sm font-black text-white">📅 شهر التقرير المحاسبي:</span>
+                    <span class="text-sm font-black text-white">شهر التقرير المحاسبي:</span>
                     <input type="month" id="report-month-picker" class="bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2 text-xs text-white font-bold focus:outline-none focus:border-wassalOrange">
                 </div>
                 <div class="flex items-center gap-2 no-print">
-                    <button type="button" data-action="export-csv" class="px-4 py-2 rounded-xl bg-statusDone/15 hover:bg-statusDone text-statusDone hover:text-obsidian border border-statusDone/40 text-xs font-black transition-colors">📊 تصدير Excel / CSV (آمن)</button>
-                    <button type="button" data-action="print-report" class="px-4 py-2 rounded-xl wassal-grad wassal-grad-hover text-obsidian text-xs font-black shadow-lg shadow-orange-500/20">🖨️ طباعة التقرير الشهري</button>
+                    <button type="button" data-action="export-csv" class="px-4 py-2 rounded-xl bg-slateCard hover:bg-slateHover text-white border border-slateBorder text-xs font-black transition-colors">تصدير Excel / CSV</button>
+                    <button type="button" data-action="print-report" class="px-4 py-2 rounded-xl wassal-grad wassal-grad-hover text-black text-xs font-black shadow-lg shadow-orange-500/20">طباعة التقرير الشهري</button>
                 </div>
             </div>
 
@@ -576,27 +542,27 @@
                     <div class="flex items-center justify-between border-b border-slateBorder pb-3">
                         <div>
                             <h3 class="font-black text-base text-white">ملخص قائمة الدخل — اليومية</h3>
-                            <p id="pnl-today-date" class="text-[11px] text-slate-400">وردية اليوم</p>
+                            <p id="pnl-today-date" class="text-[11px] text-neutral-400">وردية اليوم</p>
                         </div>
                         <span class="px-2.5 py-1 rounded-lg bg-wassalOrange/15 text-wassalOrange text-xs font-black">تقفيل يومي</span>
                     </div>
                     <div class="space-y-2.5 text-xs">
                         <div class="flex justify-between items-center p-3 rounded-xl bg-obsidian border border-slateBorder">
-                            <span class="text-slate-300 font-bold">(+) إيرادات التوصيل المحققة اليوم</span>
-                            <span id="pnl-today-rev" class="font-black text-statusDone text-sm">0 ج.م</span>
+                            <span class="text-neutral-300 font-bold">(+) إيرادات التوصيل المحققة اليوم</span>
+                            <span id="pnl-today-rev" class="font-black text-white text-sm">0 ج.م</span>
                         </div>
                         <div class="flex justify-between items-center p-3 rounded-xl bg-obsidian border border-slateBorder">
-                            <span class="text-slate-300 font-bold">(-) إجمالي مصروفات التشغيل اليوم</span>
-                            <span id="pnl-today-exp" class="font-black text-red-400 text-sm">0 ج.م</span>
+                            <span class="text-neutral-300 font-bold">(-) إجمالي مصروفات التشغيل اليوم</span>
+                            <span id="pnl-today-exp" class="font-black text-neutral-400 text-sm">0 ج.م</span>
                         </div>
                         <div class="flex justify-between items-center p-3.5 rounded-xl bg-wassalOrange/15 border border-wassalOrange/50">
                             <div>
                                 <div class="font-black text-white text-sm">(=) صافي ربح اليومية</div>
-                                <div id="pnl-today-margin" class="text-[11px] text-slate-300">هامش الربح: 0%</div>
+                                <div id="pnl-today-margin" class="text-[11px] text-neutral-300">هامش الربح: 0%</div>
                             </div>
                             <span id="pnl-today-net" class="font-black text-wassalOrange text-lg">0 ج.م</span>
                         </div>
-                        <div class="flex justify-between items-center pt-1 text-[11px] text-slate-400">
+                        <div class="flex justify-between items-center pt-1 text-[11px] text-neutral-400">
                             <span>عُهدة بضائع موردة للتجار اليوم (خارج الإيراد):</span>
                             <strong id="pnl-today-settled" class="text-white">0 ج.م</strong>
                         </div>
@@ -607,27 +573,27 @@
                     <div class="flex items-center justify-between border-b border-slateBorder pb-3">
                         <div>
                             <h3 class="font-black text-base text-white">ملخص قائمة الدخل — الشهرية</h3>
-                            <p id="pnl-month-label" class="text-[11px] text-slate-400">الشهر المحدد</p>
+                            <p id="pnl-month-label" class="text-[11px] text-neutral-400">الشهر المحدد</p>
                         </div>
-                        <span class="px-2.5 py-1 rounded-lg bg-statusDone/15 text-statusDone text-xs font-black">تقفيل شهري</span>
+                        <span class="px-2.5 py-1 rounded-lg bg-white/10 text-white text-xs font-black">تقفيل شهري</span>
                     </div>
                     <div class="space-y-2.5 text-xs">
                         <div class="flex justify-between items-center p-3 rounded-xl bg-obsidian border border-slateBorder">
-                            <span class="text-slate-300 font-bold">(+) إيرادات التوصيل الشهرية (<span id="pnl-month-orders-count">0</span> أوردر ناجح)</span>
-                            <span id="pnl-month-rev" class="font-black text-statusDone text-sm">0 ج.م</span>
+                            <span class="text-neutral-300 font-bold">(+) إيرادات التوصيل الشهرية (<span id="pnl-month-orders-count">0</span> أوردر ناجح)</span>
+                            <span id="pnl-month-rev" class="font-black text-white text-sm">0 ج.م</span>
                         </div>
                         <div class="flex justify-between items-center p-3 rounded-xl bg-obsidian border border-slateBorder">
-                            <span class="text-slate-300 font-bold">(-) إجمالي مصروفات الشهر (<span id="pnl-month-exp-count">0</span> بند)</span>
-                            <span id="pnl-month-exp" class="font-black text-red-400 text-sm">0 ج.م</span>
+                            <span class="text-neutral-300 font-bold">(-) إجمالي مصروفات الشهر (<span id="pnl-month-exp-count">0</span> بند)</span>
+                            <span id="pnl-month-exp" class="font-black text-neutral-400 text-sm">0 ج.م</span>
                         </div>
-                        <div class="flex justify-between items-center p-3.5 rounded-xl bg-statusDone/15 border border-statusDone/50">
+                        <div class="flex justify-between items-center p-3.5 rounded-xl bg-wassalOrange/15 border border-wassalOrange/50">
                             <div>
                                 <div class="font-black text-white text-sm">(=) صافي الربح الشهري</div>
-                                <div id="pnl-month-margin" class="text-[11px] text-slate-300">هامش الربح: 0%</div>
+                                <div id="pnl-month-margin" class="text-[11px] text-neutral-300">هامش الربح: 0%</div>
                             </div>
-                            <span id="pnl-month-net" class="font-black text-statusDone text-lg">0 ج.م</span>
+                            <span id="pnl-month-net" class="font-black text-wassalOrange text-lg">0 ج.م</span>
                         </div>
-                        <div class="flex justify-between items-center pt-1 text-[11px] text-slate-400">
+                        <div class="flex justify-between items-center pt-1 text-[11px] text-neutral-400">
                             <span>عُهدة بضائع موردة للتجار خلال الشهر:</span>
                             <strong id="pnl-month-settled" class="text-white">0 ج.م</strong>
                         </div>
@@ -638,10 +604,10 @@
             <div class="bg-slateDark border border-slateBorder rounded-2xl p-5 space-y-4">
                 <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slateBorder pb-3">
                     <div>
-                        <h3 class="font-black text-base text-white">💸 إدارة وتسجيل المصروفات التشغيلية</h3>
-                        <p class="text-xs text-slate-400">بنزين، صيانة موتوسيكلات، باقات إنترنت، رواتب، مطبوعات (للمدير فقط)</p>
+                        <h3 class="font-black text-base text-white">إدارة وتسجيل المصروفات التشغيلية</h3>
+                        <p class="text-xs text-neutral-400">بنزين، صيانة موتوسيكلات، باقات إنترنت، رواتب، مطبوعات (للمدير فقط)</p>
                     </div>
-                    <select id="filter-expense-cat" class="bg-obsidian border border-slateBorder rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none">
+                    <select id="filter-expense-cat" class="bg-obsidian border border-slateBorder rounded-xl px-3 py-1.5 text-xs text-neutral-200 focus:outline-none">
                         <option value="all">كل بنود المصروفات</option>
                         <option value="بنزين ووقود موتوسيكلات">بنزين ووقود موتوسيكلات</option>
                         <option value="صيانة وقطع غيار">صيانة وقطع غيار</option>
@@ -667,15 +633,15 @@
                     <input type="number" id="exp-amount" required min="1" placeholder="المبلغ (ج.م)" class="bg-slateDark border border-slateBorder rounded-lg px-3 py-2 text-white focus:outline-none focus:border-wassalOrange">
                     <select id="exp-rider" class="bg-slateDark border border-slateBorder rounded-lg px-3 py-2 text-white focus:outline-none focus:border-wassalOrange"></select>
                     <input type="date" id="exp-date" required class="bg-slateDark border border-slateBorder rounded-lg px-3 py-2 text-white focus:outline-none focus:border-wassalOrange">
-                    <button id="btn-submit-expense" type="submit" class="wassal-grad wassal-grad-hover text-obsidian font-black rounded-lg py-2 px-3 shadow-md">+ تسجيل مصروف</button>
-                    <input type="text" id="exp-notes" placeholder="ملاحظات إضافية اختيارية (رقم بون / تفاصيل الصيانة...)" class="sm:col-span-2 lg:col-span-6 bg-slateDark border border-slateBorder rounded-lg px-3 py-1.5 text-[11px] text-slate-300 focus:outline-none">
+                    <button id="btn-submit-expense" type="submit" class="wassal-grad wassal-grad-hover text-black font-black rounded-lg py-2 px-3 shadow-md">+ تسجيل مصروف</button>
+                    <input type="text" id="exp-notes" placeholder="ملاحظات إضافية اختيارية..." class="sm:col-span-2 lg:col-span-6 bg-slateDark border border-slateBorder rounded-lg px-3 py-1.5 text-[11px] text-neutral-300 focus:outline-none">
                 </form>
 
                 <div id="expense-categories-bars" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5"></div>
 
                 <div class="overflow-x-auto border border-slateBorder rounded-xl">
                     <table class="w-full text-right text-xs">
-                        <thead class="bg-obsidian text-slate-400 border-b border-slateBorder">
+                        <thead class="bg-obsidian text-neutral-400 border-b border-slateBorder">
                             <tr>
                                 <th class="px-3.5 py-2.5">التاريخ</th>
                                 <th class="px-3.5 py-2.5">بيان المصروف</th>
@@ -692,12 +658,12 @@
 
             <div class="bg-slateDark border border-slateBorder rounded-2xl overflow-hidden">
                 <div class="p-4 border-b border-slateBorder flex items-center justify-between">
-                    <h3 class="font-black text-base text-white">🏪 تقرير المتاجر وترتيب الأكثر عملاً</h3>
-                    <span class="text-xs text-slate-400">مرتب تنازلياً حسب عدد الأوردرات</span>
+                    <h3 class="font-black text-base text-white">تقرير المتاجر وترتيب الأكثر عملاً</h3>
+                    <span class="text-xs text-neutral-400">مرتب تنازلياً حسب عدد الأوردرات</span>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-right text-xs">
-                        <thead class="bg-obsidian text-slate-400 border-b border-slateBorder">
+                        <thead class="bg-obsidian text-neutral-400 border-b border-slateBorder">
                             <tr>
                                 <th class="px-4 py-3">الترتيب</th>
                                 <th class="px-4 py-3">المتجر</th>
@@ -716,12 +682,12 @@
 
             <div class="bg-slateDark border border-slateBorder rounded-2xl overflow-hidden">
                 <div class="p-4 border-b border-slateBorder flex items-center justify-between">
-                    <h3 class="font-black text-base text-white">🏍️ تقرير إنتاجية المناديب ومعدل السرعة</h3>
-                    <span class="text-xs text-slate-400">مرتب تنازلياً حسب عدد الأوردرات</span>
+                    <h3 class="font-black text-base text-white">تقرير إنتاجية المناديب ومعدل السرعة</h3>
+                    <span class="text-xs text-neutral-400">مرتب تنازلياً حسب عدد الأوردرات</span>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-right text-xs">
-                        <thead class="bg-obsidian text-slate-400 border-b border-slateBorder">
+                        <thead class="bg-obsidian text-neutral-400 border-b border-slateBorder">
                             <tr>
                                 <th class="px-4 py-3">الترتيب</th>
                                 <th class="px-4 py-3">المندوب</th>
@@ -741,18 +707,18 @@
 
         <!-- ==================== VIEW 6: AUDIT LOG (ADMIN ONLY) ==================== -->
         <section id="view-audit" class="view-section hidden p-4 sm:p-6 space-y-5">
-            <div class="bg-slateDark border border-wassalOrange/40 rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
+            <div class="bg-slateDark border border-wassalOrange/50 rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
                 <div>
-                    <h3 class="text-lg font-black text-white">🛡️ سجل التدقيق والرقابة (Audit Log)</h3>
-                    <p class="text-xs text-slate-400 mt-1">سجل غير قابل للتعديل أو الحذف يوثّق كل عملية تعديل أو حذف أو إقفال يومية ومن قام بها وتوقيتها.</p>
+                    <h3 class="text-lg font-black text-white">سجل التدقيق والرقابة (Audit Log)</h3>
+                    <p class="text-xs text-neutral-400 mt-1">سجل غير قابل للتعديل أو الحذف يوثّق كل عملية تعديل أو حذف أو إقفال يومية ومن قام بها وتوقيتها.</p>
                 </div>
-                <span class="px-3 py-1.5 rounded-xl bg-statusDone/15 border border-statusDone/40 text-statusDone text-xs font-black">محمي على مستوى السيرفر</span>
+                <span class="px-3 py-1.5 rounded-xl bg-wassalOrange/15 border border-wassalOrange/40 text-wassalOrange text-xs font-black">محمي على مستوى السيرفر</span>
             </div>
 
             <div class="bg-slateDark border border-slateBorder rounded-2xl overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-right text-xs">
-                        <thead class="bg-obsidian text-slate-400 border-b border-slateBorder">
+                        <thead class="bg-obsidian text-neutral-400 border-b border-slateBorder">
                             <tr>
                                 <th class="px-4 py-3">الوقت والتاريخ</th>
                                 <th class="px-4 py-3">الموظف / المستخدم</th>
@@ -769,7 +735,7 @@
     </main>
 
     <!-- SLIDE-OVER ORDER DRAWER -->
-    <div id="order-drawer-backdrop" data-action="close-drawer" class="fixed inset-0 bg-black/70 z-40 hidden"></div>
+    <div id="order-drawer-backdrop" data-action="close-drawer" class="fixed inset-0 bg-black/75 z-40 hidden"></div>
     <aside id="order-drawer" class="fixed top-0 left-0 z-50 h-screen w-full max-w-md bg-slateDark border-r border-slateBorder flex flex-col justify-between transition-transform duration-300 -translate-x-full shadow-2xl">
         <div class="p-5 border-b border-slateBorder flex items-center justify-between bg-slateCard">
             <div>
@@ -777,115 +743,146 @@
                     <h3 id="drawer-order-id" class="font-black text-lg text-wassalOrange">#W-000</h3>
                     <span id="drawer-status-badge" class="px-2.5 py-0.5 rounded-full text-xs font-extrabold">الحالة</span>
                 </div>
-                <p class="text-xs text-slate-400 mt-0.5">التوقيتات الكاملة للطلب، التعديل، ورسالة الواتساب</p>
+                <p class="text-xs text-neutral-400 mt-0.5">التوقيتات الكاملة للطلب، التعديل، ورسالة الواتساب</p>
             </div>
-            <button type="button" data-action="close-drawer" class="p-2 rounded-xl bg-obsidian text-slate-400 hover:text-white">✕</button>
+            <button type="button" data-action="close-drawer" class="p-2 rounded-xl bg-obsidian text-neutral-400 hover:text-white">✕</button>
         </div>
         <div id="drawer-content" class="p-5 space-y-4 overflow-y-auto flex-1"></div>
         <div id="drawer-footer" class="p-4 border-t border-slateBorder bg-obsidian space-y-2"></div>
     </aside>
 
     <!-- MODAL: EDIT / REASSIGN ORDER -->
-    <div id="modal-edit-order" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-slateDark border border-statusOnway/50 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
+    <div id="modal-edit-order" class="fixed inset-0 bg-black/80 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
+        <div class="bg-slateDark border border-wassalOrange/50 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
             <div class="p-5 border-b border-slateBorder flex items-center justify-between bg-slateCard">
                 <div>
-                    <h3 class="font-black text-base text-statusOnway">✏️ تعديل الطلب أو تحويله لمندوب آخر</h3>
-                    <p class="text-[11px] text-slate-400">رقم الطلب: <strong id="edit-order-title-id" class="text-white">#W-101</strong></p>
+                    <h3 class="font-black text-base text-wassalOrange">تعديل الطلب أو تحويله لمندوب آخر</h3>
+                    <p class="text-[11px] text-neutral-400">رقم الطلب: <strong id="edit-order-title-id" class="text-white">#W-101</strong></p>
                 </div>
-                <button type="button" data-action="close-modal" data-modal="modal-edit-order" class="text-slate-400 hover:text-white px-2 py-1 text-lg">✕</button>
+                <button type="button" data-action="close-modal" data-modal="modal-edit-order" class="text-neutral-400 hover:text-white px-2 py-1 text-lg">✕</button>
             </div>
             <form id="form-edit-order" class="p-5 space-y-3 text-xs">
                 <input type="hidden" id="edit-order-id">
                 <div>
-                    <label class="block font-bold text-slate-200 mb-1">تحويل / تعيين المندوب *</label>
-                    <select id="edit-order-rider" required class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-statusOnway"></select>
+                    <label class="block font-bold text-neutral-200 mb-1">تحويل / تعيين المندوب *</label>
+                    <select id="edit-order-rider" required class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-wassalOrange"></select>
                 </div>
                 <div class="grid grid-cols-2 gap-2.5">
                     <div>
-                        <label class="block font-bold text-slate-300 mb-1">اسم العميل *</label>
-                        <input id="edit-order-customer" type="text" required class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-statusOnway">
+                        <label class="block font-bold text-neutral-300 mb-1">اسم العميل *</label>
+                        <input id="edit-order-customer" type="text" required class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-wassalOrange">
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-300 mb-1">هاتف العميل *</label>
-                        <input id="edit-order-phone" type="tel" required class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-statusOnway">
+                        <label class="block font-bold text-neutral-300 mb-1">هاتف العميل *</label>
+                        <input id="edit-order-phone" type="tel" required class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-wassalOrange">
                     </div>
                 </div>
                 <div>
-                    <label class="block font-bold text-slate-300 mb-1">العنوان بالتفصيل *</label>
-                    <input id="edit-order-address" type="text" required class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-statusOnway">
+                    <label class="block font-bold text-neutral-300 mb-1">العنوان بالتفصيل *</label>
+                    <input id="edit-order-address" type="text" required class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-wassalOrange">
                 </div>
                 <div>
-                    <label class="block font-bold text-slate-300 mb-1">الأصناف</label>
-                    <input id="edit-order-items" type="text" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-statusOnway">
+                    <label class="block font-bold text-neutral-300 mb-1">الأصناف</label>
+                    <input id="edit-order-items" type="text" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-wassalOrange">
                 </div>
                 <div class="grid grid-cols-2 gap-2.5">
                     <div>
-                        <label class="block font-bold text-slate-300 mb-1">قيمة الأوردر للمتجر (للمدير فقط)</label>
-                        <input id="edit-order-amount" type="number" min="0" required class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-statusOnway">
+                        <label class="block font-bold text-neutral-300 mb-1">قيمة الأوردر للمتجر (للأدمن)</label>
+                        <input id="edit-order-amount" type="number" min="0" required class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-wassalOrange">
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-300 mb-1">رسوم التوصيل (للمدير فقط)</label>
-                        <input id="edit-order-fee" type="number" min="0" required class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-statusOnway">
+                        <label class="block font-bold text-neutral-300 mb-1">رسوم التوصيل (للأدمن)</label>
+                        <input id="edit-order-fee" type="number" min="0" required class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-wassalOrange">
                     </div>
                 </div>
                 <div class="pt-2 flex justify-end gap-2">
-                    <button type="button" data-action="close-modal" data-modal="modal-edit-order" class="px-4 py-2.5 rounded-xl bg-slateCard text-slate-300 font-bold">إلغاء</button>
-                    <button type="submit" class="bg-statusOnway text-obsidian font-black px-5 py-2.5 rounded-xl shadow-lg">حفظ التعديلات</button>
+                    <button type="button" data-action="close-modal" data-modal="modal-edit-order" class="px-4 py-2.5 rounded-xl bg-slateCard text-neutral-300 font-bold">إلغاء</button>
+                    <button type="submit" class="wassal-grad text-black font-black px-5 py-2.5 rounded-xl shadow-lg">حفظ التعديلات</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL: SECURITY, STAFF ROLES & BACKUP/RESTORE -->
-    <div id="modal-security" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-slateDark border border-wassalOrange/50 rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
+    <!-- MODAL: USERS MANAGEMENT, ROLES & BACKUP/RESTORE -->
+    <div id="modal-security" class="fixed inset-0 bg-black/80 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
+        <div class="bg-slateDark border border-wassalOrange/50 rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl max-h-[92vh] flex flex-col">
             <div class="p-5 border-b border-slateBorder flex items-center justify-between bg-slateCard shrink-0">
                 <div>
-                    <h3 class="font-black text-base text-wassalOrange">🛡️ إدارة الصلاحيات والنسخ الاحتياطي</h3>
-                    <p class="text-[11px] text-slate-400">التحكم في صلاحيات الموظفين والنسخ الاحتياطي السحابي والمحلي</p>
+                    <h3 class="font-black text-base text-wassalOrange">إدارة المستخدمين والصلاحيات والنسخ</h3>
+                    <p class="text-[11px] text-neutral-400">إنشاء حسابات جديدة للموظفين وتحديد صلاحياتهم والنسخ الاحتياطي</p>
                 </div>
-                <button type="button" data-action="close-modal" data-modal="modal-security" class="text-slate-400 hover:text-white px-2 py-1 text-lg">✕</button>
+                <button type="button" data-action="close-modal" data-modal="modal-security" class="text-neutral-400 hover:text-white px-2 py-1 text-lg">✕</button>
             </div>
             <div class="p-5 space-y-4 text-xs overflow-y-auto">
-                <!-- Staff Roles Management (Admin Only) -->
-                <div id="staff-roles-section" class="admin-only-btn bg-obsidian border border-slateBorder rounded-xl p-3.5 space-y-2.5">
-                    <div class="font-black text-white">👥 صلاحيات الموظفين المسجلين</div>
-                    <p class="text-[11px] text-slate-400">لإضافة موظف جديد: أنشئ له بريداً في Firebase Authentication، وعند أول دخول له سيظهر هنا لتحديد صلاحيته (مدير أو موظف عمليات).</p>
+                <!-- Create New Staff Account Form (Admin Only) -->
+                <div class="admin-only-btn bg-obsidian border border-wassalOrange/40 rounded-xl p-3.5 space-y-3">
+                    <div class="font-black text-wassalOrange">+ إنشاء حساب موظف / أدمن جديد</div>
+                    <form id="form-create-staff-user" class="space-y-2.5">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[11px] font-bold text-neutral-300 mb-1">اسم الموظف *</label>
+                                <input id="new-staff-name" type="text" required placeholder="مثال: أحمد علي" class="w-full bg-slateDark border border-slateBorder rounded-lg px-3 py-2 text-white focus:outline-none focus:border-wassalOrange">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-neutral-300 mb-1">الصلاحية *</label>
+                                <select id="new-staff-role" class="w-full bg-slateDark border border-slateBorder rounded-lg px-3 py-2 text-white font-bold focus:outline-none focus:border-wassalOrange">
+                                    <option value="operator">موظف عمليات (تسجيل ومتابعة فقط)</option>
+                                    <option value="admin">مدير نظام (صلاحيات كاملة)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[11px] font-bold text-neutral-300 mb-1">البريد الإلكتروني للدخول *</label>
+                                <input id="new-staff-email" type="email" required dir="ltr" placeholder="staff@wassal.com" class="w-full bg-slateDark border border-slateBorder rounded-lg px-3 py-2 text-white focus:outline-none focus:border-wassalOrange">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-neutral-300 mb-1">كلمة المرور (6 أحرف على الأقل) *</label>
+                                <input id="new-staff-password" type="password" required minlength="6" dir="ltr" placeholder="••••••" class="w-full bg-slateDark border border-slateBorder rounded-lg px-3 py-2 text-white focus:outline-none focus:border-wassalOrange">
+                            </div>
+                        </div>
+                        <button id="btn-create-staff-submit" type="submit" class="w-full py-2.5 rounded-lg wassal-grad wassal-grad-hover text-black font-black text-xs">
+                            إنشاء الحساب وتفعيل الصلاحية فوراً
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Registered Staff Roles List (Admin Only) -->
+                <div id="staff-roles-section" class="admin-only-btn bg-obsidian border border-slateBorder rounded-xl p-3.5 space-y-2">
+                    <div class="font-black text-white">المستخدمون المسجلون وتعديل صلاحياتهم</div>
                     <div id="users-roles-list" class="space-y-2 pt-1"></div>
                 </div>
 
                 <!-- Auto Cloud Snapshots (Admin Only) -->
                 <div class="admin-only-btn bg-obsidian border border-slateBorder rounded-xl p-3.5 space-y-2.5">
                     <div class="flex items-center justify-between">
-                        <div class="font-black text-white">☁️ لقطات النسخ الاحتياطي السحابية التلقائية</div>
-                        <button type="button" data-action="create-cloud-snapshot" class="px-2.5 py-1 rounded-lg bg-wassalOrange/20 text-wassalOrange font-black text-[10px] hover:bg-wassalOrange hover:text-obsidian transition-colors">+ لقطة فورية</button>
+                        <div class="font-black text-white">لقطات النسخ الاحتياطي السحابية</div>
+                        <button type="button" data-action="create-cloud-snapshot" class="px-2.5 py-1 rounded-lg bg-wassalOrange/20 text-wassalOrange font-black text-[10px] hover:bg-wassalOrange hover:text-black transition-colors">+ لقطة فورية</button>
                     </div>
-                    <div id="cloud-backups-list" class="space-y-1.5 max-h-36 overflow-y-auto"></div>
+                    <div id="cloud-backups-list" class="space-y-1.5 max-h-32 overflow-y-auto"></div>
                 </div>
 
                 <!-- Backup & Restore -->
                 <div class="bg-obsidian border border-slateBorder rounded-xl p-3.5 space-y-2.5">
-                    <div class="font-black text-white">💾 النسخ الاحتياطي والاستعادة (JSON مع فحص البيانات)</div>
-                    <p class="text-[11px] text-slate-400">يتم التحقق الصارم من سلامة كل سجل وتقسيم الاستعادة تلقائياً إلى دفعات (400 سجل/دفعة).</p>
+                    <div class="font-black text-white">النسخ الاحتياطي المحلي (JSON)</div>
                     <div class="grid grid-cols-2 gap-2 pt-1">
-                        <button type="button" data-action="download-backup" class="py-2.5 px-3 rounded-lg bg-statusDone/20 hover:bg-statusDone text-statusDone hover:text-obsidian border border-statusDone/40 font-black transition-colors">
-                            ⬇️ تحميل نسخة احتياطية
+                        <button type="button" data-action="download-backup" class="py-2.5 px-3 rounded-lg bg-slateCard hover:bg-white text-white hover:text-black border border-slateBorder font-black transition-colors">
+                            تحميل نسخة احتياطية
                         </button>
-                        <label class="admin-only-btn py-2.5 px-3 rounded-lg bg-statusOnway/20 hover:bg-statusOnway text-statusOnway hover:text-obsidian border border-statusOnway/40 font-black text-center cursor-pointer transition-colors">
-                            ⬆️ استعادة من ملف
+                        <label class="admin-only-btn py-2.5 px-3 rounded-lg bg-wassalOrange/20 hover:bg-wassalOrange text-wassalOrange hover:text-black border border-wassalOrange/40 font-black text-center cursor-pointer transition-colors">
+                            استعادة من ملف
                             <input type="file" id="input-restore-backup" accept=".json" class="hidden">
                         </label>
                     </div>
                 </div>
 
                 <!-- Danger Zone (Admin Only) -->
-                <div class="admin-only-btn bg-red-500/10 border border-red-500/30 rounded-xl p-3.5 flex items-center justify-between">
+                <div class="admin-only-btn bg-obsidian border border-wassalOrange/40 rounded-xl p-3.5 flex items-center justify-between">
                     <div>
-                        <div class="font-black text-red-400">⚠️ منطقة الخطر (للمدير فقط)</div>
-                        <div class="text-[11px] text-slate-400">مسح جميع البيانات من قاعدة البيانات نهائياً</div>
+                        <div class="font-black text-wassalOrange">منطقة الخطر (للأدمن فقط)</div>
+                        <div class="text-[11px] text-neutral-400">مسح جميع البيانات من قاعدة البيانات نهائياً</div>
                     </div>
-                    <button type="button" data-action="reset-demo" class="px-3 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white font-black text-[11px]">
+                    <button type="button" data-action="reset-demo" class="px-3 py-2 rounded-lg bg-wassalOrange hover:bg-orange-600 text-black font-black text-[11px]">
                         تصفير النظام
                     </button>
                 </div>
@@ -894,149 +891,149 @@
     </div>
 
     <!-- MODAL: RIDER PERFORMANCE & PERIOD STATS -->
-    <div id="modal-rider-stats" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div id="modal-rider-stats" class="fixed inset-0 bg-black/80 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
         <div class="bg-slateDark border border-slateBorder rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
             <div class="p-5 border-b border-slateBorder flex items-center justify-between bg-slateCard">
                 <div>
                     <h3 id="rstats-name" class="font-black text-base text-white">إحصائيات المندوب</h3>
-                    <p id="rstats-sub" class="text-[11px] text-slate-400">الموتوسيكل واللوحة</p>
+                    <p id="rstats-sub" class="text-[11px] text-neutral-400">الموتوسيكل واللوحة</p>
                 </div>
-                <button type="button" data-action="close-modal" data-modal="modal-rider-stats" class="text-slate-400 hover:text-white px-2 py-1 text-lg">✕</button>
+                <button type="button" data-action="close-modal" data-modal="modal-rider-stats" class="text-neutral-400 hover:text-white px-2 py-1 text-lg">✕</button>
             </div>
             <div class="p-4 border-b border-slateBorder bg-obsidian flex flex-wrap items-center gap-2">
-                <span class="text-xs font-bold text-slate-400 ml-1">الفترة الزمنية:</span>
-                <button type="button" data-action="set-rstats-period" data-period="today" class="rstats-period-btn px-3 py-1.5 rounded-lg text-xs font-black wassal-grad text-obsidian">اليوم المفتوح</button>
-                <button type="button" data-action="set-rstats-period" data-period="week" class="rstats-period-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white">آخر 7 أيام (أسبوع)</button>
-                <button type="button" data-action="set-rstats-period" data-period="month" class="rstats-period-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white">الشهر الحالي</button>
-                <button type="button" data-action="set-rstats-period" data-period="all" class="rstats-period-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white">الكل</button>
+                <span class="text-xs font-bold text-neutral-400 ml-1">الفترة الزمنية:</span>
+                <button type="button" data-action="set-rstats-period" data-period="today" class="rstats-period-btn px-3 py-1.5 rounded-lg text-xs font-black wassal-grad text-black">اليوم المفتوح</button>
+                <button type="button" data-action="set-rstats-period" data-period="week" class="rstats-period-btn px-3 py-1.5 rounded-lg text-xs font-bold text-neutral-400 hover:text-white">آخر 7 أيام</button>
+                <button type="button" data-action="set-rstats-period" data-period="month" class="rstats-period-btn px-3 py-1.5 rounded-lg text-xs font-bold text-neutral-400 hover:text-white">الشهر الحالي</button>
+                <button type="button" data-action="set-rstats-period" data-period="all" class="rstats-period-btn px-3 py-1.5 rounded-lg text-xs font-bold text-neutral-400 hover:text-white">الكل</button>
             </div>
             <div id="rstats-body" class="p-5 space-y-4 overflow-y-auto flex-1"></div>
         </div>
     </div>
 
     <!-- MODAL: CLOSE DAY & START NEW DAY -->
-    <div id="modal-close-day" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div id="modal-close-day" class="fixed inset-0 bg-black/80 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
         <div class="bg-slateDark border border-wassalOrange/50 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
             <div class="p-5 border-b border-slateBorder flex items-center justify-between bg-slateCard">
                 <div>
-                    <h3 class="font-black text-base text-wassalOrange">🔒 إقفال اليوم الحالي وبدء يوم جديد</h3>
-                    <p class="text-[11px] text-slate-400">تصفية محاسبية معتمدة مع نسخة احتياطية تلقائية</p>
+                    <h3 class="font-black text-base text-wassalOrange">إقفال اليوم الحالي وبدء يوم جديد</h3>
+                    <p class="text-[11px] text-neutral-400">تصفية محاسبية معتمدة مع نسخة احتياطية تلقائية</p>
                 </div>
-                <button type="button" data-action="close-modal" data-modal="modal-close-day" class="text-slate-400 hover:text-white px-2 py-1 text-lg">✕</button>
+                <button type="button" data-action="close-modal" data-modal="modal-close-day" class="text-neutral-400 hover:text-white px-2 py-1 text-lg">✕</button>
             </div>
             <form id="form-close-day" class="p-5 space-y-4 text-xs">
                 <div id="close-day-summary-box" class="bg-obsidian border border-slateBorder rounded-xl p-3.5 space-y-2"></div>
                 <div>
-                    <label class="block font-bold text-slate-200 mb-1">تاريخ اليوم الجديد الذي سيبدأ العمل به *</label>
+                    <label class="block font-bold text-neutral-200 mb-1">تاريخ اليوم الجديد الذي سيبدأ العمل به *</label>
                     <input type="date" id="input-next-shift-date" required class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-white font-bold focus:outline-none focus:border-wassalOrange">
                 </div>
                 <div class="pt-1 flex justify-end gap-2">
-                    <button type="button" data-action="close-modal" data-modal="modal-close-day" class="px-4 py-2.5 rounded-xl bg-slateCard text-slate-300 font-bold">إلغاء</button>
-                    <button id="btn-submit-close-day" type="submit" class="wassal-grad wassal-grad-hover text-obsidian font-black px-5 py-2.5 rounded-xl shadow-lg shadow-orange-500/20">تأكيد إقفال اليوم وبدء الجديد</button>
+                    <button type="button" data-action="close-modal" data-modal="modal-close-day" class="px-4 py-2.5 rounded-xl bg-slateCard text-neutral-300 font-bold">إلغاء</button>
+                    <button id="btn-submit-close-day" type="submit" class="wassal-grad wassal-grad-hover text-black font-black px-5 py-2.5 rounded-xl shadow-lg shadow-orange-500/20">تأكيد إقفال اليوم وبدء الجديد</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- MODAL: NEW ORDER -->
-    <div id="modal-new-order" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div id="modal-new-order" class="fixed inset-0 bg-black/80 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
         <div class="bg-slateDark border border-slateBorder rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl max-h-[92vh] flex flex-col">
             <div class="p-5 border-b border-slateBorder flex items-center justify-between bg-slateCard shrink-0">
                 <div>
                     <h3 class="font-black text-base text-white">تسجيل أوردر جديد (تم الاستلام)</h3>
-                    <p class="text-[11px] text-slate-400">يُسجل على يوم: <strong id="modal-order-active-day" class="text-wassalOrange font-mono">----/--/--</strong></p>
+                    <p class="text-[11px] text-neutral-400">يُسجل على يوم: <strong id="modal-order-active-day" class="text-wassalOrange font-mono">----/--/--</strong></p>
                 </div>
-                <button type="button" data-action="close-modal" data-modal="modal-new-order" class="text-slate-400 hover:text-white px-2 py-1 text-lg">✕</button>
+                <button type="button" data-action="close-modal" data-modal="modal-new-order" class="text-neutral-400 hover:text-white px-2 py-1 text-lg">✕</button>
             </div>
             <form id="form-new-order" class="p-5 space-y-3.5 text-xs overflow-y-auto">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                        <label class="block font-bold text-slate-300 mb-1">المتجر / المطعم *</label>
+                        <label class="block font-bold text-neutral-300 mb-1">المتجر / المطعم *</label>
                         <select id="input-order-store" required class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-wassalOrange"></select>
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-300 mb-1">المندوب المكلف (المتاح بالمكتب فقط) *</label>
+                        <label class="block font-bold text-neutral-300 mb-1">المندوب المكلف (المتاح بالمكتب فقط) *</label>
                         <select id="input-order-rider" required class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-wassalOrange"></select>
                     </div>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                        <label class="block font-bold text-slate-300 mb-1">هاتف العميل (يستدعي البيانات تلقائياً) *</label>
+                        <label class="block font-bold text-neutral-300 mb-1">هاتف العميل *</label>
                         <input id="input-order-phone" type="tel" required placeholder="010xxxxxxxx" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-300 mb-1">اسم العميل *</label>
+                        <label class="block font-bold text-neutral-300 mb-1">اسم العميل *</label>
                         <input id="input-order-customer" type="text" required placeholder="مثال: أ. محمود سالم" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
                     </div>
                 </div>
                 <div>
-                    <label class="block font-bold text-slate-300 mb-1">عنوان التوصيل بالتفصيل *</label>
+                    <label class="block font-bold text-neutral-300 mb-1">عنوان التوصيل بالتفصيل *</label>
                     <input id="input-order-address" type="text" required placeholder="الحي - الشارع - علامة مميزة" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
                 </div>
 
-                <div class="bg-obsidian/80 border border-slateBorder rounded-xl p-3 space-y-2">
+                <div class="bg-obsidian border border-slateBorder rounded-xl p-3 space-y-2">
                     <div class="flex items-center justify-between">
-                        <label class="block font-bold text-wassalAmber">محتويات الأوردر وسعر كل صنف *</label>
-                        <span class="text-[11px] text-slate-400">اضغط (+) لإضافة صنف جديد</span>
+                        <label class="block font-bold text-wassalOrange">محتويات الأوردر وسعر كل صنف *</label>
+                        <span class="text-[11px] text-neutral-400">اضغط (+) لإضافة صنف</span>
                     </div>
 
                     <div id="order-items-list" class="space-y-2">
                         <div class="order-item-row flex items-center gap-2">
-                            <input type="text" class="item-name flex-1 bg-slateDark border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-wassalOrange" required placeholder="اسم الصنف (مثال: 2 وجبة شيش طاووق)">
+                            <input type="text" class="item-name flex-1 bg-slateDark border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-wassalOrange" required placeholder="اسم الصنف">
                             <input type="number" class="item-price w-24 bg-slateDark border border-slateBorder rounded-xl px-2.5 py-2 text-white focus:outline-none focus:border-wassalOrange" min="0" required placeholder="السعر">
-                            <button type="button" data-action="add-order-item-row" title="إضافة صنف آخر" class="w-9 h-9 rounded-xl wassal-grad text-obsidian font-black text-base flex items-center justify-center shrink-0">+</button>
+                            <button type="button" data-action="add-order-item-row" title="إضافة صنف آخر" class="w-9 h-9 rounded-xl wassal-grad text-black font-black text-base flex items-center justify-center shrink-0">+</button>
                         </div>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-3 gap-2.5">
                     <div>
-                        <label class="block font-bold text-slate-300 mb-1">إجمالي الأصناف (ج.م) *</label>
+                        <label class="block font-bold text-neutral-300 mb-1">إجمالي الأصناف (ج.م) *</label>
                         <input id="input-order-amount" type="number" min="0" required placeholder="250" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-300 mb-1">رسوم التوصيل *</label>
+                        <label class="block font-bold text-neutral-300 mb-1">رسوم التوصيل *</label>
                         <input id="input-order-fee" type="number" min="0" required value="25" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-300 mb-1">وقت الاستلام</label>
+                        <label class="block font-bold text-neutral-300 mb-1">وقت الاستلام</label>
                         <input id="input-order-time" type="time" class="w-full bg-obsidian border border-slateBorder rounded-xl px-2.5 py-2 text-white focus:outline-none focus:border-wassalOrange">
                     </div>
                 </div>
                 <div class="pt-2 flex justify-end gap-2">
-                    <button type="button" data-action="close-modal" data-modal="modal-new-order" class="px-4 py-2.5 rounded-xl bg-slateCard text-slate-300 font-bold">إلغاء</button>
-                    <button id="btn-submit-new-order" type="submit" class="wassal-grad wassal-grad-hover text-obsidian font-black px-5 py-2.5 rounded-xl shadow-lg shadow-orange-500/20">تسجيل الاستلام الآن</button>
+                    <button type="button" data-action="close-modal" data-modal="modal-new-order" class="px-4 py-2.5 rounded-xl bg-slateCard text-neutral-300 font-bold">إلغاء</button>
+                    <button id="btn-submit-new-order" type="submit" class="wassal-grad wassal-grad-hover text-black font-black px-5 py-2.5 rounded-xl shadow-lg shadow-orange-500/20">تسجيل الاستلام الآن</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- MODAL: RETURN ORDER WITH REASON -->
-    <div id="modal-return-order" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-slateDark border border-red-500/50 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
+    <div id="modal-return-order" class="fixed inset-0 bg-black/80 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
+        <div class="bg-slateDark border border-wassalOrange/60 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
             <div class="p-5 border-b border-slateBorder flex items-center justify-between bg-slateCard">
                 <div>
-                    <h3 class="font-black text-base text-red-400">↩️ تسجيل الطلب كمرتجع</h3>
-                    <p class="text-[11px] text-slate-400">رقم الطلب: <strong id="return-modal-order-id" class="text-white">#W-101</strong></p>
+                    <h3 class="font-black text-base text-wassalOrange">تسجيل الطلب كمرتجع</h3>
+                    <p class="text-[11px] text-neutral-400">رقم الطلب: <strong id="return-modal-order-id" class="text-white">#W-101</strong></p>
                 </div>
-                <button type="button" data-action="close-modal" data-modal="modal-return-order" class="text-slate-400 hover:text-white px-2 py-1 text-lg">✕</button>
+                <button type="button" data-action="close-modal" data-modal="modal-return-order" class="text-neutral-400 hover:text-white px-2 py-1 text-lg">✕</button>
             </div>
             <form id="form-return-order" class="p-5 space-y-3.5 text-xs">
                 <input type="hidden" id="input-return-order-id">
                 <div>
-                    <label class="block font-bold text-slate-200 mb-1">سبب عدم الاستلام / الإرجاع *</label>
-                    <select id="input-return-reason-select" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-red-400">
-                        <option value="العميل لا يرد على الهاتف">📵 العميل لا يرد على الهاتف</option>
-                        <option value="هاتف العميل مغلق أو غير متاح">📴 هاتف العميل مغلق أو غير متاح</option>
-                        <option value="العميل ألغى الطلب عند الوصول">❌ العميل ألغى الطلب عند الوصول</option>
-                        <option value="العنوان غير واضح أو خارج النطاق">📍 العنوان غير واضح أو خارج النطاق</option>
-                        <option value="تأخر تجهيز الطلب من المتجر">⏱️ تأخر تجهيز الطلب من المتجر</option>
-                        <option value="أخرى">✏️ سبب آخر (اكتبه بالأسفل)</option>
+                    <label class="block font-bold text-neutral-200 mb-1">سبب عدم الاستلام / الإرجاع *</label>
+                    <select id="input-return-reason-select" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
+                        <option value="العميل لا يرد على الهاتف">العميل لا يرد على الهاتف</option>
+                        <option value="هاتف العميل مغلق أو غير متاح">هاتف العميل مغلق أو غير متاح</option>
+                        <option value="العميل ألغى الطلب عند الوصول">العميل ألغى الطلب عند الوصول</option>
+                        <option value="العنوان غير واضح أو خارج النطاق">العنوان غير واضح أو خارج النطاق</option>
+                        <option value="تأخر تجهيز الطلب من المتجر">تأخر تجهيز الطلب من المتجر</option>
+                        <option value="أخرى">سبب آخر (اكتبه بالأسفل)</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block font-bold text-slate-200 mb-1">تفاصيل إضافية للسبب (اختياري)</label>
-                    <input type="text" id="input-return-reason-note" placeholder="مثال: تم الاتصال 4 مرات دون رد..." class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-red-400">
+                    <label class="block font-bold text-neutral-200 mb-1">تفاصيل إضافية للسبب (اختياري)</label>
+                    <input type="text" id="input-return-reason-note" placeholder="مثال: تم الاتصال 4 مرات دون رد..." class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
                 </div>
                 <div class="bg-obsidian border border-slateBorder rounded-xl p-3 space-y-1.5">
                     <label class="block font-bold text-wassalOrange">موقف رسوم التوصيل للمرتجع:</label>
@@ -1047,84 +1044,84 @@
                     </select>
                 </div>
                 <div class="pt-2 flex justify-end gap-2">
-                    <button type="button" data-action="close-modal" data-modal="modal-return-order" class="px-4 py-2.5 rounded-xl bg-slateCard text-slate-300 font-bold">إلغاء</button>
-                    <button type="submit" class="bg-red-500 hover:bg-red-600 text-white font-black px-5 py-2.5 rounded-xl shadow-lg shadow-red-500/20">تأكيد المرتجع وإعادته للمتجر</button>
+                    <button type="button" data-action="close-modal" data-modal="modal-return-order" class="px-4 py-2.5 rounded-xl bg-slateCard text-neutral-300 font-bold">إلغاء</button>
+                    <button type="submit" class="wassal-grad text-black font-black px-5 py-2.5 rounded-xl shadow-lg">تأكيد المرتجع وإعادته للمتجر</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- MODAL: STORE SETTLEMENT STATEMENT -->
-    <div id="modal-store-statement" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div id="modal-store-statement" class="fixed inset-0 bg-black/80 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
         <div class="bg-slateDark border border-slateBorder rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl">
             <div class="p-5 border-b border-slateBorder flex items-center justify-between bg-slateCard">
                 <div>
-                    <h3 class="font-black text-base text-wassalOrange">📄 كشف حساب وتصفية المتجر</h3>
-                    <p class="text-[11px] text-slate-400" id="statement-store-subtitle">اسم المتجر</p>
+                    <h3 class="font-black text-base text-wassalOrange">كشف حساب وتصفية المتجر</h3>
+                    <p class="text-[11px] text-neutral-400" id="statement-store-subtitle">اسم المتجر</p>
                 </div>
-                <button type="button" data-action="close-modal" data-modal="modal-store-statement" class="text-slate-400 hover:text-white px-2 py-1 text-lg">✕</button>
+                <button type="button" data-action="close-modal" data-modal="modal-store-statement" class="text-neutral-400 hover:text-white px-2 py-1 text-lg">✕</button>
             </div>
             <div class="p-5 space-y-4 text-xs max-h-[70vh] overflow-y-auto" id="statement-modal-body"></div>
             <div class="p-4 border-t border-slateBorder bg-slateCard flex justify-between items-center">
-                <button type="button" data-action="print-report" class="px-4 py-2.5 rounded-xl bg-slateCard hover:bg-slateHover border border-slateBorder text-slate-200 font-bold">🖨️ طباعة الكشف</button>
+                <button type="button" data-action="print-report" class="px-4 py-2.5 rounded-xl bg-slateCard hover:bg-slateHover border border-slateBorder text-neutral-200 font-bold">طباعة الكشف</button>
                 <div class="flex gap-2">
-                    <button type="button" data-action="close-modal" data-modal="modal-store-statement" class="px-4 py-2.5 rounded-xl bg-slateCard text-slate-300 font-bold">إغلاق</button>
-                    <a href="#" id="whatsapp-store-statement-btn" target="_blank" rel="noopener" class="px-5 py-2.5 rounded-xl bg-statusDone text-obsidian font-black shadow-lg">💬 إرسال الكشف للمتجر (واتساب)</a>
+                    <button type="button" data-action="close-modal" data-modal="modal-store-statement" class="px-4 py-2.5 rounded-xl bg-slateCard text-neutral-300 font-bold">إغلاق</button>
+                    <a href="#" id="whatsapp-store-statement-btn" target="_blank" rel="noopener" class="px-5 py-2.5 rounded-xl wassal-grad text-black font-black shadow-lg">إرسال الكشف للمتجر (واتساب)</a>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- MODAL: ADD / EDIT RIDER -->
-    <div id="modal-rider" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div id="modal-rider" class="fixed inset-0 bg-black/80 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
         <div class="bg-slateDark border border-slateBorder rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
             <div class="p-5 border-b border-slateBorder flex items-center justify-between bg-slateCard">
                 <h3 id="modal-rider-title" class="font-black text-base text-white">+ إضافة مندوب جديد</h3>
-                <button type="button" data-action="close-modal" data-modal="modal-rider" class="text-slate-400 hover:text-white px-2 py-1 text-lg">✕</button>
+                <button type="button" data-action="close-modal" data-modal="modal-rider" class="text-neutral-400 hover:text-white px-2 py-1 text-lg">✕</button>
             </div>
             <form id="form-rider" class="p-5 space-y-3.5 text-xs">
                 <input type="hidden" id="input-rider-id">
                 <div>
-                    <label class="block font-bold text-slate-300 mb-1">اسم المندوب (الطيار) *</label>
+                    <label class="block font-bold text-neutral-300 mb-1">اسم المندوب (الطيار) *</label>
                     <input id="input-rider-name" type="text" required placeholder="مثال: عبد الرحمن سامي" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block font-bold text-slate-300 mb-1">نوع الموتوسيكل *</label>
+                        <label class="block font-bold text-neutral-300 mb-1">نوع الموتوسيكل *</label>
                         <input id="input-rider-bike" type="text" required placeholder="مثال: بجاج بوكسر 150" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-300 mb-1">رقم اللوحة المعدنية *</label>
+                        <label class="block font-bold text-neutral-300 mb-1">رقم اللوحة المعدنية *</label>
                         <input id="input-rider-plate" type="text" required placeholder="مثال: س أ 734" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
                     </div>
                 </div>
                 <div>
-                    <label class="block font-bold text-slate-300 mb-1">رقم هاتف المندوب (اختياري)</label>
+                    <label class="block font-bold text-neutral-300 mb-1">رقم هاتف المندوب (اختياري)</label>
                     <input id="input-rider-phone" type="tel" placeholder="010xxxxxxxx" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
                 </div>
                 <div class="pt-2 flex justify-end gap-2">
-                    <button type="button" data-action="close-modal" data-modal="modal-rider" class="px-4 py-2.5 rounded-xl bg-slateCard text-slate-300 font-bold">إلغاء</button>
-                    <button type="submit" class="wassal-grad wassal-grad-hover text-obsidian font-black px-5 py-2.5 rounded-xl shadow-lg shadow-orange-500/20">حفظ بيانات المندوب</button>
+                    <button type="button" data-action="close-modal" data-modal="modal-rider" class="px-4 py-2.5 rounded-xl bg-slateCard text-neutral-300 font-bold">إلغاء</button>
+                    <button type="submit" class="wassal-grad wassal-grad-hover text-black font-black px-5 py-2.5 rounded-xl shadow-lg shadow-orange-500/20">حفظ بيانات المندوب</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- MODAL: NEW STORE -->
-    <div id="modal-new-store" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div id="modal-new-store" class="fixed inset-0 bg-black/80 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
         <div class="bg-slateDark border border-slateBorder rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
             <div class="p-5 border-b border-slateBorder flex items-center justify-between bg-slateCard">
                 <h3 class="font-black text-base text-white">إضافة متجر / مطعم جديد</h3>
-                <button type="button" data-action="close-modal" data-modal="modal-new-store" class="text-slate-400 hover:text-white px-2 py-1 text-lg">✕</button>
+                <button type="button" data-action="close-modal" data-modal="modal-new-store" class="text-neutral-400 hover:text-white px-2 py-1 text-lg">✕</button>
             </div>
             <form id="form-new-store" class="p-5 space-y-3.5 text-xs">
                 <div>
-                    <label class="block font-bold text-slate-300 mb-1">اسم المتجر *</label>
+                    <label class="block font-bold text-neutral-300 mb-1">اسم المتجر *</label>
                     <input id="input-store-name" type="text" required placeholder="مثال: مطعم البركة" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block font-bold text-slate-300 mb-1">التصنيف *</label>
+                        <label class="block font-bold text-neutral-300 mb-1">التصنيف *</label>
                         <select id="input-store-category" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
                             <option value="مطعم">مطعم</option>
                             <option value="صيدلية">صيدلية</option>
@@ -1133,21 +1130,21 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-300 mb-1">رسوم التوصيل الافتراضية *</label>
+                        <label class="block font-bold text-neutral-300 mb-1">رسوم التوصيل الافتراضية *</label>
                         <input id="input-store-fee" type="number" required value="25" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
                     </div>
                 </div>
                 <div>
-                    <label class="block font-bold text-slate-300 mb-1">هاتف المتجر *</label>
+                    <label class="block font-bold text-neutral-300 mb-1">هاتف المتجر *</label>
                     <input id="input-store-phone" type="tel" required placeholder="010xxxxxxxx" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
                 </div>
                 <div>
-                    <label class="block font-bold text-slate-300 mb-1">عنوان المتجر *</label>
+                    <label class="block font-bold text-neutral-300 mb-1">عنوان المتجر *</label>
                     <input id="input-store-address" type="text" required placeholder="الشارع والمنطقة" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
                 </div>
                 <div class="pt-2 flex justify-end gap-2">
-                    <button type="button" data-action="close-modal" data-modal="modal-new-store" class="px-4 py-2.5 rounded-xl bg-slateCard text-slate-300 font-bold">إلغاء</button>
-                    <button type="submit" class="wassal-grad wassal-grad-hover text-obsidian font-black px-5 py-2.5 rounded-xl shadow-lg shadow-orange-500/20">حفظ المتجر</button>
+                    <button type="button" data-action="close-modal" data-modal="modal-new-store" class="px-4 py-2.5 rounded-xl bg-slateCard text-neutral-300 font-bold">إلغاء</button>
+                    <button type="submit" class="wassal-grad wassal-grad-hover text-black font-black px-5 py-2.5 rounded-xl shadow-lg shadow-orange-500/20">حفظ المتجر</button>
                 </div>
             </form>
         </div>

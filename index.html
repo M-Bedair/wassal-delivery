@@ -720,15 +720,15 @@
 
     <!-- MODAL: NEW ORDER -->
     <div id="modal-new-order" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-slateDark border border-slateBorder rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl">
-            <div class="p-5 border-b border-slateBorder flex items-center justify-between bg-slateCard">
+        <div class="bg-slateDark border border-slateBorder rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl max-h-[92vh] flex flex-col">
+            <div class="p-5 border-b border-slateBorder flex items-center justify-between bg-slateCard shrink-0">
                 <div>
                     <h3 class="font-black text-base text-white">تسجيل أوردر جديد (تم الاستلام)</h3>
                     <p class="text-[11px] text-slate-400">يُسجل على يوم: <strong id="modal-order-active-day" class="text-wassalOrange font-mono">----/--/--</strong></p>
                 </div>
                 <button type="button" data-action="close-modal" data-modal="modal-new-order" class="text-slate-400 hover:text-white px-2 py-1 text-lg">✕</button>
             </div>
-            <form id="form-new-order" class="p-5 space-y-3.5 text-xs">
+            <form id="form-new-order" class="p-5 space-y-3.5 text-xs overflow-y-auto">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block font-bold text-slate-300 mb-1">المتجر / المطعم *</label>
@@ -753,13 +753,26 @@
                     <label class="block font-bold text-slate-300 mb-1">عنوان التوصيل بالتفصيل *</label>
                     <input id="input-order-address" type="text" required placeholder="الحي - الشارع - علامة مميزة" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
                 </div>
-                <div>
-                    <label class="block font-bold text-wassalAmber mb-1">محتويات الأوردر / تفاصيل الأصناف *</label>
-                    <input id="input-order-items" type="text" required placeholder="مثال: 2 وجبة شيش طاووق + بيبسي" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
+
+                <!-- Dynamic Items & Prices List -->
+                <div class="bg-obsidian/80 border border-slateBorder rounded-xl p-3 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label class="block font-bold text-wassalAmber">محتويات الأوردر وسعر كل صنف *</label>
+                        <span class="text-[11px] text-slate-400">اضغط (+) لإضافة صنف جديد</span>
+                    </div>
+
+                    <div id="order-items-list" class="space-y-2">
+                        <div class="order-item-row flex items-center gap-2">
+                            <input type="text" class="item-name flex-1 bg-slateDark border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-wassalOrange" required placeholder="اسم الصنف (مثال: 2 وجبة شيش طاووق)">
+                            <input type="number" class="item-price w-24 bg-slateDark border border-slateBorder rounded-xl px-2.5 py-2 text-white focus:outline-none focus:border-wassalOrange" min="0" required placeholder="السعر">
+                            <button type="button" data-action="add-order-item-row" title="إضافة صنف آخر" class="w-9 h-9 rounded-xl wassal-grad text-obsidian font-black text-base flex items-center justify-center shrink-0">+</button>
+                        </div>
+                    </div>
                 </div>
+
                 <div class="grid grid-cols-3 gap-2.5">
                     <div>
-                        <label class="block font-bold text-slate-300 mb-1">قيمة الأوردر (ج.م) *</label>
+                        <label class="block font-bold text-slate-300 mb-1">إجمالي الأصناف (ج.م) *</label>
                         <input id="input-order-amount" type="number" min="0" required placeholder="250" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
                     </div>
                     <div>

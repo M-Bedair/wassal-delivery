@@ -3,8 +3,8 @@ const PIN_STORAGE_KEY = 'wassal_security_pin_v1';
 const SESSION_UNLOCK_KEY = 'wassal_session_unlocked';
 const DEFAULT_PIN = '1234';
 
-let cloudBridge = null;
-let pendingCloudSave = false;
+let fb = null;
+let isFirestoreConnected = false;
 
 // ==================== SECURITY & XSS SANITIZATION ====================
 function escapeHTML(str) {
@@ -95,13 +95,11 @@ let uiState = {
     expenseCatFilter: 'all'
 };
 
-let isInitialCloudLoaded = false;
-
 function setSyncStatus(status) {
     const configs = {
-        connecting: { text: 'جاري الاتصال بالسحابة...', dot: 'bg-wassalAmber animate-pulse', txt: 'text-wassalAmber' },
-        online: { text: 'متصل بالسحابة (مؤمّن)', dot: 'bg-statusDone', txt: 'text-statusDone' },
-        offline: { text: 'وضع محلي (سيتم المزامنة عند الاتصال)', dot: 'bg-wassalOrange', txt: 'text-wassalOrange' }
+        connecting: { text: 'جاري الاتصال بـ Firestore...', dot: 'bg-wassalAmber animate-pulse', txt: 'text-wassalAmber' },
+        online: { text: 'متصل بـ Firestore (مزامنة فورية)', dot: 'bg-statusDone', txt: 'text-statusDone' },
+        offline: { text: 'وضع محلي (بانتظار الإنترنت)', dot: 'bg-wassalOrange', txt: 'text-wassalOrange' }
     };
     const cfg = configs[status];
     ['desktop', 'mobile'].forEach(prefix => {
@@ -142,20 +140,62 @@ function syncRidersAvailability() {
     });
 }
 
-function saveData() {
-    appState.lastUpdated = Date.now();
+// ==================== FIRESTORE GRANULAR PERSISTENCE ====================
+function saveLocalCache() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
-    if (cloudBridge && cloudBridge.set && cloudBridge.stateRef) {
-        cloudBridge.set(cloudBridge.stateRef, appState)
-            .then(() => {
-                pendingCloudSave = false;
-            })
-            .catch(err => {
-                pendingCloudSave = true;
-                console.error('Firebase save error (queued for retry):', err);
-            });
-    } else {
-        pendingCloudSave = true;
+}
+
+async function fsSaveDoc(colName, docId, dataObj) {
+    saveLocalCache();
+    if (!fb || !fb.db) return;
+    try {
+        await fb.setDoc(fb.doc(fb.db, colName, String(docId)), { ...dataObj }, { merge: true });
+    } catch (err) {
+        console.error(`Firestore setDoc error (${colName}/${docId}):`, err);
+    }
+}
+
+async function fsDeleteDoc(colName, docId) {
+    saveLocalCache();
+    if (!fb || !fb.db) return;
+    try {
+        await fb.deleteDoc(fb.doc(fb.db, colName, String(docId)));
+    } catch (err) {
+        console.error(`Firestore deleteDoc error (${colName}/${docId}):`, err);
+    }
+}
+
+async function fsSaveMeta() {
+    saveLocalCache();
+    if (!fb || !fb.db) return;
+    try {
+        await fb.setDoc(fb.doc(fb.db, 'wassal_meta', 'config'), {
+            activeDate: appState.activeDate,
+            nextOrderNum: appState.nextOrderNum,
+            closedDays: appState.closedDays
+        }, { merge: true });
+    } catch (err) {
+        console.error('Firestore meta save error:', err);
+    }
+}
+
+async function fsSyncFullStateBatch() {
+    saveLocalCache();
+    if (!fb || !fb.db) return;
+    try {
+        const batch = fb.writeBatch(fb.db);
+        batch.set(fb.doc(fb.db, 'wassal_meta', 'config'), {
+            activeDate: appState.activeDate,
+            nextOrderNum: appState.nextOrderNum,
+            closedDays: appState.closedDays
+        });
+        appState.riders.forEach(r => batch.set(fb.doc(fb.db, 'wassal_riders', String(r.id)), { ...r }));
+        appState.stores.forEach(s => batch.set(fb.doc(fb.db, 'wassal_stores', String(s.id)), { ...s }));
+        appState.orders.forEach(o => batch.set(fb.doc(fb.db, 'wassal_orders', String(o.id)), { ...o }));
+        appState.expenses.forEach(e => batch.set(fb.doc(fb.db, 'wassal_expenses', String(e.id)), { ...e }));
+        await batch.commit();
+    } catch (err) {
+        console.error('Firestore batch sync error:', err);
     }
 }
 
@@ -195,12 +235,17 @@ function loadLocalOrDefaultData() {
     };
     uiState.archiveDateFilter = sysToday;
     syncRidersAvailability();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+    saveLocalCache();
 }
 
-function resetAllDataSafely() {
-    const confirmed = window.confirm('⚠️ تحذير نهائي: سيتم مسح جميع الطلبات والمناديب والمتاجر والحسابات من الجهاز والسحابة نهائياً!\n\nهل أنت متأكد من المتابعة؟');
+async function resetAllDataSafely() {
+    const confirmed = window.confirm('⚠️ تحذير نهائي: سيتم مسح جميع الطلبات والمناديب والمتاجر والحسابات من الجهاز و Firestore نهائياً!\n\nهل أنت متأكد من المتابعة؟');
     if (!confirmed) return;
+
+    const oldOrders = [...appState.orders];
+    const oldRiders = [...appState.riders];
+    const oldStores = [...appState.stores];
+    const oldExpenses = [...appState.expenses];
 
     const sysToday = getSystemTodayStr();
     appState = {
@@ -218,9 +263,28 @@ function resetAllDataSafely() {
     uiState.reportMonth = sysToday.slice(0, 7);
     const monthPicker = document.getElementById('report-month-picker');
     if (monthPicker) monthPicker.value = uiState.reportMonth;
-    syncRidersAvailability();
-    saveData();
+
+    saveLocalCache();
     renderAll();
+
+    if (fb && fb.db) {
+        try {
+            const batch = fb.writeBatch(fb.db);
+            oldOrders.forEach(o => batch.delete(fb.doc(fb.db, 'wassal_orders', String(o.id))));
+            oldRiders.forEach(r => batch.delete(fb.doc(fb.db, 'wassal_riders', String(r.id))));
+            oldStores.forEach(s => batch.delete(fb.doc(fb.db, 'wassal_stores', String(s.id))));
+            oldExpenses.forEach(e => batch.delete(fb.doc(fb.db, 'wassal_expenses', String(e.id))));
+            batch.set(fb.doc(fb.db, 'wassal_meta', 'config'), {
+                activeDate: sysToday,
+                nextOrderNum: 101,
+                closedDays: []
+            });
+            await batch.commit();
+        } catch (err) {
+            console.error('Firestore reset error:', err);
+        }
+    }
+
     const secModal = document.getElementById('modal-security');
     if (secModal) {
         secModal.classList.add('hidden');
@@ -231,57 +295,82 @@ function resetAllDataSafely() {
 
 loadLocalOrDefaultData();
 
-async function initCloudSync() {
-    const fallbackTimer = setTimeout(() => {
-        if (!isInitialCloudLoaded) setSyncStatus('offline');
-    }, 5000);
-
+async function initFirestoreSync() {
+    setSyncStatus('connecting');
     try {
-        const fb = await import('./firebase-config.js');
-        cloudBridge = fb;
+        fb = await import('./firebase-config.js');
 
-        fb.onValue(fb.connectedRef, (snap) => {
-            clearTimeout(fallbackTimer);
-            const isOnline = snap.val() === true;
-            setSyncStatus(isOnline ? 'online' : 'offline');
-            if (isOnline && pendingCloudSave) {
-                saveData();
-            }
-        });
-
-        fb.onValue(fb.stateRef, (snapshot) => {
-            clearTimeout(fallbackTimer);
-            const cloudData = snapshot.val();
-            if (cloudData) {
-                appState = {
-                    activeDate: cloudData.activeDate || getSystemTodayStr(),
-                    closedDays: normalizeArray(cloudData.closedDays, []),
-                    riders: normalizeArray(cloudData.riders, []),
-                    stores: normalizeArray(cloudData.stores, []),
-                    orders: normalizeArray(cloudData.orders, []),
-                    expenses: normalizeArray(cloudData.expenses, []),
-                    nextOrderNum: cloudData.nextOrderNum || 101
-                };
-                const activeD = getActiveShiftDate();
-                appState.orders.forEach(o => { if (!o.dateStr) o.dateStr = activeD; });
-                if (!uiState.archiveDateFilter) uiState.archiveDateFilter = activeD;
-                syncRidersAvailability();
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
-                isInitialCloudLoaded = true;
+        // 1. Listen to Meta Config
+        fb.onSnapshot(fb.doc(fb.db, 'wassal_meta', 'config'), (docSnap) => {
+            isFirestoreConnected = true;
+            setSyncStatus('online');
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if (data.activeDate) appState.activeDate = data.activeDate;
+                if (typeof data.nextOrderNum === 'number') appState.nextOrderNum = data.nextOrderNum;
+                if (Array.isArray(data.closedDays)) appState.closedDays = data.closedDays;
+                if (!uiState.archiveDateFilter) uiState.archiveDateFilter = appState.activeDate;
+                saveLocalCache();
                 renderAll();
-            } else if (!isInitialCloudLoaded) {
-                isInitialCloudLoaded = true;
-                saveData();
+            } else {
+                fsSaveMeta();
             }
         }, () => {
-            clearTimeout(fallbackTimer);
             setSyncStatus('offline');
         });
+
+        // 2. Listen to Orders Collection
+        fb.onSnapshot(fb.collection(fb.db, 'wassal_orders'), (snap) => {
+            isFirestoreConnected = true;
+            setSyncStatus('online');
+            const list = [];
+            snap.forEach(d => list.push(d.data()));
+            list.sort((a, b) => (Number(b.receivedTs) || 0) - (Number(a.receivedTs) || 0));
+            appState.orders = list;
+            syncRidersAvailability();
+            saveLocalCache();
+            renderAll();
+        }, () => setSyncStatus('offline'));
+
+        // 3. Listen to Riders Collection
+        fb.onSnapshot(fb.collection(fb.db, 'wassal_riders'), (snap) => {
+            const list = [];
+            snap.forEach(d => list.push(d.data()));
+            appState.riders = list;
+            syncRidersAvailability();
+            saveLocalCache();
+            renderAll();
+        });
+
+        // 4. Listen to Stores Collection
+        fb.onSnapshot(fb.collection(fb.db, 'wassal_stores'), (snap) => {
+            const list = [];
+            snap.forEach(d => list.push(d.data()));
+            appState.stores = list;
+            saveLocalCache();
+            renderAll();
+        });
+
+        // 5. Listen to Expenses Collection
+        fb.onSnapshot(fb.collection(fb.db, 'wassal_expenses'), (snap) => {
+            const list = [];
+            snap.forEach(d => list.push(d.data()));
+            list.sort((a, b) => (b.dateStr || '').localeCompare(a.dateStr || ''));
+            appState.expenses = list;
+            saveLocalCache();
+            renderAll();
+        });
+
     } catch (err) {
-        clearTimeout(fallbackTimer);
+        console.error('Firestore init error:', err);
         setSyncStatus('offline');
     }
 }
+
+window.addEventListener('online', () => {
+    if (isFirestoreConnected) setSyncStatus('online');
+});
+window.addEventListener('offline', () => setSyncStatus('offline'));
 
 function getStore(id) {
     return appState.stores.find(s => s.id === id) || { name: 'متجر', category: 'مطعم', fee: 25, phone: '', address: '' };
@@ -736,8 +825,8 @@ function renderOrdersBoardAndTable() {
             ? `<button type="button" data-action="move-onway" data-id="${escapeHTML(o.id)}" class="px-2.5 py-1.5 rounded-lg bg-statusOnway/20 hover:bg-statusOnway text-statusOnway hover:text-obsidian font-black text-[11px] transition-colors">تحرك للعميل ➔</button>`
             : o.status === 'onway'
             ? `<div class="flex items-center gap-1">
-                <button type="button" data-action="move-delivered" data-id="${escapeHTML(o.id)}" class="px-2 py-1.5 rounded-lg bg-statusDone/20 hover:bg-statusDone text-statusDone hover:text-obsidian font-black text-[11px]">✓ تسليم</button>
-                <button type="button" data-action="open-return-modal" data-id="${escapeHTML(o.id)}" class="px-2 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white font-black text-[11px]">↩️ مرتجع</button>
+                <button type="button" data-action="move-delivered" data-id="${escapeHTML(o.id)}" class="px-2.5 py-1.5 rounded-lg bg-statusDone/20 hover:bg-statusDone text-statusDone hover:text-obsidian font-black text-[11px]">✓ تسليم</button>
+                <button type="button" data-action="open-return-modal" data-id="${escapeHTML(o.id)}" class="px-2.5 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white font-black text-[11px]">↩️ مرتجع</button>
                </div>`
             : o.status === 'returning'
             ? `<button type="button" data-action="move-returned-done" data-id="${escapeHTML(o.id)}" class="px-2.5 py-1.5 rounded-lg bg-red-500 text-white font-black text-[11px]">📦 تسليم المرتجع للمتجر</button>`
@@ -1141,7 +1230,7 @@ function openStoreStatementModal(storeId) {
         `_شكراً لتعاملكم مع خدمة وصّل للتوصيل 🧡_`
     ].filter(Boolean).join('\n');
 
-    document.getElementById('whatsapp-store-statement-btn').href = `[https://wa.me/$](https://wa.me/$){encodeURIComponent(store.phone)}?text=${encodeURIComponent(waText)}`;
+    document.getElementById('whatsapp-store-statement-btn').href = `https://wa.me/${encodeURIComponent(store.phone)}?text=${encodeURIComponent(waText)}`;
 
     const modal = document.getElementById('modal-store-statement');
     modal.classList.remove('hidden');
@@ -1272,7 +1361,7 @@ function openOrderDrawer(orderId) {
         <div class="bg-slateCard border border-statusDone/30 rounded-2xl p-3.5 space-y-2">
             <div class="flex items-center justify-between text-xs">
                 <span class="font-black text-statusDone">💬 رسالة جروب الواتساب</span>
-                <a href="[https://wa.me/?text=$](https://wa.me/?text=$){encodeURIComponent(waMessage)}" target="_blank" rel="noopener" class="text-[11px] text-statusOnway underline font-bold">فتح واتساب ويب ↗</a>
+                <a href="https://wa.me/?text=${encodeURIComponent(waMessage)}" target="_blank" rel="noopener" class="text-[11px] text-statusOnway underline font-bold">فتح واتساب ويب ↗</a>
             </div>
             <textarea readonly rows="4" class="w-full bg-obsidian border border-slateBorder rounded-xl p-2.5 text-[11px] text-slate-200 leading-relaxed focus:outline-none">${escapeHTML(waMessage)}</textarea>
         </div>
@@ -1784,7 +1873,7 @@ function renderAccounting() {
 function downloadFullBackupJSON() {
     const payload = {
         exportedAt: new Date().toISOString(),
-        system: 'WASSAL Delivery Operations',
+        system: 'WASSAL Delivery Operations (Firestore)',
         data: appState
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8;' });
@@ -1802,7 +1891,7 @@ function downloadFullBackupJSON() {
 function handleRestoreBackupFile(file) {
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
+    reader.onload = async (ev) => {
         try {
             const parsed = JSON.parse(ev.target.result);
             const restored = parsed.data || parsed;
@@ -1823,14 +1912,14 @@ function handleRestoreBackupFile(file) {
                 nextOrderNum: restored.nextOrderNum || 101
             };
             syncRidersAvailability();
-            saveData();
+            await fsSyncFullStateBatch();
             renderAll();
             const secModal = document.getElementById('modal-security');
             if (secModal) {
                 secModal.classList.add('hidden');
                 secModal.classList.remove('flex');
             }
-            showToast('✅ تمت استعادة البيانات ومزامنتها مع السحابة بنجاح');
+            showToast('✅ تمت استعادة البيانات ومزامنتها مع Firestore بنجاح');
         } catch (err) {
             showToast('⚠️ تعذر قراءة الملف — تأكد أنه ملف JSON صحيح');
         }
@@ -2098,7 +2187,7 @@ document.addEventListener('click', (e) => {
         }
         if (!window.confirm(`هل أنت متأكد من حذف المتجر "${store.name}"؟`)) return;
         appState.stores = appState.stores.filter(s => s.id !== id);
-        saveData();
+        fsDeleteDoc('wassal_stores', id);
         renderAll();
         showToast(`تم حذف المتجر ${store.name}`);
     } else if (action === 'open-rider-modal') {
@@ -2134,7 +2223,7 @@ document.addEventListener('click', (e) => {
         if (!window.confirm(`هل أنت متأكد من حذف المندوب "${rider.name}" من الأسطول؟`)) return;
         appState.riders = appState.riders.filter(r => r.id !== id);
         if (uiState.riderFilter === id) uiState.riderFilter = 'all';
-        saveData();
+        fsDeleteDoc('wassal_riders', id);
         renderAll();
         showToast(`تم حذف المندوب ${rider.name} من الأسطول`);
     } else if (action === 'close-modal') {
@@ -2153,7 +2242,7 @@ document.addEventListener('click', (e) => {
     } else if (action === 'delete-expense') {
         if (!window.confirm('هل أنت متأكد من حذف هذا المصروف؟')) return;
         appState.expenses = appState.expenses.filter(ex => ex.id !== id);
-        saveData();
+        fsDeleteDoc('wassal_expenses', id);
         renderAll();
         showToast('تم حذف بند المصروف وتحديث صافي الأرباح');
     } else if (action === 'move-onway') {
@@ -2162,7 +2251,7 @@ document.addEventListener('click', (e) => {
             order.status = 'onway';
             order.departedTs = Date.now();
             syncRidersAvailability();
-            saveData();
+            fsSaveDoc('wassal_orders', order.id, order);
             renderAll();
             showToast(`🔵 تحرك المندوب بالطلب #${order.id} الساعة ${formatTime12(order.departedTs)}`);
         }
@@ -2174,7 +2263,7 @@ document.addEventListener('click', (e) => {
             order.status = 'delivered';
             order.deliveredTs = now;
             syncRidersAvailability();
-            saveData();
+            fsSaveDoc('wassal_orders', order.id, order);
             renderAll();
             showToast(`🟢 تم تسليم #${order.id} للعميل — في انتظار توريد المبلغ للمتجر`);
         }
@@ -2187,7 +2276,7 @@ document.addEventListener('click', (e) => {
             order.status = 'settled';
             order.settledTs = now;
             syncRidersAvailability();
-            saveData();
+            fsSaveDoc('wassal_orders', order.id, order);
             renderAll();
             showToast(`💰 تم توريد #${order.id} وعودة المندوب للمكتب (نُقل للأرشيف)`);
         }
@@ -2198,7 +2287,7 @@ document.addEventListener('click', (e) => {
             order.status = 'returned';
             order.settledTs = now;
             syncRidersAvailability();
-            saveData();
+            fsSaveDoc('wassal_orders', order.id, order);
             renderAll();
             showToast(`📦 تم تسليم المرتجع #${order.id} للمتجر وعودة المندوب للمكتب (نُقل للأرشيف)`);
         }
@@ -2206,7 +2295,7 @@ document.addEventListener('click', (e) => {
         if (!window.confirm(`⚠️ هل أنت متأكد من حذف الطلب #${id} نهائياً؟`)) return;
         appState.orders = appState.orders.filter(o => o.id !== id);
         syncRidersAvailability();
-        saveData();
+        fsDeleteDoc('wassal_orders', id);
         renderAll();
         showToast(`تم حذف الطلب #${id}`);
     } else if (action === 'copy-whatsapp') {
@@ -2224,7 +2313,7 @@ document.addEventListener('click', (e) => {
                 return;
             }
             rider.status = (rider.status === 'off') ? 'available' : 'off';
-            saveData();
+            fsSaveDoc('wassal_riders', rider.id, rider);
             renderAll();
             showToast(rider.status === 'available'
                 ? `🟢 تم تفعيل المندوب ${rider.name} وهو متاح الآن بالمكتب`
@@ -2282,7 +2371,7 @@ document.getElementById('form-edit-order').addEventListener('submit', (e) => {
     order.fee = Number(document.getElementById('edit-order-fee').value) || 0;
 
     syncRidersAvailability();
-    saveData();
+    fsSaveDoc('wassal_orders', order.id, order);
     renderAll();
 
     const modal = document.getElementById('modal-edit-order');
@@ -2369,7 +2458,8 @@ document.getElementById('form-new-order').addEventListener('submit', (e) => {
 
     appState.orders.unshift(newOrder);
     syncRidersAvailability();
-    saveData();
+    fsSaveDoc('wassal_orders', newOrder.id, newOrder);
+    fsSaveMeta();
     renderAll();
 
     e.target.reset();
@@ -2405,7 +2495,7 @@ document.getElementById('form-return-order').addEventListener('submit', (e) => {
     }
 
     syncRidersAvailability();
-    saveData();
+    fsSaveDoc('wassal_orders', order.id, order);
     renderAll();
 
     const modal = document.getElementById('modal-return-order');
@@ -2447,7 +2537,7 @@ document.getElementById('form-close-day').addEventListener('submit', (e) => {
     const monthPicker = document.getElementById('report-month-picker');
     if (monthPicker) monthPicker.value = uiState.reportMonth;
 
-    saveData();
+    fsSaveMeta();
     renderAll();
 
     const modal = document.getElementById('modal-close-day');
@@ -2471,7 +2561,7 @@ document.getElementById('form-rider').addEventListener('submit', (e) => {
             rider.bike = bike;
             rider.plate = plate;
             rider.phone = phone;
-            saveData();
+            fsSaveDoc('wassal_riders', rider.id, rider);
             renderAll();
             showToast(`✅ تم تحديث بيانات المندوب: ${name}`);
         }
@@ -2485,7 +2575,7 @@ document.getElementById('form-rider').addEventListener('submit', (e) => {
             status: 'available'
         };
         appState.riders.push(newRider);
-        saveData();
+        fsSaveDoc('wassal_riders', newRider.id, newRider);
         renderAll();
         showToast(`🏍️ تم إضافة المندوب الجديد: ${name}`);
     }
@@ -2508,7 +2598,7 @@ document.getElementById('form-new-store').addEventListener('submit', (e) => {
         address: document.getElementById('input-store-address').value.trim()
     };
     appState.stores.push(newStore);
-    saveData();
+    fsSaveDoc('wassal_stores', newStore.id, newStore);
     renderAll();
 
     e.target.reset();
@@ -2530,7 +2620,7 @@ document.getElementById('form-new-expense').addEventListener('submit', (e) => {
         notes: document.getElementById('exp-notes').value.trim()
     };
     appState.expenses.unshift(newExp);
-    saveData();
+    fsSaveDoc('wassal_expenses', newExp.id, newExp);
     renderAll();
 
     document.getElementById('exp-title').value = '';
@@ -2571,7 +2661,7 @@ function updateClock() {
 initAuthLock();
 updateClock();
 renderAll();
-initCloudSync();
+initFirestoreSync();
 
 setInterval(updateClock, 15000);
 setInterval(() => {

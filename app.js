@@ -68,20 +68,20 @@ function createDemoOrders() {
     const d3 = getPastDateInCurrentMonth(9);
 
     return [
-        { id: 'W-115', dateStr: today, storeId: 'S1', customerName: 'أ. سامح عبد الرحمن', address: 'حي المساعيد - عمارة 14', phone: '01022334455', items: 'نصف تيس مندي + 2 بيبسي', amount: 340, fee: 25, riderId: 'R1', status: 'settled', receivedTs: now - 52 * 60000, departedTs: now - 43 * 60000, deliveredTs: now - 28 * 60000, settledTs: now - 15 * 60000 },
-        { id: 'W-116', dateStr: today, storeId: 'S1', customerName: 'م. كريم الشاذلي', address: 'حي الزهور - برج الصفوة', phone: '01066778899', items: 'فرخة شواية + أرز بسمتي + سلطات', amount: 520, fee: 25, riderId: 'R5', status: 'delivered', receivedTs: now - 40 * 60000, departedTs: now - 32 * 60000, deliveredTs: now - 10 * 60000, settledTs: null },
-        { id: 'W-117', dateStr: today, storeId: 'S2', customerName: 'د. هبة محمود', address: 'شارع الفاتح - برج النور', phone: '01144556677', items: 'أدوية ضغط + فيتامين د', amount: 185, fee: 20, riderId: 'R2', status: 'onway', receivedTs: now - 18 * 60000, departedTs: now - 10 * 60000, deliveredTs: null, settledTs: null },
-        { id: 'W-118', dateStr: today, storeId: 'S4', customerName: 'أ. نادية كمال', address: 'شارع الجمهورية - عمارة 9', phone: '01555443322', items: '2 بيتزا سوبر سوبريم وسط', amount: 275, fee: 25, riderId: 'R4', status: 'onway', receivedTs: now - 38 * 60000, departedTs: now - 25 * 60000, deliveredTs: null, settledTs: null },
-        { id: 'W-119', dateStr: today, storeId: 'S3', customerName: 'م. طارق الجندي', address: 'حي الضاحية - فيلا 22', phone: '01288990011', items: 'طلبات بقالة ومنظفات منزلية', amount: 460, fee: 30, riderId: 'R3', status: 'received', receivedTs: now - 6 * 60000, departedTs: null, deliveredTs: null, settledTs: null },
-        { id: 'W-120', dateStr: today, storeId: 'S1', customerName: 'أ. ياسر المنياوي', address: 'ميدان المحطة - خلف البريد', phone: '01099112233', items: 'وجبة كفتة مشوية + طحينة', amount: 210, fee: 25, riderId: 'R7', status: 'received', receivedTs: now - 3 * 60000, departedTs: null, deliveredTs: null, settledTs: null },
-        { id: 'W-101', dateStr: d3, storeId: 'S1', customerName: 'أ. وائل عزت', address: 'شارع البحر', phone: '01011223344', items: 'وجبة كباب وكفتة', amount: 310, fee: 25, riderId: 'R1', status: 'settled', receivedTs: now - 3 * 86400000, departedTs: now - 3 * 86400000 + 8 * 60000, deliveredTs: now - 3 * 86400000 + 22 * 60000, settledTs: now - 3 * 86400000 + 30 * 60000 },
-        { id: 'W-102', dateStr: d3, storeId: 'S1', customerName: 'د. مروة علي', address: 'حي الزهور', phone: '01022331144', items: '2 وجبة فراخ مشوية', amount: 420, fee: 25, riderId: 'R1', status: 'settled', receivedTs: now - 3 * 86400000 + 3600000, departedTs: now - 3 * 86400000 + 3600000 + 7 * 60000, deliveredTs: now - 3 * 86400000 + 3600000 + 20 * 60000, settledTs: now - 3 * 86400000 + 3600000 + 28 * 60000 },
-        { id: 'W-103', dateStr: d3, storeId: 'S3', customerName: 'أ. سلوى حسن', address: 'حي المساعيد', phone: '01122334455', items: 'خضار وفاكهة ومخبوزات', amount: 640, fee: 30, riderId: 'R2', status: 'settled', receivedTs: now - 3 * 86400000 + 7200000, departedTs: now - 3 * 86400000 + 7200000 + 10 * 60000, deliveredTs: now - 3 * 86400000 + 7200000 + 28 * 60000, settledTs: now - 3 * 86400000 + 7200000 + 35 * 60000 },
-        { id: 'W-104', dateStr: d2, storeId: 'S1', customerName: 'أ. حسام فؤاد', address: 'شارع 23 يوليو', phone: '01233445566', items: 'وجبة شاورما عربي', amount: 290, fee: 25, riderId: 'R1', status: 'settled', receivedTs: now - 2 * 86400000, departedTs: now - 2 * 86400000 + 6 * 60000, deliveredTs: now - 2 * 86400000 + 19 * 60000, settledTs: now - 2 * 86400000 + 27 * 60000 },
-        { id: 'W-105', dateStr: d2, storeId: 'S2', customerName: 'أ. منال إبراهيم', address: 'ميدان الساعة', phone: '01544556677', items: 'مستحضرات عناية وأدوية', amount: 155, fee: 20, riderId: 'R3', status: 'settled', receivedTs: now - 2 * 86400000 + 4000000, departedTs: now - 2 * 86400000 + 4000000 + 5 * 60000, deliveredTs: now - 2 * 86400000 + 4000000 + 17 * 60000, settledTs: now - 2 * 86400000 + 4000000 + 24 * 60000 },
-        { id: 'W-106', dateStr: d2, storeId: 'S6', customerName: 'م. شريف نصر', address: 'الكورنيش', phone: '01055667788', items: '2 كيلو سمك بوري سنجاري + جمبري', amount: 480, fee: 30, riderId: 'R5', status: 'settled', receivedTs: now - 2 * 86400000 + 8000000, departedTs: now - 2 * 86400000 + 8000000 + 9 * 60000, deliveredTs: now - 2 * 86400000 + 8000000 + 25 * 60000, settledTs: now - 2 * 86400000 + 8000000 + 34 * 60000 },
-        { id: 'W-107', dateStr: d1, storeId: 'S1', customerName: 'أ. إيهاب سالم', address: 'حي الضاحية', phone: '01066771122', items: 'وجبة حمام محشي + ملوخية', amount: 370, fee: 25, riderId: 'R6', status: 'settled', receivedTs: now - 86400000, departedTs: now - 86400000 + 7 * 60000, deliveredTs: now - 86400000 + 23 * 60000, settledTs: now - 86400000 + 31 * 60000 },
-        { id: 'W-108', dateStr: d1, storeId: 'S4', customerName: 'أ. دينا مجدي', address: 'شارع الفاتح', phone: '01177889900', items: 'بيتزا مارجريتا كبير + كريب', amount: 245, fee: 25, riderId: 'R8', status: 'settled', receivedTs: now - 86400000 + 3000000, departedTs: now - 86400000 + 3000000 + 8 * 60000, deliveredTs: now - 86400000 + 3000000 + 21 * 60000, settledTs: now - 86400000 + 3000000 + 29 * 60000 }
+        { id: 'W-115', dateStr: today, storeId: 'S1', customerName: 'أ. سامح عبد الرحمن', address: 'حي المساعيد - عمارة 14', phone: '01022334455', items: 'نصف تيس مندي (300 ج.م) + 2 بيبسي (40 ج.م)', amount: 340, fee: 25, riderId: 'R1', status: 'settled', receivedTs: now - 52 * 60000, departedTs: now - 43 * 60000, deliveredTs: now - 28 * 60000, settledTs: now - 15 * 60000 },
+        { id: 'W-116', dateStr: today, storeId: 'S1', customerName: 'م. كريم الشاذلي', address: 'حي الزهور - برج الصفوة', phone: '01066778899', items: 'فرخة شواية (380 ج.م) + أرز بسمتي (140 ج.م)', amount: 520, fee: 25, riderId: 'R5', status: 'delivered', receivedTs: now - 40 * 60000, departedTs: now - 32 * 60000, deliveredTs: now - 10 * 60000, settledTs: null },
+        { id: 'W-117', dateStr: today, storeId: 'S2', customerName: 'د. هبة محمود', address: 'شارع الفاتح - برج النور', phone: '01144556677', items: 'أدوية ضغط (120 ج.م) + فيتامين د (65 ج.م)', amount: 185, fee: 20, riderId: 'R2', status: 'onway', receivedTs: now - 18 * 60000, departedTs: now - 10 * 60000, deliveredTs: null, settledTs: null },
+        { id: 'W-118', dateStr: today, storeId: 'S4', customerName: 'أ. نادية كمال', address: 'شارع الجمهورية - عمارة 9', phone: '01555443322', items: '2 بيتزا سوبر سوبريم وسط (275 ج.م)', amount: 275, fee: 25, riderId: 'R4', status: 'onway', receivedTs: now - 38 * 60000, departedTs: now - 25 * 60000, deliveredTs: null, settledTs: null },
+        { id: 'W-119', dateStr: today, storeId: 'S3', customerName: 'م. طارق الجندي', address: 'حي الضاحية - فيلا 22', phone: '01288990011', items: 'طلبات بقالة (310 ج.م) + منظفات منزلية (150 ج.م)', amount: 460, fee: 30, riderId: 'R3', status: 'received', receivedTs: now - 6 * 60000, departedTs: null, deliveredTs: null, settledTs: null },
+        { id: 'W-120', dateStr: today, storeId: 'S1', customerName: 'أ. ياسر المنياوي', address: 'ميدان المحطة - خلف البريد', phone: '01099112233', items: 'وجبة كفتة مشوية (210 ج.م)', amount: 210, fee: 25, riderId: 'R7', status: 'received', receivedTs: now - 3 * 60000, departedTs: null, deliveredTs: null, settledTs: null },
+        { id: 'W-101', dateStr: d3, storeId: 'S1', customerName: 'أ. وائل عزت', address: 'شارع البحر', phone: '01011223344', items: 'وجبة كباب وكفتة (310 ج.م)', amount: 310, fee: 25, riderId: 'R1', status: 'settled', receivedTs: now - 3 * 86400000, departedTs: now - 3 * 86400000 + 8 * 60000, deliveredTs: now - 3 * 86400000 + 22 * 60000, settledTs: now - 3 * 86400000 + 30 * 60000 },
+        { id: 'W-102', dateStr: d3, storeId: 'S1', customerName: 'د. مروة علي', address: 'حي الزهور', phone: '01022331144', items: '2 وجبة فراخ مشوية (420 ج.م)', amount: 420, fee: 25, riderId: 'R1', status: 'settled', receivedTs: now - 3 * 86400000 + 3600000, departedTs: now - 3 * 86400000 + 3600000 + 7 * 60000, deliveredTs: now - 3 * 86400000 + 3600000 + 20 * 60000, settledTs: now - 3 * 86400000 + 3600000 + 28 * 60000 },
+        { id: 'W-103', dateStr: d3, storeId: 'S3', customerName: 'أ. سلوى حسن', address: 'حي المساعيد', phone: '01122334455', items: 'خضار وفاكهة (440 ج.م) + مخبوزات (200 ج.م)', amount: 640, fee: 30, riderId: 'R2', status: 'settled', receivedTs: now - 3 * 86400000 + 7200000, departedTs: now - 3 * 86400000 + 7200000 + 10 * 60000, deliveredTs: now - 3 * 86400000 + 7200000 + 28 * 60000, settledTs: now - 3 * 86400000 + 7200000 + 35 * 60000 },
+        { id: 'W-104', dateStr: d2, storeId: 'S1', customerName: 'أ. حسام فؤاد', address: 'شارع 23 يوليو', phone: '01233445566', items: 'وجبة شاورما عربي (290 ج.م)', amount: 290, fee: 25, riderId: 'R1', status: 'settled', receivedTs: now - 2 * 86400000, departedTs: now - 2 * 86400000 + 6 * 60000, deliveredTs: now - 2 * 86400000 + 19 * 60000, settledTs: now - 2 * 86400000 + 27 * 60000 },
+        { id: 'W-105', dateStr: d2, storeId: 'S2', customerName: 'أ. منال إبراهيم', address: 'ميدان الساعة', phone: '01544556677', items: 'مستحضرات عناية وأدوية (155 ج.م)', amount: 155, fee: 20, riderId: 'R3', status: 'settled', receivedTs: now - 2 * 86400000 + 4000000, departedTs: now - 2 * 86400000 + 4000000 + 5 * 60000, deliveredTs: now - 2 * 86400000 + 4000000 + 17 * 60000, settledTs: now - 2 * 86400000 + 4000000 + 24 * 60000 },
+        { id: 'W-106', dateStr: d2, storeId: 'S6', customerName: 'م. شريف نصر', address: 'الكورنيش', phone: '01055667788', items: '2 كيلو سمك بوري (300 ج.م) + جمبري (180 ج.م)', amount: 480, fee: 30, riderId: 'R5', status: 'settled', receivedTs: now - 2 * 86400000 + 8000000, departedTs: now - 2 * 86400000 + 8000000 + 9 * 60000, deliveredTs: now - 2 * 86400000 + 8000000 + 25 * 60000, settledTs: now - 2 * 86400000 + 8000000 + 34 * 60000 },
+        { id: 'W-107', dateStr: d1, storeId: 'S1', customerName: 'أ. إيهاب سالم', address: 'حي الضاحية', phone: '01066771122', items: 'وجبة حمام محشي (320 ج.م) + ملوخية (50 ج.م)', amount: 370, fee: 25, riderId: 'R6', status: 'settled', receivedTs: now - 86400000, departedTs: now - 86400000 + 7 * 60000, deliveredTs: now - 86400000 + 23 * 60000, settledTs: now - 86400000 + 31 * 60000 },
+        { id: 'W-108', dateStr: d1, storeId: 'S4', customerName: 'أ. دينا مجدي', address: 'شارع الفاتح', phone: '01177889900', items: 'بيتزا مارجريتا كبير (165 ج.م) + كريب (80 ج.م)', amount: 245, fee: 25, riderId: 'R8', status: 'settled', receivedTs: now - 86400000 + 3000000, departedTs: now - 86400000 + 3000000 + 8 * 60000, deliveredTs: now - 86400000 + 3000000 + 21 * 60000, settledTs: now - 86400000 + 3000000 + 29 * 60000 }
     ];
 }
 
@@ -432,6 +432,70 @@ function showToast(msg) {
     }, 3400);
 }
 
+// ==================== DYNAMIC ORDER ITEMS HELPERS ====================
+function addOrderItemRow(nameVal = '', priceVal = '') {
+    const list = document.getElementById('order-items-list');
+    if (!list) return;
+
+    const row = document.createElement('div');
+    row.className = 'order-item-row flex items-center gap-2';
+    row.innerHTML = `
+        <input type="text" value="${nameVal}" class="item-name flex-1 bg-slateDark border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-wassalOrange" required placeholder="اسم الصنف التالي">
+        <input type="number" value="${priceVal}" class="item-price w-24 bg-slateDark border border-slateBorder rounded-xl px-2.5 py-2 text-white focus:outline-none focus:border-wassalOrange" min="0" required placeholder="السعر">
+        <button type="button" data-action="remove-order-item-row" title="حذف الصنف" class="w-9 h-9 rounded-xl bg-red-500/15 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/40 font-black text-sm flex items-center justify-center shrink-0">✕</button>
+    `;
+    list.appendChild(row);
+    recalcOrderItemsTotal();
+}
+
+function resetOrderItemsRows() {
+    const list = document.getElementById('order-items-list');
+    if (!list) return;
+    list.innerHTML = `
+        <div class="order-item-row flex items-center gap-2">
+            <input type="text" class="item-name flex-1 bg-slateDark border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-wassalOrange" required placeholder="اسم الصنف (مثال: 2 وجبة شيش طاووق)">
+            <input type="number" class="item-price w-24 bg-slateDark border border-slateBorder rounded-xl px-2.5 py-2 text-white focus:outline-none focus:border-wassalOrange" min="0" required placeholder="السعر">
+            <button type="button" data-action="add-order-item-row" title="إضافة صنف آخر" class="w-9 h-9 rounded-xl wassal-grad text-obsidian font-black text-base flex items-center justify-center shrink-0">+</button>
+        </div>
+    `;
+    const amtInput = document.getElementById('input-order-amount');
+    if (amtInput) amtInput.value = '';
+}
+
+function recalcOrderItemsTotal() {
+    const prices = document.querySelectorAll('#order-items-list .item-price');
+    let sum = 0;
+    let hasAnyPrice = false;
+    prices.forEach(inp => {
+        if (inp.value !== '') hasAnyPrice = true;
+        sum += Number(inp.value) || 0;
+    });
+    const amtInput = document.getElementById('input-order-amount');
+    if (amtInput && hasAnyPrice) {
+        amtInput.value = sum;
+    }
+}
+
+function collectOrderItemsText() {
+    const rows = document.querySelectorAll('#order-items-list .order-item-row');
+    const parts = [];
+    let computedTotal = 0;
+
+    rows.forEach(row => {
+        const name = (row.querySelector('.item-name')?.value || '').trim();
+        const price = Number(row.querySelector('.item-price')?.value) || 0;
+        if (name) {
+            parts.push(`${name} (${price} ج.م)`);
+            computedTotal += price;
+        }
+    });
+
+    return {
+        itemsText: parts.join(' + '),
+        computedTotal
+    };
+}
+
 // ==================== RENDERING ====================
 function renderKPIs() {
     const activeD = getActiveShiftDate();
@@ -558,20 +622,33 @@ function renderFleetRibbon() {
     }).join('');
 }
 
+function matchesSearchQuery(o, q) {
+    if (!q) return true;
+    const st = getStore(o.storeId);
+    const rd = getRider(o.riderId);
+    const haystack = [
+        o.id,
+        o.customerName,
+        o.address,
+        o.items,
+        o.phone,
+        o.dateStr,
+        st.name,
+        st.category,
+        rd.name,
+        rd.plate
+    ].filter(Boolean).join(' ').toLowerCase();
+
+    return haystack.includes(q);
+}
+
 function getFilteredActiveOrders() {
-    const q = (document.getElementById('search-input').value || '').trim().toLowerCase();
+    const searchEl = document.getElementById('search-input');
+    const q = (searchEl ? searchEl.value : '').trim().toLowerCase();
+
     return appState.orders.filter(o => {
         if (!isOrderActiveInRoom(o)) return false;
-        const st = getStore(o.storeId);
-        const rd = getRider(o.riderId);
-        const matchText = !q ||
-            o.id.toLowerCase().includes(q) ||
-            o.customerName.toLowerCase().includes(q) ||
-            o.address.toLowerCase().includes(q) ||
-            (o.items && o.items.toLowerCase().includes(q)) ||
-            o.phone.includes(q) ||
-            st.name.toLowerCase().includes(q) ||
-            rd.name.toLowerCase().includes(q);
+        const matchText = matchesSearchQuery(o, q);
         const matchRider = uiState.riderFilter === 'all' || o.riderId === uiState.riderFilter;
         const matchStatus = uiState.statusFilter === 'all' ||
             (uiState.statusFilter === 'delivered' ? (o.status === 'delivered' || o.status === 'returning') : o.status === uiState.statusFilter);
@@ -580,7 +657,14 @@ function getFilteredActiveOrders() {
 }
 
 function renderOrdersBoardAndTable() {
+    const searchEl = document.getElementById('search-input');
+    const q = (searchEl ? searchEl.value : '').trim().toLowerCase();
     const filtered = getFilteredActiveOrders();
+
+    // إذا كان هناك نص بحث ولم توجد نتائج في الطلبات الجارية، نبحث في الأرشيف
+    const archiveMatches = q
+        ? appState.orders.filter(o => isOrderArchived(o) && matchesSearchQuery(o, q))
+        : [];
 
     const colLists = {
         received: filtered.filter(o => o.status === 'received'),
@@ -594,25 +678,41 @@ function renderOrdersBoardAndTable() {
         const container = document.getElementById(`col-list-${stage}`);
 
         if (list.length === 0) {
-            const emptyMsg = stage === 'delivered'
-                ? 'لا توجد طلبات بانتظار التوريد أو إرجاعها للمتجر'
-                : 'لا توجد طلبات جارية في هذه المرحلة';
-            container.innerHTML = `<div class="h-44 border border-dashed border-slateBorder rounded-2xl flex items-center justify-center text-slate-500 text-xs text-center px-3">${emptyMsg}</div>`;
+            const emptyMsg = q
+                ? (archiveMatches.length > 0
+                    ? `لا توجد نتائج مطابقة لـ "${searchEl.value}" في الجارية (توجد ${archiveMatches.length} في الأرشيف — اضغط هنا لعرضها)`
+                    : `لا توجد نتائج مطابقة لـ "${searchEl.value}"`)
+                : (stage === 'delivered'
+                    ? 'لا توجد طلبات بانتظار التوريد أو إرجاعها للمتجر'
+                    : 'لا توجد طلبات جارية في هذه المرحلة');
+
+            if (q && archiveMatches.length > 0) {
+                container.innerHTML = `<button type="button" data-action="set-view-mode" data-mode="table" class="w-full h-44 border border-dashed border-wassalOrange/60 bg-wassalOrange/5 hover:bg-wassalOrange/10 rounded-2xl flex items-center justify-center text-wassalOrange font-bold text-xs text-center px-3 transition-colors">${emptyMsg}</button>`;
+            } else {
+                container.innerHTML = `<div class="h-44 border border-dashed border-slateBorder rounded-2xl flex items-center justify-center text-slate-500 text-xs text-center px-3">${emptyMsg}</div>`;
+            }
             return;
         }
         container.innerHTML = list.map(o => buildOrderCard(o)).join('');
     });
 
     const tbody = document.getElementById('quick-table-body');
-    if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="py-10 text-center text-slate-500">لا توجد طلبات جارية مطابقة (الطلبات الموردة والمرتجعات المنتهية تنتقل للأرشيف)</td></tr>`;
+    const rowsToRender = filtered.length > 0 ? filtered : archiveMatches;
+
+    if (rowsToRender.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="py-10 text-center text-slate-500">${q ? `لا توجد نتائج مطابقة لبحث "${searchEl.value}"` : 'لا توجد طلبات جارية مطابقة'}</td></tr>`;
         return;
     }
-    tbody.innerHTML = filtered.map(o => {
+
+    const archiveNoticeRow = (filtered.length === 0 && archiveMatches.length > 0)
+        ? `<tr><td colspan="8" class="py-2.5 px-4 bg-wassalOrange/10 text-wassalOrange font-black text-xs text-center">🔎 تم العثور على ${archiveMatches.length} طلب في الأرشيف مطابق لبحثك:</td></tr>`
+        : '';
+
+    tbody.innerHTML = archiveNoticeRow + rowsToRender.map(o => {
         const st = getStore(o.storeId);
         const rd = getRider(o.riderId);
         const { totalMins } = getOrderDurations(o);
-        const isOverdue = o.status !== 'delivered' && o.status !== 'returning' && totalMins > 35;
+        const isOverdue = o.status !== 'delivered' && o.status !== 'returning' && isOrderActiveInRoom(o) && totalMins > 35;
 
         const statusPill = o.status === 'received'
             ? `<span class="px-2.5 py-1 rounded-lg bg-statusPicked/15 border border-statusPicked/40 text-statusPicked font-black text-[11px]">1. تم الاستلام • ${totalMins} د</span>`
@@ -620,7 +720,9 @@ function renderOrdersBoardAndTable() {
             ? `<span class="px-2.5 py-1 rounded-lg ${isOverdue ? 'bg-red-500/20 border-red-500 text-red-400 animate-pulse' : 'bg-statusOnway/15 border-statusOnway/40 text-statusOnway'} border font-black text-[11px]">2. في الطريق • ${totalMins} د</span>`
             : o.status === 'returning'
             ? `<span class="px-2.5 py-1 rounded-lg bg-red-500/20 border border-red-500/50 text-red-400 font-black text-[11px]">↩️ مرتجع (${o.returnReason || ''})</span>`
-            : `<span class="px-2.5 py-1 rounded-lg bg-statusDone/15 border border-statusDone/40 text-statusDone font-black text-[11px]">3. تم التسليم (توريد)</span>`;
+            : o.status === 'delivered'
+            ? `<span class="px-2.5 py-1 rounded-lg bg-statusDone/15 border border-statusDone/40 text-statusDone font-black text-[11px]">3. تم التسليم (توريد)</span>`
+            : `<span class="px-2.5 py-1 rounded-lg bg-slateCard border border-slateBorder text-slate-300 font-black text-[11px]">✓ بالأرشيف</span>`;
 
         const quickAction = o.status === 'received'
             ? `<button type="button" data-action="move-onway" data-id="${o.id}" class="px-2.5 py-1.5 rounded-lg bg-statusOnway/20 hover:bg-statusOnway text-statusOnway hover:text-obsidian font-black text-[11px] transition-colors">تحرك للعميل ➔</button>`
@@ -631,7 +733,9 @@ function renderOrdersBoardAndTable() {
                </div>`
             : o.status === 'returning'
             ? `<button type="button" data-action="move-returned-done" data-id="${o.id}" class="px-2.5 py-1.5 rounded-lg bg-red-500 text-white font-black text-[11px]">📦 تسليم المرتجع للمتجر</button>`
-            : `<button type="button" data-action="move-settled" data-id="${o.id}" class="px-2.5 py-1.5 rounded-lg wassal-grad text-obsidian font-black text-[11px]">💰 تم التوريد والعودة</button>`;
+            : o.status === 'delivered'
+            ? `<button type="button" data-action="move-settled" data-id="${o.id}" class="px-2.5 py-1.5 rounded-lg wassal-grad text-obsidian font-black text-[11px]">💰 تم التوريد والعودة</button>`
+            : `<span class="text-[11px] text-slate-400 font-bold">مكتمل</span>`;
 
         return `
             <tr data-action="open-drawer" data-id="${o.id}" class="hover:bg-slateCard/90 cursor-pointer transition-colors">
@@ -1768,7 +1872,7 @@ function openNewOrderModal() {
         riderSel.innerHTML = availableRiders.map(r => `<option value="${r.id}">🟢 ${r.name} (${r.plate})</option>`).join('');
     }
 
-    document.getElementById('input-order-items').value = '';
+    resetOrderItemsRows();
     document.getElementById('input-order-time').value = '';
     const modal = document.getElementById('modal-new-order');
     modal.classList.remove('hidden');
@@ -1817,6 +1921,14 @@ document.addEventListener('click', (e) => {
         switchTab(btn.getAttribute('data-tab'));
     } else if (action === 'set-view-mode') {
         setViewMode(btn.getAttribute('data-mode'));
+    } else if (action === 'add-order-item-row') {
+        addOrderItemRow();
+    } else if (action === 'remove-order-item-row') {
+        const row = btn.closest('.order-item-row');
+        if (row) {
+            row.remove();
+            recalcOrderItemsTotal();
+        }
     } else if (action === 'set-status-filter') {
         uiState.statusFilter = btn.getAttribute('data-status');
         document.querySelectorAll('.status-chip').forEach(chip => {
@@ -1978,6 +2090,12 @@ document.getElementById('input-order-store').addEventListener('change', (e) => {
     document.getElementById('input-order-fee').value = st.fee;
 });
 
+document.getElementById('order-items-list').addEventListener('input', (e) => {
+    if (e.target.classList.contains('item-price')) {
+        recalcOrderItemsTotal();
+    }
+});
+
 // الاستدعاء التلقائي لبيانات العميل عند إدخال رقم الهاتف
 document.getElementById('input-order-phone').addEventListener('input', (e) => {
     const phoneVal = e.target.value.trim();
@@ -2005,8 +2123,9 @@ document.getElementById('form-new-order').addEventListener('submit', (e) => {
     const customerName = document.getElementById('input-order-customer').value.trim();
     const phone = document.getElementById('input-order-phone').value.trim();
     const address = document.getElementById('input-order-address').value.trim();
-    const items = document.getElementById('input-order-items').value.trim();
-    const amount = Number(document.getElementById('input-order-amount').value) || 0;
+    const { itemsText, computedTotal } = collectOrderItemsText();
+    const rawAmountInput = document.getElementById('input-order-amount').value;
+    const amount = rawAmountInput !== '' ? (Number(rawAmountInput) || 0) : computedTotal;
     const fee = Number(document.getElementById('input-order-fee').value) || 0;
     const riderId = document.getElementById('input-order-rider').value;
     const manualTime = document.getElementById('input-order-time').value;
@@ -2031,7 +2150,7 @@ document.getElementById('form-new-order').addEventListener('submit', (e) => {
         customerName,
         address,
         phone,
-        items,
+        items: itemsText,
         amount,
         fee,
         riderId,
@@ -2048,6 +2167,7 @@ document.getElementById('form-new-order').addEventListener('submit', (e) => {
     renderAll();
 
     e.target.reset();
+    resetOrderItemsRows();
     const modal = document.getElementById('modal-new-order');
     modal.classList.add('hidden');
     modal.classList.remove('flex');
@@ -2230,7 +2350,13 @@ document.getElementById('form-rider').addEventListener('submit', (e) => {
     modal.classList.remove('flex');
 });
 
-document.getElementById('search-input').addEventListener('input', renderOrdersBoardAndTable);
+document.getElementById('search-input').addEventListener('input', () => {
+    if (uiState.activeTab !== 'operations') {
+        switchTab('operations');
+    } else {
+        renderOrdersBoardAndTable();
+    }
+});
 
 // ==================== INIT & LIVE TIMER ====================
 renderAll();

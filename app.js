@@ -392,7 +392,7 @@ async function createOrderAtomically(orderPayload) {
         return null;
     }
 }
-}
+
 
 // ==================== STRICT BACKUP SCHEMA VALIDATOR ====================
 function validateBackupSchema(restored) {

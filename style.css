@@ -36,6 +36,26 @@ body {
 }
 .pulse-orange { animation: pulseGlow 2.2s infinite; }
 
+/* Light palette for the utility classes used by the existing interface. */
+html[data-theme="light"] body { background: #f3f5f8 !important; color: #172033 !important; }
+html[data-theme="light"] .bg-obsidian { background-color: #eef1f5 !important; }
+html[data-theme="light"] .bg-slateDark { background-color: #ffffff !important; }
+html[data-theme="light"] .bg-slateCard { background-color: #f7f8fa !important; }
+html[data-theme="light"] .bg-slateHover { background-color: #e9edf2 !important; }
+html[data-theme="light"] .border-slateBorder { border-color: #d6dce5 !important; }
+html[data-theme="light"] .text-white { color: #172033 !important; }
+html[data-theme="light"] .text-neutral-300,
+html[data-theme="light"] .text-neutral-400,
+html[data-theme="light"] .text-slate-200,
+html[data-theme="light"] .text-slate-300,
+html[data-theme="light"] .text-slate-400 { color: #596579 !important; }
+html[data-theme="light"] input, html[data-theme="light"] select, html[data-theme="light"] textarea {
+    color: #172033 !important; background-color: #fff !important;
+}
+html[data-theme="light"] .glass-panel { background: rgba(255,255,255,.94) !important; }
+html[data-theme="light"] #auth-lock-screen { background-color: rgba(243,245,248,.98) !important; }
+html[data-theme="light"] #auth-lock-screen .text-white { color: #172033 !important; }
+
 @media print {
     body * { visibility: hidden; }
     #print-section, #print-section * { visibility: visible; }

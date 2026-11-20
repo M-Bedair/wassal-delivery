@@ -6,6 +6,7 @@
     <title>وصّل - WASSAL | نظام إدارة عمليات التوصيل</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -250,6 +251,8 @@
 
             <!-- Left Side: Quick New Order + Search + Clock -->
             <div class="flex items-center gap-2 flex-1 sm:flex-initial justify-end">
+                <button type="button" id="language-toggle" class="px-2.5 py-2 rounded-xl bg-slateDark border border-slateBorder text-white text-xs font-bold" aria-label="Switch language">English</button>
+                <button type="button" id="theme-toggle" class="px-2.5 py-2 rounded-xl bg-slateDark border border-slateBorder text-white text-xs font-bold" aria-label="Switch color theme">☀️</button>
                 <div class="relative flex-1 sm:w-56">
                     <input id="search-input" type="text" placeholder="بحث برقم الطلب، العميل، المندوب..." class="w-full bg-slateDark border border-slateBorder rounded-xl pr-8 pl-3 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-wassalOrange transition-colors">
                     <svg class="w-3.5 h-3.5 text-neutral-500 absolute right-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>

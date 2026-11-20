@@ -2,6 +2,83 @@ let fb = null;
 let isFirestoreConnected = false;
 let unsubscribers = [];
 
+// User preferences and a lightweight bilingual shell. Text remains Arabic by default.
+const UI_TRANSLATIONS = {
+    'غرفة العمليات ومتابعة الطلبات الجارية': 'Operations and active orders',
+    'اليوم المفتوح:': 'Open day:', 'فتح القائمة الرئيسية': 'Open main menu',
+    'مدير النظام': 'System administrator', 'أدمن': 'Admin',
+    'بحث برقم الطلب، العميل، المندوب...': 'Search order, customer, or rider...',
+    '+ أوردر جديد': '+ New order', 'المناديب والموتوسيكلات': 'Riders and motorcycles',
+    'المتاجر': 'Stores', 'الأرشيف': 'Archive', 'الحسابات': 'Accounting',
+    'سجل التدقيق': 'Audit log', 'تسجيل الدخول للنظام': 'Sign in',
+    'أدخل البريد الإلكتروني وكلمة المرور المعتمدة': 'Enter your approved email and password',
+    'البريد الإلكتروني': 'Email address', 'كلمة المرور': 'Password',
+    'دخول النظام': 'Sign in', 'وصّل - WASSAL | نظام إدارة عمليات التوصيل': 'WASSAL | Delivery Operations',
+    'حالة الاتصال': 'Connection status', 'جاري الاتصال...': 'Connecting...',
+    'متصل': 'Connected', 'جاري الحفظ...': 'Saving...', 'اتصال محلي': 'Offline',
+    'أرشيف الطلبات المنتهية وإقفال اليوميات': 'Completed orders and day closing',
+    'أسطول المناديب والموتوسيكلات': 'Riders and motorcycles fleet',
+    'المحاسبة والمصروفات والتقارير': 'Accounting, expenses, and reports',
+    'سجل التدقيق والرقابة (Audit Log)': 'Audit log and monitoring',
+    'تم الاستلام ➔ تحرك للعميل ➔ تم التسليم (أو مرتجع) ➔ تم التوريد والعودة': 'Received ➔ En route ➔ Delivered or returned ➔ Settled',
+    'استعراض الطلبات المؤرشفة حسب التاريخ وإقفال اليومية الحالية مع نسخة احتياطية': 'Browse archived orders by date and close the current shift with a backup',
+    'إدارة كاملة للأسطول وكشوف أداء لكل مندوب': 'Manage the fleet and view rider performance',
+    'قائمة الدخل اليومية والشهرية، إدارة المصروفات، وتصدير التقارير المحمية': 'Daily and monthly income, expenses, and protected report exports'
+};
+function applyUiPreferences() {
+    const lang = localStorage.getItem('wassal_language') === 'en' ? 'en' : 'ar';
+    const theme = localStorage.getItem('wassal_theme') === 'light' ? 'light' : 'dark';
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === 'en' ? 'ltr' : 'rtl';
+    document.documentElement.dataset.theme = theme;
+    const langButton = document.getElementById('language-toggle');
+    const themeButton = document.getElementById('theme-toggle');
+    if (langButton) langButton.textContent = lang === 'ar' ? 'English' : 'العربية';
+    if (themeButton) themeButton.textContent = theme === 'dark' ? '☀️' : '🌙';
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {
+        const node = walker.currentNode;
+        if (node.__wassalOriginal === undefined) node.__wassalOriginal = node.nodeValue;
+        const original = node.__wassalOriginal.trim();
+        const translated = lang === 'en' ? UI_TRANSLATIONS[original] : null;
+        if (translated) node.nodeValue = node.__wassalOriginal.replace(original, translated);
+        else if (lang === 'ar') node.nodeValue = node.__wassalOriginal;
+    }
+}
+document.addEventListener('click', event => {
+    if (event.target.closest('#language-toggle')) {
+        localStorage.setItem('wassal_language', document.documentElement.lang === 'ar' ? 'en' : 'ar');
+        location.reload();
+    }
+    if (event.target.closest('#theme-toggle')) {
+        const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('wassal_theme', next);
+        document.documentElement.dataset.theme = next;
+    }
+});
+document.addEventListener('DOMContentLoaded', applyUiPreferences);
+document.addEventListener('DOMContentLoaded', () => {
+    new MutationObserver(records => {
+        if (document.documentElement.lang !== 'en') return;
+        records.forEach(record => {
+            const nodes = record.type === 'characterData' ? [record.target] : [...record.addedNodes];
+            nodes.forEach(node => {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    const key = node.nodeValue.trim();
+                    if (UI_TRANSLATIONS[key]) node.nodeValue = node.nodeValue.replace(key, UI_TRANSLATIONS[key]);
+                } else if (node.nodeType === Node.ELEMENT_NODE) {
+                    const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
+                    while (walker.nextNode()) {
+                        const textNode = walker.currentNode;
+                        const key = textNode.nodeValue.trim();
+                        if (UI_TRANSLATIONS[key]) textNode.nodeValue = textNode.nodeValue.replace(key, UI_TRANSLATIONS[key]);
+                    }
+                }
+            });
+        });
+    }).observe(document.body, { childList: true, characterData: true, subtree: true });
+});
+
 // ==================== CLEANUP LEGACY INSECURE STORAGE ====================
 (function purgeLegacyLocalStorage() {
     try {

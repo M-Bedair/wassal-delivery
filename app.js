@@ -118,10 +118,10 @@ let uiState = {
 
 function setSyncStatus(status) {
     const configs = {
-        connecting: { text: 'جاري الاتصال بـ Firestore...', dot: 'bg-wassalAmber animate-pulse', txt: 'text-wassalAmber' },
-        online: { text: 'متصل ومؤمّن (مزامنة فورية)', dot: 'bg-statusDone', txt: 'text-statusDone' },
-        pending: { text: 'جاري حفظ التغييرات للسحابة...', dot: 'bg-wassalAmber animate-ping', txt: 'text-wassalAmber' },
-        offline: { text: 'وضع غير متصل (محفوظ في الطابور)', dot: 'bg-wassalOrange', txt: 'text-wassalOrange' }
+        connecting: { text: 'جاري الاتصال...', dot: 'bg-wassalAmber animate-pulse', txt: 'text-wassalAmber' },
+        online: { text: 'متصل', dot: 'bg-emerald-500 shadow-[0_0_8px_#10b981]', txt: 'text-emerald-400' },
+        pending: { text: 'جاري الحفظ...', dot: 'bg-wassalAmber animate-ping', txt: 'text-wassalAmber' },
+        offline: { text: 'اتصال محلي', dot: 'bg-wassalOrange', txt: 'text-wassalOrange' }
     };
     const cfg = configs[status] || configs.online;
     ['desktop', 'mobile'].forEach(prefix => {

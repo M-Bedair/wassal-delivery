@@ -1269,8 +1269,10 @@ function renderKPIs() {
 
     const sideDay = document.getElementById('sidebar-active-day');
     const mobDay = document.getElementById('mobile-active-day');
+    const topDay = document.getElementById('top-header-active-day');
     if (sideDay) sideDay.textContent = activeD;
     if (mobDay) mobDay.textContent = activeD;
+    if (topDay) topDay.textContent = activeD;
 
     const activeOrdersList = appState.orders.filter(o => isOrderActiveInRoom(o));
     const pickedCount = activeOrdersList.filter(o => o.status === 'received').length;

@@ -8,28 +8,45 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com/3.4.17" integrity="sha384-igm5BeiBt36UU4gqwWS7imYmelpTsZlQ45FZf+XBn9MuJbn4nQr7yx1yFydocC/K" crossorigin="anonymous"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: { sans: ['Cairo', 'sans-serif'] },
                     colors: {
-                        obsidian: 'rgb(var(--color-surface-rgb) / <alpha-value>)',
-                        slateDark: 'rgb(var(--color-surface-rgb) / <alpha-value>)',
-                        slateCard: 'rgb(var(--color-surface-rgb) / <alpha-value>)',
-                        slateHover: 'rgb(var(--color-surface-hover-rgb) / <alpha-value>)',
-                        slateBorder: 'rgb(var(--color-border-rgb) / <alpha-value>)',
-                        wassalOrange: 'rgb(var(--color-orange-rgb) / <alpha-value>)',
-                        wassalAmber: 'rgb(var(--color-orange-light-rgb) / <alpha-value>)',
-                        statusPicked: 'rgb(var(--color-orange-light-rgb) / <alpha-value>)',
-                        statusOnway: 'rgb(var(--color-orange-rgb) / <alpha-value>)',
-                        statusDone: 'rgb(var(--color-success-rgb) / <alpha-value>)'
+                        obsidian: '#0B0D12',
+                        slateDark: '#111111',
+                        slateCard: '#171717',
+                        slateHover: '#222222',
+                        slateBorder: '#2A2A2A',
+                        wassalOrange: '#FF6B00',
+                        wassalAmber: '#FF8A00',
+                        statusPicked: '#FF8A00',
+                        statusOnway: '#FF6B00',
+                        statusDone: '#FFFFFF'
                     }
                 }
             }
         }
     </script>
+    <style>
+        body { background-color: #0B0D12; color: #FFFFFF; }
+        .wassal-grad { background: linear-gradient(135deg, #FF6B00 0%, #FF9900 100%); }
+        .wassal-grad-hover:hover { background: linear-gradient(135deg, #E65F00 0%, #F58F00 100%); }
+        .glass-panel { background: rgba(12, 12, 12, 0.94); backdrop-filter: blur(14px); }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #080808; }
+        ::-webkit-scrollbar-thumb { background: #2A2A2A; border-radius: 999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #FF6B00; }
+        @media print {
+            body { background: #ffffff !important; color: #000000 !important; }
+            #sidebar, header, #kpi-ribbon, .no-print, #auth-lock-screen { display: none !important; }
+            main { margin: 0 !important; padding: 0 !important; }
+            .bg-slateDark, .bg-slateCard, .bg-obsidian { background: #ffffff !important; color: #000000 !important; border-color: #cccccc !important; }
+            .text-white, .text-slate-200, .text-slate-300, .text-slate-400 { color: #000000 !important; }
+        }
+    </style>
 </head>
 <body class="font-sans antialiased selection:bg-wassalOrange selection:text-black overflow-x-hidden">
 

@@ -2270,7 +2270,7 @@ function renderRiders() {
 
         const statusMap = {
             available: { label: '🟢 متاح في المكتب', cls: 'bg-statusDone/15 border border-statusDone/40 text-statusDone' },
-            busy: { label: '🟠 في مهمة', cls: 'bg-statusOnway/15 border border-statusOnway/40 text-statusOnway' },
+            busy: { label: '🔵 في مهمة', cls: 'bg-statusOnway/15 border border-statusOnway/40 text-statusOnway' },
             off: { label: '⚪ خارج العمل / غير متاح', cls: 'bg-slateCard border border-slateBorder text-slate-400' }
         };
         const stObj = statusMap[r.status] || statusMap.available;

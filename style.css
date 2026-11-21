@@ -162,7 +162,7 @@ body select:focus,
 body textarea:focus { border-color: var(--color-orange); }
 
 #auth-lock-screen {
-    background-color: #FFFFFF;
+    background: linear-gradient(rgb(11 13 18 / 0.32), rgb(11 13 18 / 0.32)), url("login-background.jpg") center / cover no-repeat;
     color: #FFFFFF;
 }
 #auth-lock-screen > div {

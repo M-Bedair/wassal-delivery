@@ -15,38 +15,21 @@
                 extend: {
                     fontFamily: { sans: ['Cairo', 'sans-serif'] },
                     colors: {
-                        obsidian: '#080808',
-                        slateDark: '#111111',
-                        slateCard: '#171717',
-                        slateHover: '#222222',
-                        slateBorder: '#2A2A2A',
-                        wassalOrange: '#FF6B00',
-                        wassalAmber: '#FF9900',
-                        statusPicked: '#FF9900',
-                        statusOnway: '#FF6B00',
-                        statusDone: '#FFFFFF'
+                        obsidian: 'rgb(var(--color-surface-rgb) / <alpha-value>)',
+                        slateDark: 'rgb(var(--color-surface-rgb) / <alpha-value>)',
+                        slateCard: 'rgb(var(--color-surface-rgb) / <alpha-value>)',
+                        slateHover: 'rgb(var(--color-surface-hover-rgb) / <alpha-value>)',
+                        slateBorder: 'rgb(var(--color-border-rgb) / <alpha-value>)',
+                        wassalOrange: 'rgb(var(--color-orange-rgb) / <alpha-value>)',
+                        wassalAmber: 'rgb(var(--color-orange-light-rgb) / <alpha-value>)',
+                        statusPicked: 'rgb(var(--color-orange-light-rgb) / <alpha-value>)',
+                        statusOnway: 'rgb(var(--color-orange-rgb) / <alpha-value>)',
+                        statusDone: 'rgb(var(--color-success-rgb) / <alpha-value>)'
                     }
                 }
             }
         }
     </script>
-    <style>
-        body { background-color: #080808; color: #FFFFFF; }
-        .wassal-grad { background: linear-gradient(135deg, #FF6B00 0%, #FF9900 100%); }
-        .wassal-grad-hover:hover { background: linear-gradient(135deg, #E65F00 0%, #F58F00 100%); }
-        .glass-panel { background: rgba(12, 12, 12, 0.94); backdrop-filter: blur(14px); }
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: #080808; }
-        ::-webkit-scrollbar-thumb { background: #2A2A2A; border-radius: 999px; }
-        ::-webkit-scrollbar-thumb:hover { background: #FF6B00; }
-        @media print {
-            body { background: #ffffff !important; color: #000000 !important; }
-            #sidebar, header, #kpi-ribbon, .no-print, #auth-lock-screen { display: none !important; }
-            main { margin: 0 !important; padding: 0 !important; }
-            .bg-slateDark, .bg-slateCard, .bg-obsidian { background: #ffffff !important; color: #000000 !important; border-color: #cccccc !important; }
-            .text-white, .text-slate-200, .text-slate-300, .text-slate-400 { color: #000000 !important; }
-        }
-    </style>
 </head>
 <body class="font-sans antialiased selection:bg-wassalOrange selection:text-black overflow-x-hidden">
 
@@ -254,7 +237,7 @@
 
             <!-- Center Title (Desktop) -->
             <div class="hidden xl:block text-center">
-                <h2 id="header-title" class="font-black text-sm text-white">غرفة العمليات ومتابعة الطلبات الجارية</h2>
+                <h2 id="header-title" class="font-black text-sm text-white">متابعة الطلبات الجارية</h2>
                 <p id="header-subtitle" class="text-[11px] text-neutral-400">اليوم المفتوح: <strong id="top-header-active-day" class="text-wassalOrange font-mono">----/--/--</strong></p>
             </div>
 
@@ -310,7 +293,7 @@
 
             <div data-action="switch-tab" data-tab="stores" class="cursor-pointer bg-slateDark border border-slateBorder hover:border-wassalOrange transition-colors rounded-2xl p-4 flex flex-col justify-between">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs text-neutral-400 font-bold">الأكثر عملاً (التاجر #1)</span>
+                    <span class="text-xs text-neutral-400 font-bold">الأكثر طلباً</span>
                     <span class="text-xs font-black text-wassalOrange">#1</span>
                 </div>
                 <div id="kpi-top-merchant-name" class="text-base font-black text-white truncate my-1.5">—</div>
@@ -319,7 +302,7 @@
 
             <div data-action="switch-tab" data-tab="riders" class="cursor-pointer bg-slateDark border border-slateBorder hover:border-wassalOrange transition-colors rounded-2xl p-4 flex flex-col justify-between">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs text-neutral-400 font-bold">المناديب المتاحين بالمكتب</span>
+                    <span class="text-xs text-neutral-400 font-bold">المناديب المتاحة</span>
                     <span class="w-2.5 h-2.5 rounded-full bg-white"></span>
                 </div>
                 <div class="text-2xl font-black text-white my-1.5"><span id="kpi-riders-avail">0</span><span id="kpi-riders-total" class="text-sm text-neutral-500 font-bold"> / 0</span></div>
@@ -328,7 +311,7 @@
 
             <div data-action="switch-tab" data-tab="accounting" class="cursor-pointer bg-slateDark border border-wassalOrange/50 hover:border-wassalOrange transition-colors rounded-2xl p-4 flex flex-col justify-between">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs text-neutral-300 font-bold">صافي ربح اليوم (المُحصّل)</span>
+                    <span class="text-xs text-neutral-300 font-bold">المُحصّل</span>
                     <span class="text-xs font-black text-wassalOrange">ج.م</span>
                 </div>
                 <div id="kpi-today-profit" class="text-2xl font-black text-wassalOrange my-1.5">0</div>
@@ -340,7 +323,7 @@
         <section id="view-operations" class="view-section p-4 sm:p-6 space-y-4">
             <div class="bg-slateDark border border-slateBorder rounded-2xl p-3">
                 <div class="flex items-center justify-between mb-2 px-1">
-                    <span class="text-xs font-black text-neutral-300">حالة المناديب اللحظية (اضغط على المندوب لفلترة طلباته):</span>
+                    <span class="text-xs font-black text-neutral-300">حالة المناديب اللحظية:</span>
                     <button type="button" id="clear-rider-pill-btn" data-action="filter-by-rider-pill" data-id="all" class="hidden text-[11px] text-wassalOrange font-extrabold underline">عرض جميع المناديب</button>
                 </div>
                 <div id="fleet-ribbon-list" class="flex items-center gap-2 overflow-x-auto pb-1"></div>

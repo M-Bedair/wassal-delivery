@@ -162,10 +162,28 @@ body select:focus,
 body textarea:focus { border-color: var(--color-orange); }
 
 #auth-lock-screen {
-    --color-surface-ink: var(--color-on-dark);
-    --color-surface-muted: var(--color-on-dark-muted);
-    background-color: var(--color-shell);
-    color: var(--color-on-dark);
+    background-color: #FFFFFF;
+    color: #FFFFFF;
+}
+#auth-lock-screen > div {
+    --color-surface-ink: #FFFFFF;
+    --color-surface-muted: #CBD5E1;
+    --color-surface-border: #293244;
+    background-color: #0B0D12;
+    border-color: var(--color-orange);
+    color: #FFFFFF;
+}
+#auth-lock-screen input {
+    --color-surface-ink: #FFFFFF;
+    --color-surface-muted: #CBD5E1;
+    --color-surface-border: #374151;
+    background-color: #111827;
+    border-color: #374151;
+    color: #FFFFFF;
+    color-scheme: dark;
+}
+#auth-lock-screen input::placeholder {
+    color: #94A3B8;
 }
 
 header.glass-panel {

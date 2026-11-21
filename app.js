@@ -23,7 +23,11 @@ const UI_TRANSLATIONS = {
     'تم الاستلام ➔ تحرك للعميل ➔ تم التسليم (أو مرتجع) ➔ تم التوريد والعودة': 'Received ➔ En route ➔ Delivered or returned ➔ Settled',
     'استعراض الطلبات المؤرشفة حسب التاريخ وإقفال اليومية الحالية مع نسخة احتياطية': 'Browse archived orders by date and close the current shift with a backup',
     'إدارة كاملة للأسطول وكشوف أداء لكل مندوب': 'Manage the fleet and view rider performance',
-    'قائمة الدخل اليومية والشهرية، إدارة المصروفات، وتصدير التقارير المحمية': 'Daily and monthly income, expenses, and protected report exports'
+    'قائمة الدخل اليومية والشهرية، إدارة المصروفات، وتصدير التقارير المحمية': 'Daily and monthly income, expenses, and protected report exports',
+    'تثبيت التطبيق': 'Install app',
+    'طريقة التثبيت': 'How to install',
+    'لتثبيت WASSAL على iPhone: اضغط زر المشاركة في Safari، ثم اختر «إضافة إلى الشاشة الرئيسية».': 'To install WASSAL on iPhone: tap Share in Safari, then choose “Add to Home Screen”.',
+    'لتثبيت WASSAL على Mac: من قائمة File في Safari اختر Add to Dock.': 'To install WASSAL on Mac: in Safari, choose Add to Dock from the File menu.'
 };
 Object.assign(UI_TRANSLATIONS, {
     '(-) إجمالي مصروفات التشغيل اليوم': '(-) Total operating expenses today',
@@ -359,6 +363,62 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         }).observe(document.body, { childList: true, characterData: true, attributes: true, attributeFilter: ['placeholder', 'title', 'aria-label'], subtree: true });
 });
+
+function setupPwa() {
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./service-worker.js', { scope: './' })
+            .catch(error => console.error('Service worker registration failed:', error));
+    }
+
+    const installButton = document.getElementById('install-app');
+    if (!installButton) return;
+
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+    if (isStandalone) return;
+
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const isMacSafari = /Safari/i.test(navigator.userAgent) &&
+        !/Chrome|Chromium|CriOS|Edg/i.test(navigator.userAgent) &&
+        /Macintosh|Mac OS X/i.test(navigator.userAgent) && !isIOS;
+    let installPrompt = null;
+
+    if (isIOS || isMacSafari) {
+        installButton.classList.remove('hidden');
+        installButton.textContent = 'طريقة التثبيت';
+        installButton.addEventListener('click', () => {
+            const instructions = isIOS
+                ? 'لتثبيت WASSAL على iPhone: اضغط زر المشاركة في Safari، ثم اختر «إضافة إلى الشاشة الرئيسية».'
+                : 'لتثبيت WASSAL على Mac: من قائمة File في Safari اختر Add to Dock.';
+            window.alert(uiText(instructions));
+        });
+    }
+
+    window.addEventListener('beforeinstallprompt', event => {
+        event.preventDefault();
+        installPrompt = event;
+        installButton.classList.remove('hidden');
+    });
+
+    installButton.addEventListener('click', async () => {
+        if (!installPrompt) return;
+        try {
+            await installPrompt.prompt();
+            await installPrompt.userChoice;
+        } catch (error) {
+            console.error('PWA installation prompt failed:', error);
+        } finally {
+            installPrompt = null;
+            installButton.classList.add('hidden');
+        }
+    });
+
+    window.addEventListener('appinstalled', () => {
+        installPrompt = null;
+        installButton.classList.add('hidden');
+    });
+}
+document.addEventListener('DOMContentLoaded', setupPwa);
 
 // ==================== CLEANUP LEGACY INSECURE STORAGE ====================
 (function purgeLegacyLocalStorage() {

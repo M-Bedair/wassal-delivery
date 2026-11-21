@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>وصّل - WASSAL | نظام إدارة عمليات التوصيل</title>
+    <meta name="theme-color" content="#0B0D12">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="WASSAL">
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="style.css">
@@ -243,6 +249,7 @@
 
             <!-- Left Side: Quick New Order + Search + Clock -->
             <div class="flex items-center gap-2 flex-1 sm:flex-initial justify-end">
+                <button type="button" id="install-app" class="hidden px-2.5 py-2 rounded-xl bg-wassalOrange text-black text-xs font-bold" aria-label="تثبيت التطبيق">تثبيت التطبيق</button>
                 <button type="button" id="language-toggle" class="px-2.5 py-2 rounded-xl bg-slateDark border border-slateBorder text-white text-xs font-bold" aria-label="Switch language">English</button>
                 <button type="button" id="theme-toggle" class="px-2.5 py-2 rounded-xl bg-slateDark border border-slateBorder text-white text-xs font-bold" aria-label="Switch color theme">☀️</button>
                 <div class="relative flex-1 sm:w-56">

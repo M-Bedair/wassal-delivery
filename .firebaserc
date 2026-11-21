@@ -1,5 +1,15 @@
 {
   "projects": {
     "default": "wassal-delivery-a8b12"
-  }
+  },
+  "targets": {
+    "wassal-delivery-a8b12": {
+      "hosting": {
+        "live": [
+          "wassal-eg"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }

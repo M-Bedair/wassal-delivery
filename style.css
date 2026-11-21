@@ -248,6 +248,8 @@ header.glass-panel [class~="hover:text-black"]:hover { color: #080808; }
     object-fit: contain;
     border-radius: 8px;
 }
+html[data-theme="light"] #sidebar .sidebar-brand-logo,
+html[data-theme="light"] header .header-brand-logo { content: url("logo-light.PNG"); }
 @media (max-width: 640px) {
     .header-brand-logo { width: 68px; height: 51px; }
     .sidebar-brand-logo { width: min(190px, 100%); max-height: 112px; }

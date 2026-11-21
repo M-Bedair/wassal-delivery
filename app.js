@@ -4,7 +4,7 @@ let unsubscribers = [];
 
 // User preferences and bilingual interface translation. Arabic remains the default.
 const UI_TRANSLATIONS = {
-    'غرفة العمليات ومتابعة الطلبات الجارية': 'Operations and active orders',
+    'متابعة الطلبات الجارية': 'Active orders',
     'اليوم المفتوح:': 'Open day:', 'فتح القائمة الرئيسية': 'Open main menu',
     'مدير النظام': 'System administrator', 'أدمن': 'Admin',
     'بحث برقم الطلب، العميل، المندوب...': 'Search order, customer, or rider...',
@@ -60,7 +60,7 @@ Object.assign(UI_TRANSLATIONS, {
     'استعراض': 'Browse', 'اسم العميل *': 'Customer name *', 'اسم المتجر': 'Store name', 'اسم المتجر *': 'Store name *',
     'اسم المندوب (الطيار) *': 'Rider name *', 'اسم الموظف *': 'Employee name *', 'اضغط (+) لإضافة صنف': 'Click (+) to add an item',
     'اضغط على أي مندوب لعرض كشف أدائه، أو قم بإضافة/تعديل بيانات الطيارين': 'Select a rider to view performance, or add/edit rider details',
-    'الأرشيف وإقفال اليوم': 'Archive and shift closing', 'الأصناف': 'Items', 'الأكثر عملاً (التاجر #1)': 'Top store (#1)',
+    'الأرشيف وإقفال اليوم': 'Archive and shift closing', 'الأصناف': 'Items', 'الأكثر طلباً': 'Most orders',
     'الأكثر نشاطاً:': 'Most active:', 'الإجمالي': 'Total', 'البريد الإلكتروني': 'Email address',
     'البريد الإلكتروني للدخول *': 'Login email *', 'التاريخ': 'Date', 'التحصيل والتوصيل': 'Collections and delivery',
     'الترتيب': 'Ranking', 'التشغيل': 'Operations', 'التصنيف': 'Category', 'التصنيف *': 'Category *',
@@ -73,7 +73,7 @@ Object.assign(UI_TRANSLATIONS, {
     'المتاجر الأكثر عملاً': 'Top stores', 'المتاجر المتعاقدة وترتيب الأكثر عملاً': 'Partner stores and rankings',
     'المتجر': 'Store', 'المتجر / المطعم *': 'Store / restaurant *', 'المحاسبة والمصروفات': 'Accounting and expenses',
     'المرحلة': 'Stage', 'المستخدمون المسجلون وتعديل صلاحياتهم': 'Registered users and role management',
-    'المستخدمين والنسخ': 'Users and backups', 'المصروفات': 'Expenses', 'المناديب المتاحين بالمكتب': 'Available riders',
+    'المستخدمين والنسخ': 'Users and backups', 'المصروفات': 'Expenses', 'المناديب المتاحة': 'Available riders',
     'المناديب والموتوسيكلات': 'Riders and motorcycles', 'المندوب': 'Rider', 'المندوب / الجهة': 'Rider / payee',
     'المندوب المكلف (المتاح بالمكتب فقط) *': 'Assigned rider (available riders only) *', 'الموتوسيكل': 'Motorcycle',
     'الموتوسيكل واللوحة': 'Motorcycle and plate', 'الموردة / المرتجعة': 'Settled / returned',
@@ -94,7 +94,7 @@ Object.assign(UI_TRANSLATIONS, {
     'تفاصيل إضافية للسبب (اختياري)': 'Additional details (optional)', 'تفاصيل التغيير': 'Change details',
     'تقرير إنتاجية المناديب ومعدل السرعة': 'Rider productivity and delivery speed report',
     'تقرير المتاجر وترتيب الأكثر عملاً': 'Store activity and ranking report', 'تقفيل شهري': 'Monthly closing', 'تقفيل يومي': 'Daily closing',
-    'جاهزية الأسطول': 'Fleet availability', 'حالة المناديب اللحظية (اضغط على المندوب لفلترة طلباته):': 'Live rider status (select a rider to filter orders):',
+    'جاهزية الأسطول': 'Fleet availability', 'حالة المناديب اللحظية:': 'Live rider status:',
     'حذف': 'Delete', 'حفظ التعديلات': 'Save changes', 'حفظ المتجر': 'Save store', 'حفظ بيانات المندوب': 'Save rider',
     'حلويات ومخبوزات': 'Desserts and bakery', 'خروج': 'Sign out', 'دخول النظام': 'Sign in',
     'رسوم التوصيل (للأدمن)': 'Delivery fee (admin)', 'رسوم التوصيل *': 'Delivery fee *', 'رسوم التوصيل الافتراضية *': 'Default delivery fee *',
@@ -104,7 +104,7 @@ Object.assign(UI_TRANSLATIONS, {
     'سجل الأوقات': 'Timeline', 'سجل التدقيق والرقابة': 'Audit and monitoring',
     'سجل غير قابل للتعديل أو الحذف يوثّق كل عملية تعديل أو حذف أو إقفال يومية ومن قام بها وتوقيتها.': 'An immutable log of edits, deletions, and shift closings, including who performed them and when.',
     'سوبرماركت': 'Supermarket', 'شهر التقرير المحاسبي:': 'Accounting report month:', 'صافي الربح': 'Net profit',
-    'صافي ربح اليوم (المُحصّل)': 'Collected net profit today', 'صيانة وقطع غيار': 'Maintenance and spare parts',
+    'المُحصّل': 'Collected', 'صيانة وقطع غيار': 'Maintenance and spare parts',
     'صيدلية': 'Pharmacy', 'طباعة التقرير الشهري': 'Print monthly report', 'طباعة الكشف': 'Print statement', 'عرض الكل': 'Show all',
     'عرض جميع المناديب': 'Show all riders', 'عنوان التوصيل بالتفصيل *': 'Full delivery address *', 'عنوان المتجر *': 'Store address *',
     'عُهدة التجار الموردة': 'Merchant settlements', 'عُهدة بضائع موردة للتجار اليوم (خارج الإيراد):': 'Goods settled to merchants today (not revenue):',
@@ -1807,7 +1807,7 @@ function openCloseDayModal() {
         <div class="flex justify-between"><span class="text-slate-400">(+) إيراد التوصيل المُحصّل:</span><strong class="text-statusDone">${fin.realizedDeliveryRevenue.toLocaleString('ar-EG')} ج.م</strong></div>
         <div class="flex justify-between"><span class="text-slate-400">(-) المصروفات التشغيلية:</span><strong class="text-red-400">${fin.expensesTotal.toLocaleString('ar-EG')} ج.م</strong></div>
         <div class="pt-2 border-t border-slateBorder flex justify-between text-sm"><span class="font-black text-white">(=) صافي ربح اليومية:</span><strong class="text-wassalOrange font-black">${fin.netOperatingProfit.toLocaleString('ar-EG')} ج.م</strong></div>
-        ${fin.openCount > 0 ? `<div class="mt-2 p-2 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-300 text-[11px] font-bold">ℹ️ يوجد ${fin.openCount} طلب لا يزال مفتوحاً في الشارع؛ لن يُحتسب في إيراد اليوم المقفل وسيبقى مفتوحاً لإنهائه في اليوم الجديد.</div>` : ''}
+        ${fin.openCount > 0 ? `<div class="mt-2 p-2 rounded-lg bg-wassalOrange/15 border border-wassalOrange/40 text-wassalOrange text-[11px] font-bold">ℹ️ يوجد ${fin.openCount} طلب لا يزال مفتوحاً في الشارع؛ لن يُحتسب في إيراد اليوم المقفل وسيبقى مفتوحاً لإنهائه في اليوم الجديد.</div>` : ''}
     `;
 
     document.getElementById('input-next-shift-date').value = getNextDateStr(activeD);
@@ -2270,7 +2270,7 @@ function renderRiders() {
 
         const statusMap = {
             available: { label: '🟢 متاح في المكتب', cls: 'bg-statusDone/15 border border-statusDone/40 text-statusDone' },
-            busy: { label: '🔵 في مهمة', cls: 'bg-statusOnway/15 border border-statusOnway/40 text-statusOnway' },
+            busy: { label: '🟠 في مهمة', cls: 'bg-statusOnway/15 border border-statusOnway/40 text-statusOnway' },
             off: { label: '⚪ خارج العمل / غير متاح', cls: 'bg-slateCard border border-slateBorder text-slate-400' }
         };
         const stObj = statusMap[r.status] || statusMap.available;
@@ -2405,7 +2405,7 @@ function renderStores() {
             : '';
 
         return `
-            <div class="bg-slateDark border ${isFirst ? 'border-statusPicked/70 shadow-lg shadow-amber-500/10' : 'border-slateBorder hover:border-wassalOrange/50'} transition-all rounded-2xl p-5 space-y-4">
+            <div class="bg-slateDark border ${isFirst ? 'border-statusPicked/70 shadow-lg shadow-orange-500/10' : 'border-slateBorder hover:border-wassalOrange/50'} transition-all rounded-2xl p-5 space-y-4">
                 <div class="flex items-start justify-between">
                     <div>
                         <div class="flex items-center gap-2">
@@ -3051,7 +3051,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById(`view-${tab}`).classList.remove('hidden');
 
             const titles = {
-                operations: ['غرفة العمليات ومتابعة الطلبات الجارية', 'تم الاستلام ➔ تحرك للعميل ➔ تم التسليم (أو مرتجع) ➔ تم التوريد والعودة'],
+                operations: ['متابعة الطلبات الجارية', 'تم الاستلام ➔ تحرك للعميل ➔ تم التسليم (أو مرتجع) ➔ تم التوريد والعودة'],
                 archive: ['أرشيف الطلبات المنتهية وإقفال اليوميات', 'استعراض الطلبات المؤرشفة حسب التاريخ وإقفال اليومية الحالية مع نسخة احتياطية'],
                 riders: ['أسطول المناديب والموتوسيكلات', 'إدارة كاملة للأسطول وكشوف أداء لكل مندوب'],
                 stores: ['المتاجر المتعاقدة وترتيب الأكثر عملاً', 'تحليل حجم الطلبات لكل متجر وكشوف الحساب والتصفية'],

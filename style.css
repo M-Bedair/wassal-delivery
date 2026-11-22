@@ -291,8 +291,9 @@ header.glass-panel [class~="hover:text-black"]:hover { color: #080808; }
     object-fit: contain;
     border-radius: 8px;
 }
-html[data-theme="light"] #sidebar .sidebar-brand-logo,
-html[data-theme="light"] header .header-brand-logo { content: url("logo-light.PNG"); }
+html[data-theme="light"] #sidebar .sidebar-brand-logo { content: url("logo-light.PNG"); }
+html[data-theme="light"] header .header-brand-logo,
+html[data-theme="dark"] header .header-brand-logo { content: url("logo.PNG"); }
 @media (max-width: 640px) {
     .header-brand-logo { width: 68px; height: 51px; }
     .sidebar-brand-logo { width: min(190px, 100%); max-height: 112px; }
@@ -1044,4 +1045,219 @@ body [class*="rounded-2xl"] {
     #print-section .text-slate-200,
     #print-section .text-slate-300,
     #print-section .text-slate-400 { color: var(--color-ink); }
+}
+
+/* User theme overrides: black header, white cards, dark form controls in dark mode. */
+html[data-theme="light"] header.glass-panel,
+html[data-theme="dark"] header.glass-panel {
+    background: #000000 !important;
+    border: 0 !important;
+    border-bottom: 0 !important;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
+}
+
+html[data-theme="light"] header.glass-panel .bg-slateDark,
+html[data-theme="light"] header.glass-panel .bg-slateCard,
+html[data-theme="light"] header.glass-panel .bg-obsidian,
+html[data-theme="dark"] header.glass-panel .bg-slateDark,
+html[data-theme="dark"] header.glass-panel .bg-slateCard,
+html[data-theme="dark"] header.glass-panel .bg-obsidian {
+    background-color: #111111 !important;
+    border-color: #2A2A2A !important;
+    color: #FFFFFF !important;
+}
+
+html[data-theme="light"] header.glass-panel #search-input,
+html[data-theme="dark"] header.glass-panel #search-input {
+    background: #111111 !important;
+    border-color: #333333 !important;
+    color: #FFFFFF !important;
+}
+
+html[data-theme="dark"] body .bg-slateDark,
+html[data-theme="dark"] body .bg-slateCard,
+html[data-theme="dark"] body .bg-obsidian,
+html[data-theme="dark"] body .glass-panel {
+    --color-surface-ink: #172033;
+    --color-surface-muted: #596579;
+    --color-surface-border: #D6DCE5;
+    background-color: #FFFFFF !important;
+    color: #172033 !important;
+    border-color: #D6DCE5;
+}
+
+html[data-theme="dark"] body .bg-slateDark .text-white,
+html[data-theme="dark"] body .bg-slateCard .text-white,
+html[data-theme="dark"] body .bg-obsidian .text-white,
+html[data-theme="dark"] body .glass-panel .text-white {
+    color: var(--color-surface-ink, #172033) !important;
+}
+
+html[data-theme="dark"] body .bg-slateDark .text-neutral-200,
+html[data-theme="dark"] body .bg-slateDark .text-neutral-300,
+html[data-theme="dark"] body .bg-slateDark .text-neutral-400,
+html[data-theme="dark"] body .bg-slateDark .text-neutral-500,
+html[data-theme="dark"] body .bg-slateDark .text-slate-200,
+html[data-theme="dark"] body .bg-slateDark .text-slate-300,
+html[data-theme="dark"] body .bg-slateDark .text-slate-400,
+html[data-theme="dark"] body .bg-slateDark .text-slate-500,
+html[data-theme="dark"] body .bg-slateCard .text-neutral-200,
+html[data-theme="dark"] body .bg-slateCard .text-neutral-300,
+html[data-theme="dark"] body .bg-slateCard .text-neutral-400,
+html[data-theme="dark"] body .bg-slateCard .text-neutral-500,
+html[data-theme="dark"] body .bg-slateCard .text-slate-200,
+html[data-theme="dark"] body .bg-slateCard .text-slate-300,
+html[data-theme="dark"] body .bg-slateCard .text-slate-400,
+html[data-theme="dark"] body .bg-slateCard .text-slate-500,
+html[data-theme="dark"] body .bg-obsidian .text-neutral-200,
+html[data-theme="dark"] body .bg-obsidian .text-neutral-300,
+html[data-theme="dark"] body .bg-obsidian .text-neutral-400,
+html[data-theme="dark"] body .bg-obsidian .text-neutral-500,
+html[data-theme="dark"] body .bg-obsidian .text-slate-200,
+html[data-theme="dark"] body .bg-obsidian .text-slate-300,
+html[data-theme="dark"] body .bg-obsidian .text-slate-400,
+html[data-theme="dark"] body .bg-obsidian .text-slate-500 {
+    color: var(--color-surface-muted, #596579) !important;
+}
+
+html[data-theme="dark"] body input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+html[data-theme="dark"] body select,
+html[data-theme="dark"] body textarea {
+    --color-surface-ink: #F8FAFC;
+    --color-surface-muted: #CBD5E1;
+    --color-surface-border: #374151;
+    background-color: #111827 !important;
+    color: #F8FAFC !important;
+    border-color: #374151 !important;
+    color-scheme: dark;
+}
+
+html[data-theme="dark"] body input[placeholder]::placeholder,
+html[data-theme="dark"] body textarea::placeholder {
+    color: #94A3B8 !important;
+}
+
+html[data-theme="dark"] body select option {
+    background-color: #111827;
+    color: #F8FAFC;
+}
+
+/* Keep application chrome dark despite the white-card rule. */
+html[data-theme="dark"] body #sidebar,
+html[data-theme="dark"] body #sidebar .bg-slateDark,
+html[data-theme="dark"] body #sidebar .bg-slateCard,
+html[data-theme="dark"] body #sidebar .bg-obsidian,
+html[data-theme="dark"] body #auth-lock-screen,
+html[data-theme="dark"] body #auth-lock-screen > div {
+    --color-surface-ink: #F8FAFC;
+    --color-surface-muted: #CBD5E1;
+    background-color: #0B0D12 !important;
+    color: #F8FAFC !important;
+}
+
+html[data-theme="dark"] body #sidebar .text-white,
+html[data-theme="dark"] body #auth-lock-screen .text-white,
+html[data-theme="dark"] body header.glass-panel .text-white {
+    color: #FFFFFF !important;
+}
+
+html[data-theme="light"] body header.glass-panel,
+html[data-theme="dark"] body header.glass-panel {
+    background: #000000 !important;
+}
+
+/* Restore the compact three-zone header layout from the previous design. */
+@media (min-width: 1280px) {
+    header.glass-panel {
+        height: 76px;
+        min-height: 76px;
+        display: grid;
+        grid-template-columns: minmax(300px, 1fr) auto minmax(620px, 1fr);
+        align-items: center;
+        flex-wrap: nowrap;
+        padding-block: 8px;
+        padding-inline: 28px;
+        border: 0 !important;
+        border-bottom: 0 !important;
+    }
+
+    header.glass-panel > div:first-child {
+        justify-self: start;
+    }
+
+    header.glass-panel > div:nth-child(2) {
+        justify-self: center;
+    }
+
+    header.glass-panel > div:last-child {
+        justify-self: end;
+        max-width: 620px;
+        width: 100%;
+    }
+
+    header.glass-panel .header-brand-logo {
+        width: 96px;
+        height: 68px;
+    }
+
+    header.glass-panel #search-input {
+        min-width: 220px;
+        max-width: 260px;
+    }
+}
+
+@media (min-width: 901px) and (max-width: 1279px) {
+    header.glass-panel {
+        height: 76px;
+        min-height: 76px;
+        align-items: center;
+        flex-wrap: nowrap;
+        padding-block: 8px;
+    }
+
+    header.glass-panel > div:first-child {
+        flex-shrink: 0;
+    }
+
+    header.glass-panel > div:last-child {
+        margin-inline-start: auto;
+    }
+}
+
+@media (max-width: 900px) {
+    header.glass-panel {
+        height: auto;
+        min-height: 68px;
+        flex-wrap: wrap;
+    }
+}
+
+header.glass-panel #install-app {
+    height: 40px;
+    min-width: 92px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+header.glass-panel #install-app.hidden {
+    display: none;
+}
+
+@media (max-width: 1100px) {
+    header.glass-panel #install-app {
+        min-width: 42px;
+        width: 42px;
+        padding-inline: 6px;
+        font-size: 0;
+    }
+
+    header.glass-panel #install-app::before {
+        content: "+";
+        font-size: 18px;
+        line-height: 1;
+    }
 }

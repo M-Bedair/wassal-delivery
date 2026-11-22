@@ -271,7 +271,11 @@ function applyUiPreferences() {
     const langButton = document.getElementById('language-toggle');
     const themeButton = document.getElementById('theme-toggle');
     if (langButton) langButton.textContent = lang === 'ar' ? 'English' : 'العربية';
-    if (themeButton) themeButton.textContent = theme === 'dark' ? '☀️' : '🌙';
+    if (themeButton) {
+        themeButton.innerHTML = theme === 'dark'
+            ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"/></svg>'
+            : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+    }
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     while (walker.nextNode()) {
         applyLanguageToTextNode(walker.currentNode, lang);
@@ -336,6 +340,7 @@ document.addEventListener('click', event => {
         const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
         localStorage.setItem('wassal_theme', next);
         document.documentElement.dataset.theme = next;
+        applyUiPreferences();
     }
 });
 document.addEventListener('DOMContentLoaded', applyUiPreferences);
@@ -1496,7 +1501,12 @@ function renderOrdersBoardAndTable() {
             if (q && archiveMatches.length > 0) {
                 container.innerHTML = `<button type="button" data-action="set-view-mode" data-mode="table" class="w-full h-44 border border-dashed border-wassalOrange/60 bg-wassalOrange/5 hover:bg-wassalOrange/10 rounded-2xl flex items-center justify-center text-wassalOrange font-bold text-xs text-center px-3 transition-colors">${emptyMsg}</button>`;
             } else {
-                container.innerHTML = `<div class="h-44 border border-dashed border-slateBorder rounded-2xl flex items-center justify-center text-slate-500 text-xs text-center px-3">${emptyMsg}</div>`;
+                const emptyIcon = stage === 'received'
+                    ? '<svg width="58" height="58" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg>'
+                    : stage === 'onway'
+                        ? '<svg width="58" height="58" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 6h11v9H3zM14 10h4l3 3v2h-7z"/><circle cx="7" cy="17" r="2"/><circle cx="18" cy="17" r="2"/></svg>'
+                        : '<svg width="58" height="58" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 7l8-4 8 4-8 4zM4 7v10l8 4 8-4V7M12 11v10"/></svg>';
+                container.innerHTML = `<div class="h-44 border border-dashed border-slateBorder rounded-2xl flex flex-col items-center justify-center gap-3 text-slate-400 text-xs text-center px-3"><span class="empty-stage-icon">${emptyIcon}</span><span>${emptyMsg}</span></div>`;
             }
             return;
         }
@@ -2254,9 +2264,9 @@ function renderRiders() {
     if (headingEl) headingEl.textContent = `أسطول المناديب والموتوسيكلات (${appState.riders.length} طيارين)`;
 
     document.getElementById('riders-top-today-badge').textContent = (topToday && topToday.todayCount > 0)
-        ? `⚡ نجم اليوم: ${topToday.rider.name} (${topToday.todayCount} أوردر)` : `⚡ نجم اليوم: —`;
+        ? `نجم اليوم: ${topToday.rider.name} (${topToday.todayCount} أوردر)` : `نجم اليوم: —`;
     document.getElementById('riders-top-month-badge').textContent = (topMonth && topMonth.monthCount > 0)
-        ? `🏆 نجم الشهر: ${topMonth.rider.name} (${topMonth.monthCount} أوردر)` : `🏆 نجم الشهر: —`;
+        ? `نجم الشهر: ${topMonth.rider.name} (${topMonth.monthCount} أوردر)` : `نجم الشهر: —`;
 
     const grid = document.getElementById('riders-grid');
     if (appState.riders.length === 0) {
@@ -2271,9 +2281,9 @@ function renderRiders() {
         const isTopMonth = topMonth && topMonth.rider.id === r.id && topMonth.monthCount > 0;
 
         const statusMap = {
-            available: { label: '🟢 متاح في المكتب', cls: 'bg-statusDone/15 border border-statusDone/40 text-statusDone' },
-            busy: { label: '🟠 في مهمة', cls: 'bg-statusOnway/15 border border-statusOnway/40 text-statusOnway' },
-            off: { label: '⚪ خارج العمل / غير متاح', cls: 'bg-slateCard border border-slateBorder text-slate-400' }
+            available: { label: 'متاح في المكتب', cls: 'bg-statusDone/15 border border-statusDone/40 text-statusDone' },
+            busy: { label: 'في مهمة', cls: 'bg-statusOnway/15 border border-statusOnway/40 text-statusOnway' },
+            off: { label: 'خارج العمل / غير متاح', cls: 'bg-slateCard border border-slateBorder text-slate-400' }
         };
         const stObj = statusMap[r.status] || statusMap.available;
 

@@ -16,4 +16,5 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_WASSAL_DELIVERY_A8B12 }}
           channelId: live
+          target: live
           projectId: wassal-delivery-a8b12

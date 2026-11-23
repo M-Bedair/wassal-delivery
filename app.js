@@ -30,6 +30,37 @@ const UI_TRANSLATIONS = {
     'لتثبيت WASSAL على Mac: من قائمة File في Safari اختر Add to Dock.': 'To install WASSAL on Mac: in Safari, choose Add to Dock from the File menu.'
 };
 Object.assign(UI_TRANSLATIONS, {
+    'تقارير الأوردرات والتحصيلات وكشف حساب الطيار': 'Order, collection, and rider statement reports',
+    'حدد فترة التقرير، ثم اختَر نوعه أو ابحث باسم العميل أو الطيار': 'Choose a date range and report type, or search by customer or rider',
+    'من تاريخ': 'From date', 'إلى تاريخ': 'To date', 'نوع التقرير': 'Report type',
+    'كل الأوردرات': 'All orders', 'التحصيلات النقدية': 'Cash collections', 'كشف حساب طيار': 'Rider statement', 'أوردرات عميل': 'Customer orders',
+    'كل الطيارين': 'All riders', 'ابحث باسم العميل': 'Search customer name', 'طباعة': 'Print', 'تصدير CSV': 'Export CSV',
+    'عدد الأوردرات في الفترة': 'Orders in period', 'أوردرات تم توريدها': 'Settled orders',
+    'قيمة الأوردرات المحصلة': 'Collected order value', 'قيمة التوصيل المحصلة': 'Collected delivery fees',
+    'إجمالي النقدية المحصلة': 'Total cash collected', 'عدد العملاء': 'Customers',
+    'اختَر اسم الطيار لعرض كشف حسابه.': 'Select a rider to view their statement.',
+    'لا توجد أوردرات مطابقة للفترة والفلاتر المحددة.': 'No orders match this date range and filter.',
+    'أصناف الأوردر وأسعارها': 'Order items and prices', 'اسم الصنف وسعره حقلاّن مستقلان، ويمكن تعديل كل واحد بمفرده.': 'Item name and price are separate fields and can be edited independently.',
+    '+ إضافة صنف': '+ Add item', 'مراجعة بيانات الطلب بعد التسليم': 'Review order after delivery', '🧾 مراجعة بيانات الطلب بعد التسليم': '🧾 Review order after delivery',
+    '🧾 مراجعة التسليم': '🧾 Review delivery', 'الحذف وتصفير النظام غير متاحين للحفاظ على السجلات': 'Deleting records and resetting the system are disabled to preserve records',
+    'الحذف غير متاح في النظام': 'Record deletion is disabled', 'غير متاح': 'Unavailable',
+    'مراجعة التوريد': 'Settlement review', 'مراجعة الطلبات بعد التوريد': 'Review settled orders',
+    'مركز التقارير': 'Reports center', 'التقارير': 'Reports', 'تم الإلغاء': 'Cancelled',
+    'تقرير متجر': 'Store report', 'تقرير كل المتاجر': 'All stores report', 'تقرير كل الطيارين': 'All riders report',
+    'الطلبات الملغاة': 'Cancelled orders', 'كل المتاجر': 'All stores',
+    'تقرير كل الأوردرات': 'All orders report', 'تقرير التحصيلات النقدية': 'Cash collections report',
+    'كشف حساب الطيار': 'Rider statement', 'تقرير أوردرات العميل': 'Customer orders report',
+    'حدد فترة التقرير لعرض النتائج.': 'Choose a date range to view results.',
+    'إلغاء الطلب': 'Cancel order', 'سبب الإلغاء (اختياري)': 'Cancellation reason (optional)',
+    'تأكيد الإلغاء': 'Confirm cancellation', 'رجوع': 'Back', 'التفاصيل': 'Details',
+    'تاريخ التوريد': 'Settlement date', 'عدد الطلبات الموردة': 'Settled orders',
+    'طلبات سلّمها الطيار': 'Orders delivered by rider', 'قيمة الطلبات': 'Order value',
+    'رسوم التوصيل': 'Delivery fees', 'إجمالي القيم': 'Total value',
+    'وقت التسليم': 'Delivery time', 'وقت التسليم والتوريد': 'Delivery and settlement time',
+    'اضغط لعرض التفاصيل': 'Click to view details', 'حذف مصروف': 'Delete expense',
+    'حذف المصروف': 'Delete expense', 'تثبيت WASSAL': 'Install WASSAL',
+    'اختر تاريخ التوريد، ثم افتح أي طلب لمراجعة بياناته وتوقيتاته كاملة.': 'Choose a settlement date, then open an order to review its full details and timestamps.',
+    'اعرض تقريرًا مستقلًا حسب الفترة، أو اختر الطيار أو اسم العميل. تقارير التحصيل تعرض قيمة الطلب والتوصيل كلًا على حدة.': 'View a date-based report, or choose a rider or customer. Collection reports separate order value and delivery fees.',
     '(-) إجمالي مصروفات التشغيل اليوم': '(-) Total operating expenses today',
     '(-) إجمالي مصروفات الشهر (': '(-) Total monthly expenses (',
     '(+) إيرادات التوصيل الشهرية (': '(+) Monthly delivery revenue (',
@@ -73,7 +104,7 @@ Object.assign(UI_TRANSLATIONS, {
     'الشهر المحدد': 'Selected month', 'الصلاحية *': 'Role *', 'العميل ألغى الطلب عند الوصول': 'Customer cancelled on arrival',
     'العميل لا يرد على الهاتف': 'Customer is not answering', 'العميل والأصناف': 'Customer and items',
     'العنوان بالتفصيل *': 'Full address *', 'العنوان غير واضح أو خارج النطاق': 'Address unclear or outside delivery area',
-    'الفترة الزمنية:': 'Date range:', 'الكل': 'All', 'المبلغ': 'Amount', 'المتأخرة (+35د)': 'Overdue (+35 min)',
+    'الفترة الزمنية:': 'Date range:', 'الكل': 'All', 'المبلغ': 'Amount', 'المتأخرة (+60د)': 'Overdue (+60 min)',
     'المتاجر الأكثر عملاً': 'Top stores', 'المتاجر المتعاقدة وترتيب الأكثر عملاً': 'Partner stores and rankings',
     'المتجر': 'Store', 'المتجر / المطعم *': 'Store / restaurant *', 'المحاسبة والمصروفات': 'Accounting and expenses',
     'المرحلة': 'Stage', 'المستخدمون المسجلون وتعديل صلاحياتهم': 'Registered users and role management',
@@ -395,7 +426,7 @@ function setupPwa() {
             const instructions = isIOS
                 ? 'لتثبيت WASSAL على iPhone: اضغط زر المشاركة في Safari، ثم اختر «إضافة إلى الشاشة الرئيسية».'
                 : 'لتثبيت WASSAL على Mac: من قائمة File في Safari اختر Add to Dock.';
-            window.alert(uiText(instructions));
+            openAppMessage({ title: 'تثبيت WASSAL', message: uiText(instructions), confirmOnly: true });
         });
     }
 
@@ -536,8 +567,43 @@ let uiState = {
     riderStatsPeriod: 'today',
     archiveDateFilter: getSystemTodayStr(),
     reportMonth: getSystemTodayStr().slice(0, 7),
+    ordersReportFrom: `${getSystemTodayStr().slice(0, 7)}-01`,
+    ordersReportTo: getSystemTodayStr(),
+    ordersReportType: 'all',
+    ordersReportRider: 'all',
+    ordersReportStore: 'all',
+    ordersReportCustomer: '',
     expenseCatFilter: 'all'
 };
+
+let appMessageResolver = null;
+
+function openAppMessage({ title = 'تأكيد', message = '', confirmLabel = 'موافق', cancelLabel = 'إلغاء', confirmOnly = false } = {}) {
+    const modal = document.getElementById('modal-app-message');
+    if (!modal) return Promise.resolve(false);
+    if (appMessageResolver) closeAppMessage(false);
+    document.getElementById('app-message-title').textContent = title;
+    document.getElementById('app-message-body').textContent = message;
+    const accept = document.getElementById('app-message-accept');
+    const cancel = document.getElementById('app-message-cancel');
+    accept.textContent = confirmLabel;
+    cancel.textContent = cancelLabel;
+    cancel.classList.toggle('hidden', confirmOnly);
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    return new Promise(resolve => { appMessageResolver = resolve; });
+}
+
+function closeAppMessage(result = false) {
+    const modal = document.getElementById('modal-app-message');
+    modal?.classList.add('hidden');
+    modal?.classList.remove('flex');
+    if (appMessageResolver) {
+        const resolve = appMessageResolver;
+        appMessageResolver = null;
+        resolve(result);
+    }
+}
 
 function setSyncStatus(status) {
     const configs = {
@@ -638,6 +704,8 @@ function isOrderArchived(o) {
     return o.status === 'settled' || o.status === 'returned';
 }
 
+const ORDER_OVERDUE_MINUTES = 60;
+
 function isOrderSuccessfullySettled(o) {
     return o.status === 'settled';
 }
@@ -699,6 +767,13 @@ async function saveCloudBackupSnapshot(label) {
 // ==================== FIRESTORE VERIFIED PERSISTENCE & CHUNKED BATCHES ====================
 async function fsSaveDoc(colName, docId, dataObj) {
     if (!fb || !fb.db || !currentUser) return false;
+    if (colName === 'wassal_orders') {
+        const existingOrder = appState.orders.find(order => String(order.id) === String(docId));
+        if (existingOrder && ['settled', 'returned'].includes(existingOrder.status)) {
+            showToast('⛔ الطلب تم توريده وإغلاقه؛ لا يمكن تعديل بياناته.');
+            return false;
+        }
+    }
     setSyncStatus('pending');
     try {
         await fb.setDoc(fb.doc(fb.db, colName, String(docId)), { ...dataObj }, { merge: true });
@@ -713,9 +788,8 @@ async function fsSaveDoc(colName, docId, dataObj) {
 }
 
 async function fsDeleteDoc(colName, docId) {
-    if (!fb || !fb.db || !currentUser) return false;
-    if (!isAdminUser()) {
-        showToast('⛔ الحذف متاح لمدير النظام فقط');
+    if (!isAdminUser() || !fb?.db || !currentUser || colName !== 'wassal_expenses') {
+        showToast('⛔ حذف المصروفات متاح لمدير النظام فقط');
         return false;
     }
     setSyncStatus('pending');
@@ -726,7 +800,7 @@ async function fsDeleteDoc(colName, docId) {
     } catch (err) {
         console.error(`Firestore deleteDoc error (${colName}/${docId}):`, err);
         setSyncStatus('offline');
-        showToast('⚠️ تعذر الحذف من السيرفر');
+        showToast('⚠️ تعذر حذف المصروف — تحقق من الصلاحيات أو الاتصال');
         return false;
     }
 }
@@ -854,62 +928,7 @@ function validateBackupSchema(restored) {
 }
 
 async function resetAllDataSafely() {
-    if (!isAdminUser()) {
-        showToast('⛔ تصفير النظام متاح لمدير النظام فقط');
-        return;
-    }
-    const confirmed = window.confirm(uiText('⚠️ تحذير نهائي: سيتم أخذ نسخة احتياطية سحابية أولاً ثم مسح جميع الطلبات والمناديب والمتاجر والحسابات!\n\nهل أنت متأكد من المتابعة؟'));
-    if (!confirmed) return;
-
-    await withActionLock('reset-system', async () => {
-        setSyncStatus('pending');
-        try {
-            await saveCloudBackupSnapshot(`نسخة تلقائية قبل التصفير (${getActiveShiftDate()})`);
-            await writeAuditLog('تصفير النظام', 'ALL_DATA', `تم تصفير قاعدة البيانات بالكامل (${appState.orders.length} طلب)`);
-
-            const sysToday = getSystemTodayStr();
-            const ops = [];
-
-            const cols = ['wassal_orders', 'wassal_riders', 'wassal_stores', 'wassal_expenses'];
-            for (const colName of cols) {
-                const snap = await fb.getDocs(fb.collection(fb.db, colName));
-                snap.forEach(d => {
-                    ops.push({ type: 'delete', ref: d.ref });
-                });
-            }
-
-            ops.push({
-                type: 'set',
-                ref: fb.doc(fb.db, 'wassal_meta', 'config'),
-                data: {
-                    activeDate: sysToday,
-                    nextOrderNum: 101,
-                    closedDays: []
-                }
-            });
-
-            await commitOperationsInChunks(ops);
-
-            uiState.riderFilter = 'all';
-            uiState.statusFilter = 'all';
-            uiState.archiveDateFilter = sysToday;
-            uiState.reportMonth = sysToday.slice(0, 7);
-            const monthPicker = document.getElementById('report-month-picker');
-            if (monthPicker) monthPicker.value = uiState.reportMonth;
-
-            const secModal = document.getElementById('modal-security');
-            if (secModal) {
-                secModal.classList.add('hidden');
-                secModal.classList.remove('flex');
-            }
-            setSyncStatus('online');
-            showToast('✅ تم حفظ نسخة احتياطية وتصفير قاعدة البيانات بالكامل');
-        } catch (err) {
-            console.error('Chunked reset error:', err);
-            setSyncStatus('offline');
-            showToast('⚠️ حدث خطأ أثناء تصفير البيانات');
-        }
-    });
+    showToast('تصفير النظام والحذف غير متاحين للحفاظ على السجلات');
 }
 
 function cleanupListeners() {
@@ -1075,7 +1094,7 @@ window.addEventListener('online', () => {
 window.addEventListener('offline', () => setSyncStatus('offline'));
 
 function getStore(id) {
-    return appState.stores.find(s => s.id === id) || { name: 'متجر', category: 'مطعم', fee: 25, phone: '', address: '' };
+    return appState.stores.find(s => s.id === id) || { name: 'متجر', category: 'مطعم', phone: '', address: '' };
 }
 
 function getRider(id) {
@@ -1154,11 +1173,10 @@ function getAnalyticsSummary(targetMonth) {
         const sToday = todayOrders.filter(o => o.storeId === s.id);
         const sMonth = monthOrders.filter(o => o.storeId === s.id);
         const sMonthSuccess = sMonth.filter(o => isOrderSuccessfullySettled(o));
-        const sMonthClosed = sMonth.filter(o => isOrderArchived(o));
         const settledMonth = sMonthSuccess.reduce((sum, o) => sum + Number(o.amount), 0);
-        const feeMonth = sMonthClosed.reduce((sum, o) => sum + Number(o.fee), 0);
+        const settledCount = sMonthSuccess.length;
         const sharePct = monthOrders.length > 0 ? Math.round((sMonth.length / monthOrders.length) * 100) : 0;
-        return { store: s, todayCount: sToday.length, monthCount: sMonth.length, settledMonth, feeMonth, sharePct };
+        return { store: s, todayCount: sToday.length, monthCount: sMonth.length, settledCount, settledMonth, sharePct };
     }).sort((a, b) => b.monthCount - a.monthCount || b.todayCount - a.todayCount);
 
     const riderStats = appState.riders.map(r => {
@@ -1310,6 +1328,7 @@ function recalcOrderItemsTotal() {
 function collectOrderItemsText() {
     const rows = document.querySelectorAll('#order-items-list .order-item-row');
     const parts = [];
+    const itemsData = [];
     let computedTotal = 0;
 
     rows.forEach(row => {
@@ -1318,13 +1337,54 @@ function collectOrderItemsText() {
         if (name) {
             parts.push(`${name} (${price} ج.م)`);
             computedTotal += price;
+            itemsData.push({ name, price });
         }
     });
 
     return {
         itemsText: parts.join(' + '),
+        itemsData,
         computedTotal
     };
+}
+
+function getOrderItemsData(order) {
+    if (Array.isArray(order.itemsData)) {
+        return order.itemsData.map(item => ({ name: String(item.name || ''), price: Math.max(0, Number(item.price) || 0) }));
+    }
+    return String(order.items || '').split(/\s*\+\s*/).filter(Boolean).map(part => {
+        const match = part.match(/^(.*?)\s*\((\d+(?:\.\d+)?)\s*(?:ج\.م)?\)$/);
+        return match ? { name: match[1].trim(), price: Number(match[2]) || 0 } : { name: part.trim(), price: 0 };
+    }).filter(item => item.name);
+}
+
+function addEditOrderItemRow(name = '', price = '') {
+    const list = document.getElementById('edit-order-items-list');
+    if (!list) return;
+    const row = document.createElement('div');
+    row.className = 'edit-order-item-row grid grid-cols-[1fr_6rem_2.5rem] gap-2';
+    row.innerHTML = `
+        <input type="text" value="${escapeHTML(name)}" class="edit-item-name min-w-0 bg-slateDark border border-slateBorder rounded-xl px-3 py-2 text-white" placeholder="اسم الصنف">
+        <input type="number" value="${escapeHTML(price)}" min="0" class="edit-item-price w-full bg-slateDark border border-slateBorder rounded-xl px-2 py-2 text-white" placeholder="السعر" ${isAdminUser() ? '' : 'disabled'}>
+        <button type="button" data-action="remove-edit-order-item-row" title="إزالة الصنف من الطلب" class="rounded-xl bg-red-500/15 text-red-300 font-black">✕</button>`;
+    list.appendChild(row);
+}
+
+function collectEditOrderItems() {
+    return [...document.querySelectorAll('#edit-order-items-list .edit-order-item-row')]
+        .map(row => ({
+            name: row.querySelector('.edit-item-name')?.value.trim() || '',
+            price: Math.max(0, Number(row.querySelector('.edit-item-price')?.value) || 0)
+        }))
+        .filter(item => item.name);
+}
+
+function renderEditOrderItems(order) {
+    const list = document.getElementById('edit-order-items-list');
+    if (!list) return;
+    list.innerHTML = '';
+    const items = getOrderItemsData(order);
+    (items.length ? items : [{ name: '', price: '' }]).forEach(item => addEditOrderItemRow(item.name, item.price));
 }
 
 // ==================== RENDERING ====================
@@ -1511,16 +1571,18 @@ function getFilteredActiveOrders() {
     const q = (searchEl ? searchEl.value : '').trim().toLowerCase();
 
     return appState.orders.filter(o => {
-        if (!isOrderActiveInRoom(o)) return false;
+        if (uiState.statusFilter === 'cancelled' ? o.status !== 'cancelled' : (!isOrderActiveInRoom(o) || o.status === 'cancelled')) return false;
         const matchText = matchesSearchQuery(o, q);
         const matchRider = uiState.riderFilter === 'all' || o.riderId === uiState.riderFilter;
 
         let matchStatus = true;
         if (uiState.statusFilter === 'delivered') {
             matchStatus = (o.status === 'delivered' || o.status === 'returning');
+        } else if (uiState.statusFilter === 'cancelled') {
+            matchStatus = o.status === 'cancelled';
         } else if (uiState.statusFilter === 'overdue') {
             const { totalMins } = getOrderDurations(o);
-            matchStatus = (o.status === 'received' || o.status === 'onway') && totalMins > 35;
+            matchStatus = (o.status === 'received' || o.status === 'onway') && totalMins >= ORDER_OVERDUE_MINUTES;
         } else if (uiState.statusFilter !== 'all') {
             matchStatus = o.status === uiState.statusFilter;
         }
@@ -1535,7 +1597,7 @@ function renderOrdersBoardAndTable() {
     const filtered = getFilteredActiveOrders();
 
     const archiveMatches = q
-        ? appState.orders.filter(o => isOrderArchived(o) && matchesSearchQuery(o, q))
+        ? appState.orders.filter(o => (isOrderArchived(o) || o.status === 'cancelled') && matchesSearchQuery(o, q))
         : [];
 
     const colLists = {
@@ -1543,6 +1605,21 @@ function renderOrdersBoardAndTable() {
         onway: filtered.filter(o => o.status === 'onway'),
         delivered: filtered.filter(o => o.status === 'delivered' || o.status === 'returning')
     };
+    const cancelledOrders = appState.orders.filter(order => order.status === 'cancelled' &&
+        (!q || matchesSearchQuery(order, q)) &&
+        (uiState.riderFilter === 'all' || order.riderId === uiState.riderFilter));
+    const isCancelledView = uiState.statusFilter === 'cancelled';
+    const showCancelledBoard = isCancelledView && uiState.viewMode === 'kanban';
+    document.getElementById('operations-kanban-container')?.querySelectorAll('.kanban-stage-card').forEach(card => card.classList.toggle('hidden', showCancelledBoard));
+    document.getElementById('cancelled-orders-container')?.classList.toggle('hidden', !showCancelledBoard);
+    const cancelledCount = document.getElementById('cancelled-filter-count');
+    if (cancelledCount) cancelledCount.textContent = cancelledOrders.length;
+    const cancelledTotal = document.getElementById('cancelled-orders-total');
+    if (cancelledTotal) cancelledTotal.textContent = cancelledOrders.length;
+    const cancelledList = document.getElementById('col-list-cancelled');
+    if (cancelledList) cancelledList.innerHTML = cancelledOrders.length
+        ? cancelledOrders.map(order => buildOrderCard(order)).join('')
+        : `<div class="lg:col-span-2 2xl:col-span-3 rounded-xl border border-dashed border-red-500/30 p-8 text-center text-neutral-400">لا توجد طلبات ملغاة مطابقة.</div>`;
 
     ['received', 'onway', 'delivered'].forEach(stage => {
         const list = colLists[stage];
@@ -1589,7 +1666,7 @@ function renderOrdersBoardAndTable() {
         const st = getStore(o.storeId);
         const rd = getRider(o.riderId);
         const { totalMins } = getOrderDurations(o);
-        const isOverdue = o.status !== 'delivered' && o.status !== 'returning' && isOrderActiveInRoom(o) && totalMins > 35;
+        const isOverdue = (o.status === 'received' || o.status === 'onway') && totalMins >= ORDER_OVERDUE_MINUTES;
 
         const statusPill = o.status === 'received'
             ? `<span class="px-2.5 py-1 rounded-lg bg-statusPicked/15 border border-statusPicked/40 text-statusPicked font-black text-[11px]">1. تم الاستلام • ${totalMins} د</span>`
@@ -1599,6 +1676,8 @@ function renderOrdersBoardAndTable() {
             ? `<span class="px-2.5 py-1 rounded-lg bg-red-500/20 border border-red-500/50 text-red-400 font-black text-[11px]">↩️ مرتجع (${escapeHTML(o.returnReason || '')})</span>`
             : o.status === 'delivered'
             ? `<span class="px-2.5 py-1 rounded-lg bg-statusDone/15 border border-statusDone/40 text-statusDone font-black text-[11px]">3. تم التسليم (توريد)</span>`
+            : o.status === 'cancelled'
+            ? `<span class="px-2.5 py-1 rounded-lg bg-red-500/15 border border-red-500/40 text-red-300 font-black text-[11px]">تم الإلغاء${o.cancelledTs ? ` • ${formatTime12(o.cancelledTs)}` : ''}</span>`
             : `<span class="px-2.5 py-1 rounded-lg bg-slateCard border border-slateBorder text-slate-300 font-black text-[11px]">✓ بالأرشيف</span>`;
 
         const quickAction = o.status === 'received'
@@ -1612,6 +1691,8 @@ function renderOrdersBoardAndTable() {
             ? `<button type="button" data-action="move-returned-done" data-id="${escapeHTML(o.id)}" class="px-2.5 py-1.5 rounded-lg bg-red-500 text-white font-black text-[11px]">📦 تسليم المرتجع للمتجر</button>`
             : o.status === 'delivered'
             ? `<button type="button" data-action="move-settled" data-id="${escapeHTML(o.id)}" class="px-2.5 py-1.5 rounded-lg wassal-grad text-obsidian font-black text-[11px]">💰 تم التوريد والعودة</button>`
+            : o.status === 'cancelled'
+            ? `<span class="text-[11px] text-red-300 font-bold">${escapeHTML(o.cancelReason || 'تم الإلغاء')}</span>`
             : `<span class="text-[11px] text-slate-400 font-bold">مكتمل</span>`;
 
         return `
@@ -1637,6 +1718,7 @@ function renderOrdersBoardAndTable() {
                 <td class="px-4 py-3.5 text-center">
                     <div class="flex items-center justify-center gap-1.5">
                         ${quickAction}
+                        ${['received', 'onway'].includes(o.status) ? `<button type="button" data-action="open-cancel-order" data-id="${escapeHTML(o.id)}" class="px-2 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 text-[10px] font-bold">إلغاء</button>` : ''}
                         <button type="button" data-action="copy-whatsapp" data-id="${escapeHTML(o.id)}" class="px-2 py-1.5 rounded-lg bg-slateCard hover:bg-slateHover border border-slateBorder text-slate-300 text-[11px] font-bold">واتساب</button>
                     </div>
                 </td>
@@ -1650,16 +1732,21 @@ function buildOrderCard(o) {
     const rider = getRider(o.riderId);
     const { totalMins, deliveryMins } = getOrderDurations(o);
     const isReturning = o.status === 'returning';
-    const isOverdue = o.status !== 'delivered' && !isReturning && totalMins > 35;
+        const isCancelled = o.status === 'cancelled';
+        const isOverdue = (o.status === 'received' || o.status === 'onway') && totalMins >= ORDER_OVERDUE_MINUTES;
 
-    const timeBadge = isReturning
+    const timeBadge = isCancelled
+        ? `<span class="px-2 py-0.5 rounded-lg bg-red-500/20 border border-red-500/50 text-red-300 font-black text-[10px]">✖ تم الإلغاء</span>`
+        : isReturning
         ? `<span class="px-2 py-0.5 rounded-lg bg-red-500/20 border border-red-500/50 text-red-400 font-black text-[10px]">↩️ مرتجع</span>`
         : o.status === 'delivered'
         ? `<span class="px-2 py-0.5 rounded-lg bg-statusDone/15 border border-statusDone/30 text-statusDone font-black text-[10px]">✓ سُلّم في ${deliveryMins} د</span>`
         : `<span class="px-2 py-0.5 rounded-lg ${isOverdue ? 'bg-red-500/20 border-red-500 text-red-400 animate-pulse' : 'bg-slateDark border-slateBorder text-slate-200'} border font-black text-[10px]">⏳ منذ ${totalMins} د</span>`;
 
     let actionButton = '';
-    if (o.status === 'received') {
+    if (isCancelled) {
+        actionButton = `<div class="rounded-xl bg-red-500/10 border border-red-500/30 p-2.5 text-red-300 text-xs font-bold">${escapeHTML(o.cancelReason || 'تم إلغاء الطلب')} ${o.cancelledBy ? `• ${escapeHTML(o.cancelledBy)}` : ''}</div>`;
+    } else if (o.status === 'received') {
         actionButton = `<button type="button" data-action="move-onway" data-id="${escapeHTML(o.id)}" class="w-full py-2.5 px-3 rounded-xl bg-statusOnway/20 hover:bg-statusOnway text-statusOnway hover:text-obsidian border border-statusOnway/40 font-black text-xs transition-all">تحرك للعميل ➔</button>`;
     } else if (o.status === 'onway') {
         actionButton = `
@@ -1689,6 +1776,7 @@ function buildOrderCard(o) {
                 </div>
                 <div class="flex items-center gap-1">
                     <button type="button" data-action="copy-whatsapp" data-id="${escapeHTML(o.id)}" class="px-2.5 py-1 rounded-lg bg-obsidian hover:bg-statusDone/20 text-slate-300 hover:text-statusDone border border-slateBorder text-[11px] font-bold transition-colors">واتساب</button>
+                    ${['received', 'onway'].includes(o.status) ? `<button type="button" data-action="open-cancel-order" data-id="${escapeHTML(o.id)}" class="px-2 py-1 rounded-lg bg-red-500/10 text-red-300 border border-red-500/30 text-[10px] font-bold">إلغاء</button>` : ''}
                 </div>
             </div>
 
@@ -1731,16 +1819,16 @@ function buildOrderCard(o) {
 
             <div class="grid grid-cols-3 gap-1 bg-obsidian rounded-xl p-2 border border-slateBorder text-center text-xs">
                 <div>
-                    <div class="text-[10px] text-slate-400">توريد للمتجر</div>
-                    <div class="font-extrabold ${isReturning ? 'line-through text-slate-500' : 'text-white'}">${escapeHTML(o.amount)} ج.م</div>
+                    <div class="text-[10px] text-slate-400">${isCancelled ? 'قيمة قبل الإلغاء' : 'توريد للمتجر'}</div>
+                    <div class="font-extrabold ${isReturning || isCancelled ? 'line-through text-slate-500' : 'text-white'}">${escapeHTML(o.amount)} ج.م</div>
                 </div>
                 <div class="border-x border-slateBorder">
-                    <div class="text-[10px] text-slate-400">التوصيل</div>
-                    <div class="font-extrabold text-wassalOrange">${escapeHTML(o.fee)} ج.م</div>
+                    <div class="text-[10px] text-slate-400">${isCancelled ? 'توصيل قبل الإلغاء' : 'التوصيل'}</div>
+                    <div class="font-extrabold ${isCancelled ? 'line-through text-slate-500' : 'text-wassalOrange'}">${escapeHTML(o.fee)} ج.م</div>
                 </div>
                 <div>
-                    <div class="text-[10px] text-slate-400">المطلوب</div>
-                    <div class="font-black ${isReturning ? 'text-red-400' : 'text-statusDone'}">${isReturning ? escapeHTML(o.fee) : (Number(o.amount) + Number(o.fee))} ج.م</div>
+                    <div class="text-[10px] text-slate-400">${isCancelled ? 'إجمالي قبل الإلغاء' : 'المطلوب'}</div>
+                    <div class="font-black ${isCancelled ? 'line-through text-slate-500' : (isReturning ? 'text-red-400' : 'text-statusDone')}">${isReturning ? escapeHTML(o.fee) : (Number(o.amount) + Number(o.fee))} ج.م</div>
                 </div>
             </div>
 
@@ -1806,7 +1894,8 @@ function renderArchive() {
                 delivered: `<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-black text-[11px]">تم التسليم (توريد)</span>`,
                 settled: `<span class="px-2 py-0.5 rounded bg-statusDone/20 text-statusDone font-black text-[11px]">✓ تم التوريد والعودة</span>`,
                 returning: `<span class="px-2 py-0.5 rounded bg-red-500/20 text-red-400 font-black text-[11px]">↩️ مرتجع (بالطريق للمتجر)</span>`,
-                returned: `<span class="px-2 py-0.5 rounded bg-red-500/20 text-red-300 font-black text-[11px]">↩️ مرتجع أُعيد للمتجر</span>`
+                returned: `<span class="px-2 py-0.5 rounded bg-red-500/20 text-red-300 font-black text-[11px]">↩️ مرتجع أُعيد للمتجر</span>`,
+                cancelled: `<span class="px-2 py-0.5 rounded bg-red-500/20 text-red-300 font-black text-[11px]">✖ تم الإلغاء</span>`
             };
 
             const isRet = o.status === 'returning' || o.status === 'returned';
@@ -1823,7 +1912,7 @@ function renderArchive() {
                     <td class="px-3.5 py-3">
                         <div class="text-slate-200 font-bold">${escapeHTML(o.customerName)}</div>
                         <div class="text-[11px] text-slate-400">${escapeHTML(o.address)}</div>
-                        ${o.items ? `<div class="text-[10px] text-wassalAmber font-bold mt-0.5">🛒 ${escapeHTML(o.items)}</div>` : ''}
+                    ${o.items ? `<div class="text-[10px] text-wassalAmber font-bold mt-0.5">🛒 ${escapeHTML(o.items)}</div>` : ''}
                     </td>
                     <td class="px-3.5 py-3 font-bold text-slate-200">${escapeHTML(rd.name)}</td>
                     <td class="px-3.5 py-3 text-[11px]">
@@ -1900,15 +1989,19 @@ function openReturnModal(orderId) {
 }
 
 function openEditOrderModal(orderId) {
-    const o = appState.orders.find(item => item.id === orderId);
+    const o = appState.orders.find(item => String(item.id) === String(orderId));
     if (!o) return;
+    if (['settled', 'returned'].includes(o.status)) {
+        showToast('⛔ الطلب تم توريده وإغلاقه؛ متاح للمراجعة فقط.');
+        return;
+    }
 
     document.getElementById('edit-order-id').value = o.id;
     document.getElementById('edit-order-title-id').textContent = `#${o.id}`;
     document.getElementById('edit-order-customer').value = o.customerName || '';
     document.getElementById('edit-order-phone').value = o.phone || '';
     document.getElementById('edit-order-address').value = o.address || '';
-    document.getElementById('edit-order-items').value = o.items || '';
+    renderEditOrderItems(o);
     document.getElementById('edit-order-amount').value = o.amount || 0;
     document.getElementById('edit-order-fee').value = o.fee || 0;
     applyRolePermissionsUI();
@@ -2018,7 +2111,7 @@ function openStoreStatementModal(storeId) {
 
 // ==================== DRAWER & RIDER PERFORMANCE MODAL ====================
 function openOrderDrawer(orderId) {
-    const o = appState.orders.find(item => item.id === orderId);
+    const o = appState.orders.find(item => String(item.id) === String(orderId));
     if (!o) return;
     uiState.selectedOrderId = orderId;
 
@@ -2026,6 +2119,7 @@ function openOrderDrawer(orderId) {
     const rd = getRider(o.riderId);
     const { totalMins, deliveryMins, waitMins, roadMins } = getOrderDurations(o);
     const isRet = o.status === 'returning' || o.status === 'returned';
+    const isCancelled = o.status === 'cancelled';
 
     document.getElementById('drawer-order-id').textContent = `#${o.id}`;
     const badge = document.getElementById('drawer-status-badge');
@@ -2044,6 +2138,9 @@ function openOrderDrawer(orderId) {
     } else if (o.status === 'returned') {
         badge.className = 'px-2.5 py-1 rounded-lg bg-red-500/20 border border-red-500/40 text-red-300 text-xs font-black';
         badge.textContent = '↩️ مرتجع أُعيد للمتجر';
+    } else if (o.status === 'cancelled') {
+        badge.className = 'px-2.5 py-1 rounded-lg bg-red-500/20 border border-red-500/40 text-red-300 text-xs font-black';
+        badge.textContent = '✖ تم إلغاء الطلب';
     } else {
         badge.className = 'px-2.5 py-1 rounded-lg bg-statusDone/20 border border-statusDone/40 text-statusDone text-xs font-black';
         badge.textContent = '4. تم التوريد والعودة';
@@ -2057,6 +2154,7 @@ function openOrderDrawer(orderId) {
             <div class="font-black text-red-400">⚠️ طلب مرتجع (لم يتم الاستلام)</div>
             <div class="text-slate-200 font-bold">السبب: ${escapeHTML(o.returnReason || 'غير محدد')}</div>
         </div>` : ''}
+        ${o.status === 'cancelled' ? `<div class="bg-red-500/10 border border-red-500/30 rounded-2xl p-3.5 text-xs space-y-1"><div class="font-black text-red-300">تم إلغاء الطلب</div><div class="text-neutral-200">السبب: ${escapeHTML(o.cancelReason || 'لم يتم تسجيل سبب')}</div><div class="text-neutral-400">وقت الإلغاء: ${formatDateTime12(o.cancelledTs)} • بواسطة: ${escapeHTML(o.cancelledBy || '—')}</div></div>` : ''}
 
         <div class="bg-slateCard border border-slateBorder rounded-2xl p-4 space-y-4">
             <div class="flex items-center justify-between">
@@ -2124,16 +2222,16 @@ function openOrderDrawer(orderId) {
 
         <div class="bg-slateCard border border-slateBorder rounded-2xl p-4 space-y-2 text-xs">
             <div class="flex justify-between text-slate-300">
-                <span>قيمة الأوردر للمتجر:</span>
-                <span class="font-black ${isRet ? 'line-through text-slate-500' : 'text-white'}">${escapeHTML(o.amount)} ج.م</span>
+                <span>${isCancelled ? 'قيمة الأوردر قبل الإلغاء:' : 'قيمة الأوردر للمتجر:'}</span>
+                <span class="font-black ${isRet || isCancelled ? 'line-through text-slate-500' : 'text-white'}">${escapeHTML(o.amount)} ج.م</span>
             </div>
             <div class="flex justify-between text-slate-300">
-                <span>رسوم التوصيل (وصّل):</span>
-                <span class="font-black text-wassalOrange">${escapeHTML(o.fee)} ج.م</span>
+                <span>${isCancelled ? 'رسوم التوصيل قبل الإلغاء:' : 'رسوم التوصيل (وصّل):'}</span>
+                <span class="font-black ${isCancelled ? 'line-through text-slate-500' : 'text-wassalOrange'}">${escapeHTML(o.fee)} ج.م</span>
             </div>
             <div class="pt-2 border-t border-slateBorder flex justify-between text-sm">
-                <span class="font-black text-white">صافي المستحق تحصيله:</span>
-                <span class="font-black ${isRet ? 'text-red-400' : 'text-statusDone'}">${isRet ? escapeHTML(o.fee) : (Number(o.amount) + Number(o.fee))} ج.م</span>
+                <span class="font-black text-white">${isCancelled ? 'القيمة قبل الإلغاء:' : 'صافي المستحق تحصيله:'}</span>
+                <span class="font-black ${isCancelled ? 'line-through text-slate-500' : (isRet ? 'text-red-400' : 'text-statusDone')}">${isRet ? escapeHTML(o.fee) : (Number(o.amount) + Number(o.fee))} ج.م</span>
             </div>
         </div>
 
@@ -2162,27 +2260,29 @@ function openOrderDrawer(orderId) {
         primaryAction = `<button type="button" data-action="move-returned-done" data-id="${escapeHTML(o.id)}" class="w-full py-3 rounded-xl bg-red-500 text-white font-black text-xs shadow-lg">📦 تم تسليم المرتجع للمتجر والعودة</button>`;
     }
 
-    const deleteOrderBtn = isAdminUser()
-        ? `<button type="button" data-action="delete-order" data-id="${escapeHTML(o.id)}" class="py-2.5 px-2 rounded-xl bg-red-500/15 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 font-black text-[11px] transition-colors">🗑️ حذف</button>`
-        : '';
-
+    const isFinalized = ['settled', 'returned'].includes(o.status);
     document.getElementById('drawer-footer').innerHTML = `
         ${primaryAction}
-        <div class="grid ${isAdminUser() ? 'grid-cols-3' : 'grid-cols-2'} gap-1.5">
-            <button type="button" data-action="open-edit-order" data-id="${escapeHTML(o.id)}" class="py-2.5 px-2 rounded-xl bg-statusOnway/15 hover:bg-statusOnway text-statusOnway hover:text-obsidian border border-statusOnway/30 font-black text-[11px] transition-colors">✏️ تعديل/تحويل</button>
+        ${isFinalized ? '<p class="rounded-lg bg-statusDone/10 px-3 py-2 text-center text-xs font-bold text-statusDone">الطلب مغلق بعد التوريد؛ هذه البيانات للعرض والمراجعة فقط.</p>' : ''}
+        <div class="grid ${['received', 'onway'].includes(o.status) ? 'grid-cols-3' : 'grid-cols-2'} gap-1.5">
+            ${isFinalized ? '' : `<button type="button" data-action="open-edit-order" data-id="${escapeHTML(o.id)}" class="py-2.5 px-2 rounded-xl bg-statusOnway/15 hover:bg-statusOnway text-statusOnway hover:text-obsidian border border-statusOnway/30 font-black text-[11px] transition-colors">✏️ تعديل/تحويل</button>`}
+            ${['received', 'onway'].includes(o.status) ? `<button type="button" data-action="open-cancel-order" data-id="${escapeHTML(o.id)}" class="py-2.5 px-2 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 font-black text-[11px]">إلغاء الطلب</button>` : ''}
             <button type="button" data-action="copy-whatsapp" data-id="${escapeHTML(o.id)}" class="py-2.5 px-2 rounded-xl bg-slateCard hover:bg-slateHover border border-slateBorder text-white font-black text-[11px]">📋 واتساب</button>
-            ${deleteOrderBtn}
         </div>
     `;
 
-    document.getElementById('order-drawer-backdrop').classList.remove('hidden');
-    document.getElementById('order-drawer').classList.remove('-translate-x-full');
+    const backdrop = document.getElementById('order-drawer-backdrop');
+    const detailsDialog = document.getElementById('order-drawer');
+    backdrop.classList.remove('hidden');
+    detailsDialog.classList.remove('hidden');
+    detailsDialog.classList.add('flex');
 }
 
 function closeOrderDrawer() {
     uiState.selectedOrderId = null;
     document.getElementById('order-drawer-backdrop').classList.add('hidden');
-    document.getElementById('order-drawer').classList.add('-translate-x-full');
+    document.getElementById('order-drawer').classList.add('hidden');
+    document.getElementById('order-drawer').classList.remove('flex');
 }
 
 function openRiderStatsModal(riderId, period = 'today') {
@@ -2371,9 +2471,6 @@ function renderRiders() {
             <button type="button" data-action="edit-rider" data-id="${escapeHTML(r.id)}" class="px-2.5 py-2 rounded-xl bg-statusOnway/15 hover:bg-statusOnway text-statusOnway hover:text-obsidian border border-statusOnway/30 text-xs font-black">
                 تعديل
             </button>
-            <button type="button" data-action="delete-rider" data-id="${escapeHTML(r.id)}" class="px-2.5 py-2 rounded-xl bg-red-500/15 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 text-xs font-black">
-                حذف
-            </button>
         ` : '';
 
         return `
@@ -2453,8 +2550,8 @@ function renderStores() {
                         <div class="text-lg font-black text-wassalOrange">${top.monthCount}</div>
                     </div>
                     <div class="bg-obsidian/90 border border-slateBorder rounded-xl px-4 py-2.5">
-                        <div class="text-[10px] text-slate-400 font-bold">إيراد التوصيل</div>
-                        <div class="text-lg font-black text-statusDone">${top.feeMonth} ج.م</div>
+                        <div class="text-[10px] text-slate-400 font-bold">طلبات تم توريدها</div>
+                        <div class="text-lg font-black text-statusDone">${top.settledCount}</div>
                     </div>
                 </div>
             </div>
@@ -2469,13 +2566,9 @@ function renderStores() {
         return;
     }
 
-    grid.innerHTML = ranked.map((item, idx) => {
+    grid.innerHTML = ranked.slice(0, 10).map((item, idx) => {
         const s = item.store;
         const isFirst = idx === 0 && item.monthCount > 0;
-        const deleteStoreBtn = isAdminUser()
-            ? `<button type="button" data-action="delete-store" data-id="${escapeHTML(s.id)}" class="px-3 py-2.5 rounded-xl bg-red-500/15 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 text-xs font-black transition-colors">حذف</button>`
-            : '';
-
         return `
             <div class="bg-slateDark border ${isFirst ? 'border-statusPicked/70 shadow-lg shadow-orange-500/10' : 'border-slateBorder hover:border-wassalOrange/50'} transition-all rounded-2xl p-5 space-y-4">
                 <div class="flex items-start justify-between">
@@ -2486,7 +2579,6 @@ function renderStores() {
                         </div>
                         <h3 class="font-black text-base text-white mt-2">${escapeHTML(s.name)} ${isFirst ? '👑' : ''}</h3>
                     </div>
-                    <span class="text-xs font-black text-wassalOrange bg-obsidian px-2.5 py-1 rounded-lg border border-wassalOrange/30">توصيل: ${escapeHTML(s.fee)} ج.م</span>
                 </div>
 
                 <div class="space-y-1">
@@ -2523,11 +2615,138 @@ function renderStores() {
                     <button type="button" data-action="open-store-statement" data-id="${escapeHTML(s.id)}" class="flex-1 py-2.5 rounded-xl wassal-grad wassal-grad-hover text-obsidian font-black text-xs shadow-md">
                         📄 كشف حساب وتصفية
                     </button>
-                    ${deleteStoreBtn}
                 </div>
             </div>
         `;
     }).join('');
+}
+
+function getOrdersReportData() {
+    const from = document.getElementById('orders-report-from')?.value || '';
+    const to = document.getElementById('orders-report-to')?.value || '';
+    const type = document.getElementById('orders-report-type')?.value || uiState.ordersReportType || 'all';
+    const riderId = document.getElementById('orders-report-rider')?.value || uiState.ordersReportRider || 'all';
+    const storeId = document.getElementById('orders-report-store')?.value || uiState.ordersReportStore || 'all';
+    const customerQuery = type === 'customer' ? (document.getElementById('orders-report-customer')?.value || uiState.ordersReportCustomer || '').trim().toLocaleLowerCase('ar') : '';
+    uiState.ordersReportFrom = from;
+    uiState.ordersReportTo = to;
+    uiState.ordersReportType = type;
+    uiState.ordersReportRider = riderId;
+    uiState.ordersReportStore = storeId;
+    uiState.ordersReportCustomer = document.getElementById('orders-report-customer')?.value || '';
+    const allInRange = appState.orders.filter(order => {
+        const date = String(order.dateStr || '');
+        return (!from || date >= from) && (!to || date <= to);
+    });
+    let rows = allInRange;
+    if (type === 'cash') rows = rows.filter(order => order.status === 'settled');
+    if (type === 'rider') {
+        rows = rows.filter(order => ['delivered', 'settled'].includes(order.status));
+        if (riderId !== 'all') rows = rows.filter(order => String(order.riderId) === String(riderId));
+    }
+    if (type === 'store' && storeId !== 'all') rows = rows.filter(order => String(order.storeId) === String(storeId));
+    if (customerQuery) rows = rows.filter(order => String(order.customerName || '').toLocaleLowerCase('ar').includes(customerQuery));
+    return { rows: rows.sort((a, b) => String(b.dateStr || '').localeCompare(String(a.dateStr || '')) || String(b.id).localeCompare(String(a.id))), allInRange, type, riderId, storeId };
+}
+
+function renderOrdersReport() {
+    const body = document.getElementById('orders-report-body');
+    if (!body) return;
+    const riderSelect = document.getElementById('orders-report-rider');
+    const currentRider = riderSelect?.value || uiState.ordersReportRider || 'all';
+    if (riderSelect) {
+        riderSelect.innerHTML = `<option value="all">كل الطيارين</option>` + appState.riders.map(r => `<option value="${escapeHTML(r.id)}">${escapeHTML(r.name)}</option>`).join('');
+        riderSelect.value = appState.riders.some(r => String(r.id) === String(currentRider)) ? currentRider : 'all';
+    }
+    const storeSelect = document.getElementById('orders-report-store');
+    const currentStore = storeSelect?.value || uiState.ordersReportStore || 'all';
+    if (storeSelect) {
+        storeSelect.innerHTML = `<option value="all">كل المتاجر</option>` + appState.stores.map(store => `<option value="${escapeHTML(store.id)}">${escapeHTML(store.name)}</option>`).join('');
+        storeSelect.value = appState.stores.some(store => String(store.id) === String(currentStore)) ? currentStore : 'all';
+    }
+    const { rows, allInRange, type, riderId, storeId } = getOrdersReportData();
+    document.getElementById('orders-report-rider-filter')?.classList.toggle('hidden', type !== 'rider');
+    document.getElementById('orders-report-store-filter')?.classList.toggle('hidden', type !== 'store');
+    document.getElementById('orders-report-customer-filter')?.classList.toggle('hidden', type !== 'customer');
+    const reportStoreName = appState.stores.find(store => String(store.id) === String(storeId))?.name || '';
+    const reportTitles = { all: 'تقرير كل الأوردرات', cash: 'تقرير التحصيلات النقدية', rider: riderId === 'all' ? 'تقرير كل الطيارين' : 'كشف حساب الطيار', store: storeId === 'all' ? 'تقرير كل المتاجر' : `تقرير متجر ${reportStoreName}`, customer: 'تقرير أوردرات العميل' };
+    const reportHeading = document.getElementById('orders-report-heading');
+    if (reportHeading) reportHeading.textContent = uiText(reportTitles[type] || reportTitles.all);
+    const cashRows = (type === 'all' ? allInRange : rows).filter(order => order.status === 'settled');
+    const merchantCash = cashRows.reduce((sum, order) => sum + (Number(order.amount) || 0), 0);
+    const deliveryCash = cashRows.reduce((sum, order) => sum + (Number(order.fee) || 0), 0);
+    const customerSource = type === 'all' ? allInRange : rows;
+    const customerCount = new Set(customerSource.map(order => String(order.customerName || '').trim()).filter(Boolean)).size;
+    const riderDeliveredAmount = rows.reduce((sum, order) => sum + (Number(order.amount) || 0), 0);
+    const riderDeliveredFees = rows.reduce((sum, order) => sum + (Number(order.fee) || 0), 0);
+    const summaries = type === 'rider' ? [
+        ['طلبات سلّمها الطيار', rows.length, 'text-white'],
+        ['قيمة الطلبات', `${riderDeliveredAmount.toLocaleString('ar-EG')} ج.م`, 'text-statusDone'],
+        ['رسوم التوصيل', `${riderDeliveredFees.toLocaleString('ar-EG')} ج.م`, 'text-wassalOrange'],
+        ['إجمالي القيم', `${(riderDeliveredAmount + riderDeliveredFees).toLocaleString('ar-EG')} ج.م`, 'text-white']
+    ] : type === 'store' ? [
+        ['عدد الأوردرات', rows.length, 'text-white'],
+        ['المتاجر الظاهرة', new Set(rows.map(order => String(order.storeId))).size, 'text-wassalOrange'],
+        ['قيمة الطلبات الموردة', `${cashRows.reduce((sum, order) => sum + (Number(order.amount) || 0), 0).toLocaleString('ar-EG')} ج.م`, 'text-statusDone'],
+        ['رسوم التوصيل الموردة', `${cashRows.reduce((sum, order) => sum + (Number(order.fee) || 0), 0).toLocaleString('ar-EG')} ج.م`, 'text-wassalOrange']
+    ] : [
+        ['عدد الأوردرات في الفترة', rows.length, 'text-white'],
+        ['أوردرات تم توريدها', cashRows.length, 'text-statusDone'],
+        ['قيمة الأوردرات المحصلة', `${merchantCash.toLocaleString('ar-EG')} ج.م`, 'text-white'],
+        ['قيمة التوصيل المحصلة', `${deliveryCash.toLocaleString('ar-EG')} ج.م`, 'text-wassalOrange'],
+        ['إجمالي النقدية المحصلة', `${(merchantCash + deliveryCash).toLocaleString('ar-EG')} ج.م`, 'text-statusDone'],
+        ['عدد العملاء', customerCount, 'text-white']
+    ];
+    document.getElementById('orders-report-summary').innerHTML = summaries.map(([label, value, color]) => `<div class="bg-obsidian border border-slateBorder rounded-xl p-3"><div class="text-[10px] text-neutral-400">${label}</div><strong class="block mt-1 font-black ${color}">${value}</strong></div>`).join('');
+    const statusNames = { received: 'تم الاستلام', onway: 'في الطريق', delivered: 'تم التسليم - بانتظار التوريد', returning: 'مرتجع - بانتظار الإرجاع', settled: 'تم التوريد', returned: 'تم إرجاعه للمتجر', cancelled: 'تم الإلغاء' };
+    if (rows.length === 0) {
+        body.innerHTML = `<tr><td colspan="10" class="py-8 text-center text-slate-400">لا توجد أوردرات مطابقة للفترة والفلاتر المحددة.</td></tr>`;
+        return;
+    }
+    body.innerHTML = rows.map(order => {
+        const rider = appState.riders.find(item => String(item.id) === String(order.riderId));
+        return `<tr data-action="open-drawer" data-id="${escapeHTML(order.id)}" class="hover:bg-slateCard/80 cursor-pointer"><td class="px-3 py-2.5 text-slate-300">${escapeHTML(order.dateStr || '—')}</td><td class="px-3 py-2.5 font-mono font-black text-wassalOrange">#${escapeHTML(order.id)}</td><td class="px-3 py-2.5 text-slate-300">${escapeHTML(getStore(order.storeId).name)}</td><td class="px-3 py-2.5 font-bold text-white">${escapeHTML(order.customerName || '—')}</td><td class="px-3 py-2.5 text-slate-300">${escapeHTML(rider?.name || '—')}</td><td class="px-3 py-2.5 text-slate-300">${statusNames[order.status] || escapeHTML(order.status || '—')}</td><td class="px-3 py-2.5 text-statusDone">${formatTime12(order.deliveredTs)}</td><td class="px-3 py-2.5 font-bold">${(Number(order.amount) || 0).toLocaleString('ar-EG')} ج.م</td><td class="px-3 py-2.5 font-bold text-wassalOrange">${(Number(order.fee) || 0).toLocaleString('ar-EG')} ج.م</td><td class="px-3 py-2.5 font-black text-statusDone">${((Number(order.amount) || 0) + (Number(order.fee) || 0)).toLocaleString('ar-EG')} ج.م</td></tr>`;
+    }).join('');
+}
+
+function exportOrdersReportCSV() {
+    const { rows } = getOrdersReportData();
+    const header = ['التاريخ', 'رقم الأوردر', 'المتجر', 'اسم العميل', 'الطيار', 'الحالة', 'وقت التسليم', 'قيمة الأوردر', 'التوصيل', 'الإجمالي'];
+    const statusNames = { received: 'تم الاستلام', onway: 'في الطريق', delivered: 'تم التسليم', returning: 'مرتجع', settled: 'تم التوريد', returned: 'تم إرجاعه للمتجر', cancelled: 'تم الإلغاء' };
+    const csv = [header, ...rows.map(order => [order.dateStr, order.id, getStore(order.storeId).name, order.customerName, getRider(order.riderId).name, statusNames[order.status] || order.status, order.deliveredTs ? formatDateTime12(order.deliveredTs) : '', Number(order.amount) || 0, Number(order.fee) || 0, (Number(order.amount) || 0) + (Number(order.fee) || 0)])].map(row => row.map(sanitizeCSVCell).join(',')).join('\r\n');
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `WASSAL_Orders_${uiState.ordersReportFrom || 'all'}_${uiState.ordersReportTo || 'all'}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function renderDeliveryReview() {
+    const dateInput = document.getElementById('delivery-review-date');
+    const date = dateInput?.value || getSystemTodayStr();
+    const reviewedOrders = appState.orders.filter(order => {
+        if (order.status !== 'settled') return false;
+        const settledDate = order.settledTs ? (() => { const d = new Date(Number(order.settledTs)); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })() : order.dateStr;
+        return settledDate === date;
+    }).sort((a, b) => (Number(b.settledTs) || 0) - (Number(a.settledTs) || 0));
+    const amount = reviewedOrders.reduce((sum, order) => sum + (Number(order.amount) || 0), 0);
+    const fees = reviewedOrders.reduce((sum, order) => sum + (Number(order.fee) || 0), 0);
+    const summary = document.getElementById('delivery-review-summary');
+    if (summary) summary.innerHTML = [
+        ['عدد الطلبات الموردة', reviewedOrders.length], ['قيمة الطلبات', `${amount.toLocaleString('ar-EG')} ج.م`],
+        ['رسوم التوصيل', `${fees.toLocaleString('ar-EG')} ج.م`], ['إجمالي التحصيل', `${(amount + fees).toLocaleString('ar-EG')} ج.م`]
+    ].map(([label, value]) => `<div class="bg-slateDark border border-slateBorder rounded-xl p-3"><div class="text-[10px] text-neutral-400">${label}</div><strong class="block mt-1 text-white font-black">${value}</strong></div>`).join('');
+    const body = document.getElementById('delivery-review-body');
+    if (!body) return;
+    const badge = document.getElementById('nav-badge-delivery-review');
+    if (badge) badge.textContent = reviewedOrders.length;
+    body.innerHTML = reviewedOrders.length ? reviewedOrders.map(order => {
+        const rider = getRider(order.riderId);
+        const store = getStore(order.storeId);
+        return `<tr data-action="open-drawer" data-id="${escapeHTML(order.id)}" class="cursor-pointer hover:bg-slateCard/80"><td class="p-3 font-black text-wassalOrange">#${escapeHTML(order.id)}</td><td class="p-3"><div class="font-bold text-white">${escapeHTML(order.customerName || '—')}</div><div class="text-[10px] text-neutral-400">${escapeHTML(store.name)} • ${escapeHTML(order.items || 'بدون أصناف مسجلة')}</div></td><td class="p-3 text-neutral-200">${escapeHTML(rider.name)}</td><td class="p-3 text-neutral-300">تسليم ${formatTime12(order.deliveredTs)}<br>توريد ${formatTime12(order.settledTs)}</td><td class="p-3 font-bold">${(Number(order.amount) || 0).toLocaleString('ar-EG')} + <span class="text-wassalOrange">${(Number(order.fee) || 0).toLocaleString('ar-EG')}</span> ج.م</td><td class="p-3 text-statusDone font-bold">اضغط لعرض التفاصيل</td></tr>`;
+    }).join('') : `<tr><td colspan="6" class="p-8 text-center text-neutral-400">لا توجد طلبات موردة في التاريخ المحدد.</td></tr>`;
 }
 
 function renderAccounting() {
@@ -2589,7 +2808,7 @@ function renderAccounting() {
         expTbody.innerHTML = filteredExpenses.map(e => {
             const rdName = e.riderId ? getRider(e.riderId).name : 'مصروف إداري عام';
             const delExpBtn = isAdminUser()
-                ? `<button type="button" data-action="delete-expense" data-id="${escapeHTML(e.id)}" class="px-2 py-1 rounded-lg bg-red-500/15 hover:bg-red-500 text-red-400 hover:text-white text-[11px] font-bold transition-colors">✕</button>`
+                ? `<button type="button" data-action="delete-expense" data-id="${escapeHTML(e.id)}" class="admin-only-btn px-2.5 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 font-bold">حذف</button>`
                 : '—';
             return `
                 <tr class="hover:bg-slateCard/80">
@@ -2609,9 +2828,9 @@ function renderAccounting() {
 
     const storesBody = document.getElementById('stores-accounting-body');
     if (stats.storeStats.length === 0) {
-        storesBody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-500">لا توجد متاجر مسجلة بعد</td></tr>`;
+        storesBody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-500">لا توجد متاجر مسجلة بعد</td></tr>`;
     } else {
-        storesBody.innerHTML = stats.storeStats.map((item, idx) => {
+        storesBody.innerHTML = stats.storeStats.slice(0, 10).map((item, idx) => {
             const s = item.store;
             const rankBadge = idx === 0 && item.monthCount > 0 ? '👑 #1' : `#${idx + 1}`;
             return `
@@ -2630,7 +2849,6 @@ function renderAccounting() {
                         </div>
                     </td>
                     <td class="px-4 py-3 font-black text-statusDone">${item.settledMonth.toLocaleString('ar-EG')} ج.م</td>
-                    <td class="px-4 py-3 font-black text-white">${item.feeMonth.toLocaleString('ar-EG')} ج.م</td>
                 </tr>
             `;
         }).join('');
@@ -2657,6 +2875,7 @@ function renderAccounting() {
             `;
         }).join('');
     }
+    renderOrdersReport();
 }
 
 // ==================== BACKUP, VALIDATED RESTORE & PROTECTED CSV EXPORT ====================
@@ -2698,7 +2917,7 @@ function handleRestoreBackupFile(file) {
                 return;
             }
 
-            if (!window.confirm(uiText(`تم فحص الملف بنجاح (${restored.orders.length} طلب، ${restored.riders.length} مندوب). هل تريد استبدال قاعدة البيانات السحابية بهذه النسخة؟`))) {
+            if (!await openAppMessage({ title: 'استعادة نسخة احتياطية', message: uiText(`تم فحص الملف بنجاح (${restored.orders.length} طلب، ${restored.riders.length} مندوب). سيتم دمج السجلات، مع إبقاء الطلبات التي تم توريدها وإغلاقها دون أي تعديل. هل تريد المتابعة؟`), confirmLabel: 'متابعة' })) {
                 return;
             }
 
@@ -2707,15 +2926,12 @@ function handleRestoreBackupFile(file) {
                 await saveCloudBackupSnapshot(`نسخة تلقائية قبل الاستعادة (${getActiveShiftDate()})`);
 
                 const ops = [];
-                const cols = ['wassal_orders', 'wassal_riders', 'wassal_stores', 'wassal_expenses'];
-                for (const colName of cols) {
-                    const snap = await fb.getDocs(fb.collection(fb.db, colName));
-                    snap.forEach(d => ops.push({ type: 'delete', ref: d.ref }));
-                }
+                const finalizedOrderIds = new Set(appState.orders.filter(order => ['settled', 'returned'].includes(order.status)).map(order => String(order.id)));
+                const skippedFinalizedCount = (restored.orders || []).filter(order => finalizedOrderIds.has(String(order.id))).length;
 
                 (restored.riders || []).forEach(r => ops.push({ type: 'set', ref: fb.doc(fb.db, 'wassal_riders', String(r.id)), data: r }));
                 (restored.stores || []).forEach(s => ops.push({ type: 'set', ref: fb.doc(fb.db, 'wassal_stores', String(s.id)), data: s }));
-                (restored.orders || []).forEach(o => ops.push({ type: 'set', ref: fb.doc(fb.db, 'wassal_orders', String(o.id)), data: o }));
+                (restored.orders || []).filter(order => !finalizedOrderIds.has(String(order.id))).forEach(o => ops.push({ type: 'set', ref: fb.doc(fb.db, 'wassal_orders', String(o.id)), data: o }));
                 (restored.expenses || []).forEach(e => ops.push({ type: 'set', ref: fb.doc(fb.db, 'wassal_expenses', String(e.id)), data: e }));
 
                 ops.push({
@@ -2729,7 +2945,7 @@ function handleRestoreBackupFile(file) {
                 });
 
                 await commitOperationsInChunks(ops);
-                await writeAuditLog('استعادة نسخة احتياطية', 'BACKUP_RESTORE', `تمت استعادة ${restored.orders.length} طلب و ${restored.riders.length} مندوب`);
+                await writeAuditLog('استعادة نسخة احتياطية', 'BACKUP_RESTORE', `تمت استعادة ${restored.orders.length - skippedFinalizedCount} طلب و ${restored.riders.length} مندوب؛ تم تجاوز ${skippedFinalizedCount} طلب مغلق بعد التوريد`);
 
                 setSyncStatus('online');
                 const modal = document.getElementById('modal-security');
@@ -2737,7 +2953,7 @@ function handleRestoreBackupFile(file) {
                     modal.classList.add('hidden');
                     modal.classList.remove('flex');
                 }
-                showToast('✅ تم التحقق من البيانات واستعادتها للسحابة بنجاح');
+                showToast(`✅ تم استعادة البيانات؛ تم الحفاظ على ${skippedFinalizedCount} طلب مغلق دون تعديل`);
             });
         } catch (err) {
             console.error(err);
@@ -2812,7 +3028,7 @@ function populateSelects() {
     const storeSel = document.getElementById('input-order-store');
     if (storeSel) {
         storeSel.innerHTML = appState.stores.length
-            ? appState.stores.map(s => `<option value="${escapeHTML(s.id)}">${escapeHTML(s.name)} (${escapeHTML(s.category)} - توصيل ${escapeHTML(s.fee)} ج.م)</option>`).join('')
+            ? appState.stores.map(s => `<option value="${escapeHTML(s.id)}">${escapeHTML(s.name)} (${escapeHTML(s.category)})</option>`).join('')
             : `<option value="">-- أضف متجراً أولاً --</option>`;
     }
 
@@ -2843,13 +3059,15 @@ function renderAll() {
     renderRiders();
     renderStores();
     renderAccounting();
+    renderOrdersReport();
+    renderDeliveryReview();
     renderAuditLogs();
     renderUsersRolesList();
     renderCloudBackupsList();
     applyRolePermissionsUI();
 
     if (uiState.selectedOrderId) {
-        const exists = appState.orders.find(o => o.id === uiState.selectedOrderId);
+        const exists = appState.orders.find(o => String(o.id) === String(uiState.selectedOrderId));
         if (exists) openOrderDrawer(uiState.selectedOrderId);
         else closeOrderDrawer();
     }
@@ -2857,6 +3075,16 @@ function renderAll() {
 
 // ==================== EVENT LISTENERS ====================
 document.addEventListener('DOMContentLoaded', () => {
+    const reviewDate = document.getElementById('delivery-review-date');
+    if (reviewDate) {
+        reviewDate.value = getSystemTodayStr();
+        reviewDate.addEventListener('change', renderDeliveryReview);
+    }
+    document.getElementById('app-message-accept')?.addEventListener('click', () => closeAppMessage(true));
+    document.getElementById('app-message-cancel')?.addEventListener('click', () => closeAppMessage(false));
+    document.getElementById('modal-app-message')?.addEventListener('click', event => {
+        if (event.target.id === 'modal-app-message') closeAppMessage(false);
+    });
     const monthPicker = document.getElementById('report-month-picker');
     if (monthPicker) {
         monthPicker.value = uiState.reportMonth;
@@ -2865,6 +3093,18 @@ document.addEventListener('DOMContentLoaded', () => {
             renderAccounting();
         });
     }
+
+    const reportFrom = document.getElementById('orders-report-from');
+    const reportTo = document.getElementById('orders-report-to');
+    const reportType = document.getElementById('orders-report-type');
+    const reportRider = document.getElementById('orders-report-rider');
+    const reportStore = document.getElementById('orders-report-store');
+    const reportCustomer = document.getElementById('orders-report-customer');
+    if (reportFrom) reportFrom.value = uiState.ordersReportFrom;
+    if (reportTo) reportTo.value = uiState.ordersReportTo;
+    if (reportType) reportType.value = uiState.ordersReportType;
+    [reportFrom, reportTo, reportType, reportRider, reportStore].filter(Boolean).forEach(input => input.addEventListener('change', renderOrdersReport));
+    if (reportCustomer) reportCustomer.addEventListener('input', renderOrdersReport);
 
     const archPicker = document.getElementById('archive-date-picker');
     if (archPicker) {
@@ -2892,6 +3132,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target.classList.contains('item-price')) {
                 recalcOrderItemsTotal();
             }
+        });
+    }
+
+    const editItemsList = document.getElementById('edit-order-items-list');
+    if (editItemsList) {
+        editItemsList.addEventListener('input', (event) => {
+            if (!isAdminUser() || !event.target.classList.contains('edit-item-price')) return;
+            const total = collectEditOrderItems().reduce((sum, item) => sum + item.price, 0);
+            document.getElementById('edit-order-amount').value = total;
         });
     }
 
@@ -3018,6 +3267,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const action = btn.getAttribute('data-action');
         const id = btn.getAttribute('data-id');
 
+        if (['delete-order', 'delete-store', 'delete-rider', 'reset-demo'].includes(action)) {
+            showToast('الحذف وتصفير النظام غير متاحين للحفاظ على السجلات');
+            return;
+        }
+
         if (action === 'logout-firebase') {
             e.stopPropagation();
             if (fb && fb.auth) {
@@ -3095,6 +3349,19 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        if (action === 'add-edit-order-item-row') {
+            addEditOrderItemRow();
+            if (isAdminUser()) document.getElementById('edit-order-amount').value = collectEditOrderItems().reduce((sum, item) => sum + item.price, 0);
+            return;
+        }
+
+        if (action === 'remove-edit-order-item-row') {
+            btn.closest('.edit-order-item-row')?.remove();
+            const items = collectEditOrderItems();
+            if (isAdminUser()) document.getElementById('edit-order-amount').value = items.reduce((sum, item) => sum + item.price, 0);
+            return;
+        }
+
         if (action === 'toggle-sidebar') {
             document.getElementById('sidebar').classList.toggle('translate-x-full');
             document.getElementById('sidebar-backdrop').classList.toggle('hidden');
@@ -3125,6 +3392,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const titles = {
                 operations: ['متابعة الطلبات الجارية', 'تم الاستلام ➔ تحرك للعميل ➔ تم التسليم (أو مرتجع) ➔ تم التوريد والعودة'],
                 archive: ['أرشيف الطلبات المنتهية وإقفال اليوميات', 'استعراض الطلبات المؤرشفة حسب التاريخ وإقفال اليومية الحالية مع نسخة احتياطية'],
+                'delivery-review': ['مراجعة التوريد', 'مراجعة طلبات اليوم أو أي تاريخ سابق بعد توريدها وفتح تفاصيل كل طلب'],
+                reports: ['مركز التقارير', 'تقارير الطلبات والتحصيلات والعملاء وكشوف حساب الطيارين'],
                 riders: ['أسطول المناديب والموتوسيكلات', 'إدارة كاملة للأسطول وكشوف أداء لكل مندوب'],
                 stores: ['المتاجر المتعاقدة وترتيب الأكثر عملاً', 'تحليل حجم الطلبات لكل متجر وكشوف الحساب والتصفية'],
                 accounting: ['المحاسبة والمصروفات والتقارير', 'قائمة الدخل اليومية والشهرية، إدارة المصروفات، وتصدير التقارير المحمية'],
@@ -3178,55 +3447,27 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        if (action === 'open-cancel-order') {
+            e.stopPropagation();
+            const order = appState.orders.find(item => String(item.id) === String(id));
+            if (!order || !['received', 'onway'].includes(order.status)) return;
+            document.getElementById('cancel-order-id').value = order.id;
+            document.getElementById('cancel-order-summary').textContent = `#${order.id} • ${order.customerName || 'بدون اسم'}`;
+            document.getElementById('cancel-order-reason').value = '';
+            const cancelModal = document.getElementById('modal-cancel-order');
+            cancelModal.classList.remove('hidden'); cancelModal.classList.add('flex');
+            return;
+        }
+
         if (action === 'open-edit-order') {
             e.stopPropagation();
             openEditOrderModal(id);
             return;
         }
 
-        if (action === 'delete-order') {
-            e.stopPropagation();
-            if (!isAdminUser()) {
-                showToast('⛔ حذف الطلبات متاح لمدير النظام فقط');
-                return;
-            }
-            const o = appState.orders.find(item => item.id === id);
-            if (!o) return;
-            if (!window.confirm(uiText(`هل أنت متأكد من حذف الطلب #${o.id} (${o.customerName}) نهائياً؟`))) return;
-
-            await withActionLock(`del-order-${id}`, async () => {
-                const ok = await fsDeleteDoc('wassal_orders', id);
-                if (ok) {
-                    await writeAuditLog('حذف طلب', `#${o.id}`, `تم حذف طلب العميل ${o.customerName} بقيمة ${o.amount} ج.م`);
-                    if (uiState.selectedOrderId === id) closeOrderDrawer();
-                    showToast(`🗑️ تم حذف الطلب #${o.id} وتسجيل العملية في سجل التدقيق`);
-                }
-            });
-            return;
-        }
-
         if (action === 'open-store-statement') {
             e.stopPropagation();
             openStoreStatementModal(id);
-            return;
-        }
-
-        if (action === 'delete-store') {
-            e.stopPropagation();
-            if (!isAdminUser()) {
-                showToast('⛔ حذف المتاجر متاح لمدير النظام فقط');
-                return;
-            }
-            const st = appState.stores.find(item => item.id === id);
-            if (!st) return;
-            if (!window.confirm(uiText(`هل أنت متأكد من حذف المتجر "${st.name}"؟`))) return;
-            await withActionLock(`del-store-${id}`, async () => {
-                const ok = await fsDeleteDoc('wassal_stores', id);
-                if (ok) {
-                    await writeAuditLog('حذف متجر', st.name, `تم حذف المتجر (${st.category})`);
-                    showToast(`🗑️ تم حذف المتجر "${st.name}"`);
-                }
-            });
             return;
         }
 
@@ -3429,28 +3670,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (action === 'delete-rider') {
-            e.stopPropagation();
-            if (!isAdminUser()) return;
-            await withActionLock(`del-rider-${id}`, async () => {
-                const r = appState.riders.find(item => item.id === id);
-                if (!r) return;
-                const hasActive = appState.orders.some(o => o.riderId === r.id && isOrderActiveInRoom(o));
-                if (hasActive) {
-                    showToast('⚠️ لا يمكن حذف مندوب لديه أوردرات جارية حالياً');
-                    return;
-                }
-            if (!window.confirm(uiText(`هل أنت متأكد من حذف المندوب "${r.name}" من الأسطول؟`))) return;
-                const ok = await fsDeleteDoc('wassal_riders', r.id);
-                if (ok) {
-                    await writeAuditLog('حذف مندوب', r.name, `تم حذف المندوب (${r.plate})`);
-                    if (uiState.riderFilter === id) uiState.riderFilter = 'all';
-                    showToast(`🗑️ تم حذف المندوب ${r.name}`);
-                }
-            });
-            return;
-        }
-
         if (action === 'open-new-store') {
             if (!isAdminUser()) {
                 showToast('⛔ إضافة المتاجر متاح لمدير النظام فقط');
@@ -3459,19 +3678,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const modal = document.getElementById('modal-new-store');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
-            return;
-        }
-
-        if (action === 'delete-expense') {
-            if (!isAdminUser()) return;
-            await withActionLock(`del-exp-${id}`, async () => {
-                const exp = appState.expenses.find(eItem => eItem.id === id);
-                const ok = await fsDeleteDoc('wassal_expenses', id);
-                if (ok) {
-                    await writeAuditLog('حذف مصروف', id, `تم حذف مصروف: ${exp ? exp.title : id} (${exp ? exp.amount : 0} ج.م)`);
-                    showToast('🗑️ تم حذف بند المصروف وتسجيل العملية');
-                }
-            });
             return;
         }
 
@@ -3485,6 +3691,16 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        if (action === 'print-orders-report') {
+            window.print();
+            return;
+        }
+
+        if (action === 'export-orders-report') {
+            exportOrdersReportCSV();
+            return;
+        }
+
         if (action === 'close-modal') {
             const modalId = btn.getAttribute('data-modal');
             const modal = document.getElementById(modalId);
@@ -3492,15 +3708,48 @@ document.addEventListener('DOMContentLoaded', () => {
             modal.classList.remove('flex');
             return;
         }
+
+        if (action === 'delete-expense') {
+            e.stopPropagation();
+            if (!isAdminUser()) { showToast('⛔ حذف المصروفات متاح لمدير النظام فقط'); return; }
+            const expense = appState.expenses.find(item => String(item.id) === String(id));
+            if (!expense) return;
+            const confirmed = await openAppMessage({ title: 'حذف مصروف', message: `سيتم حذف المصروف «${expense.title}» بقيمة ${Number(expense.amount).toLocaleString('ar-EG')} ج.م. هل تريد المتابعة؟`, confirmLabel: 'حذف المصروف' });
+            if (!confirmed) return;
+            const deleted = await fsDeleteDoc('wassal_expenses', expense.id);
+            if (deleted) {
+                await writeAuditLog('حذف مصروف', expense.title, `المبلغ: ${expense.amount} ج.م | التاريخ: ${expense.dateStr}`);
+                showToast(`تم حذف المصروف «${expense.title}»`);
+            }
+            return;
+        }
+
+        if (action === 'app-message-accept') { closeAppMessage(true); return; }
+        if (action === 'app-message-cancel') { closeAppMessage(false); return; }
     });
 
     document.getElementById('search-input').addEventListener('input', () => {
         renderOrdersBoardAndTable();
     });
 
-    document.getElementById('input-order-store').addEventListener('change', (e) => {
-        const st = getStore(e.target.value);
-        if (st && st.fee) document.getElementById('input-order-fee').value = st.fee;
+    document.getElementById('form-cancel-order')?.addEventListener('submit', async event => {
+        event.preventDefault();
+        const orderId = document.getElementById('cancel-order-id').value;
+        const order = appState.orders.find(item => String(item.id) === String(orderId));
+        if (!order || !['received', 'onway'].includes(order.status)) return;
+        await withActionLock(`cancel-${orderId}`, async () => {
+            const now = Date.now();
+            const reason = document.getElementById('cancel-order-reason').value.trim();
+            const updated = { ...order, status: 'cancelled', cancelledTs: now, cancelledBy: currentUser?.email || currentUser?.uid || 'unknown', cancelReason: reason };
+            const ok = await fsSaveDoc('wassal_orders', orderId, updated);
+            if (!ok) return;
+            const rider = getRider(order.riderId);
+            const hasOtherActiveOrder = appState.orders.some(other => String(other.id) !== String(orderId) && other.riderId === order.riderId && isOrderActiveInRoom(other));
+            if (!hasOtherActiveOrder && rider.id) await fsSaveDoc('wassal_riders', rider.id, { status: 'available' });
+            await writeAuditLog('إلغاء طلب', `#${orderId}`, `العميل: ${order.customerName || '—'}${reason ? ` | السبب: ${reason}` : ''}`);
+            const modal = document.getElementById('modal-cancel-order'); modal.classList.add('hidden'); modal.classList.remove('flex');
+            showToast(`تم إلغاء الطلب #${orderId} ونقله إلى سجل الطلبات الملغاة`);
+        });
     });
 
     // Close Day Form with Auto Cloud Snapshot & Audit Log
@@ -3604,6 +3853,13 @@ document.addEventListener('DOMContentLoaded', () => {
         await withActionLock(`edit-${orderId}`, async () => {
             const o = appState.orders.find(item => item.id === orderId);
             if (!o) return;
+            if (['settled', 'returned'].includes(o.status)) {
+                showToast('⛔ الطلب تم توريده وإغلاقه؛ متاح للمراجعة فقط.');
+                const modal = document.getElementById('modal-edit-order');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                return;
+            }
 
             const newRiderId = document.getElementById('edit-order-rider').value;
             const oldRiderId = o.riderId;
@@ -3613,8 +3869,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 riderId: newRiderId,
                 customerName: document.getElementById('edit-order-customer').value.trim(),
                 phone: document.getElementById('edit-order-phone').value.trim(),
-                address: document.getElementById('edit-order-address').value.trim(),
-                items: document.getElementById('edit-order-items').value.trim()
+                address: document.getElementById('edit-order-address').value.trim()
             };
 
             const changes = [];
@@ -3623,6 +3878,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (o.customerName !== updatedOrder.customerName) changes.push(`تعديل اسم العميل`);
             if (o.address !== updatedOrder.address) changes.push(`تعديل العنوان`);
+
+            const itemsData = collectEditOrderItems();
+            updatedOrder.itemsData = itemsData;
+            updatedOrder.items = itemsData.map(item => `${item.name} (${item.price} ج.م)`).join(' + ');
+            if (o.items !== updatedOrder.items) changes.push('تعديل أصناف الأوردر وأسعارها');
 
             if (isAdminUser()) {
                 const newAmt = Number(document.getElementById('edit-order-amount').value) || 0;
@@ -3685,7 +3945,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 tsDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), 0);
             }
 
-            const { itemsText, computedTotal } = collectOrderItemsText();
+            const { itemsText, itemsData, computedTotal } = collectOrderItemsText();
             const manualAmountVal = document.getElementById('input-order-amount').value;
             const finalAmount = manualAmountVal !== '' ? Number(manualAmountVal) : computedTotal;
 
@@ -3697,6 +3957,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 phone: document.getElementById('input-order-phone').value.trim(),
                 address: document.getElementById('input-order-address').value.trim(),
                 items: itemsText,
+                itemsData,
                 amount: finalAmount,
                 fee: Number(document.getElementById('input-order-fee').value) || 0,
                 status: 'received',
@@ -3779,7 +4040,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 id: 's' + Date.now(),
                 name: document.getElementById('input-store-name').value.trim(),
                 category: document.getElementById('input-store-category').value,
-                fee: Number(document.getElementById('input-store-fee').value) || 25,
                 phone: document.getElementById('input-store-phone').value.trim(),
                 address: document.getElementById('input-store-address').value.trim()
             };

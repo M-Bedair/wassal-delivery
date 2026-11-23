@@ -148,6 +148,16 @@
                     <span id="nav-badge-settled" class="px-2 py-0.5 text-[11px] rounded-full bg-obsidian text-white font-extrabold">0</span>
                 </button>
 
+                <button type="button" data-action="switch-tab" data-tab="delivery-review" id="tab-btn-delivery-review" class="nav-tab w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-neutral-300 hover:text-white hover:bg-slateCard transition-all">
+                    <span>مراجعة التوريد</span>
+                    <span id="nav-badge-delivery-review" class="px-2 py-0.5 text-[11px] rounded-full bg-obsidian text-white font-extrabold">0</span>
+                </button>
+
+                <button type="button" data-action="switch-tab" data-tab="reports" id="tab-btn-reports" class="nav-tab w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-neutral-300 hover:text-white hover:bg-slateCard transition-all">
+                    <span>التقارير</span>
+                    <span class="px-2 py-0.5 text-[11px] rounded-full bg-obsidian text-neutral-300 font-extrabold">📊</span>
+                </button>
+
                 <button type="button" data-action="switch-tab" data-tab="riders" id="tab-btn-riders" class="nav-tab w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-neutral-300 hover:text-white hover:bg-slateCard transition-all">
                     <span id="nav-label-riders">المناديب والموتوسيكلات</span>
                     <span id="nav-badge-riders" class="px-2 py-0.5 text-[11px] rounded-full bg-obsidian text-neutral-300 font-extrabold">0/0</span>
@@ -368,12 +378,13 @@
                     <button type="button" data-action="set-status-filter" data-status="received" class="status-chip px-3 py-1.5 rounded-lg text-xs font-bold text-neutral-400 hover:text-white">1. تم الاستلام</button>
                     <button type="button" data-action="set-status-filter" data-status="onway" class="status-chip px-3 py-1.5 rounded-lg text-xs font-bold text-neutral-400 hover:text-white">2. في الطريق</button>
                     <button type="button" data-action="set-status-filter" data-status="delivered" class="status-chip px-3 py-1.5 rounded-lg text-xs font-bold text-neutral-400 hover:text-white">3. تسليم / مرتجع</button>
-                    <button type="button" data-action="set-status-filter" data-status="overdue" class="status-chip px-3 py-1.5 rounded-lg text-xs font-bold text-wassalOrange hover:text-white">المتأخرة (+35د)</button>
+                    <button type="button" data-action="set-status-filter" data-status="cancelled" id="cancelled-filter-chip" class="status-chip px-3 py-1.5 rounded-lg text-xs font-bold text-red-300 hover:text-white">تم الإلغاء <span id="cancelled-filter-count" class="inline-flex min-w-5 justify-center rounded-full bg-red-500/15 px-1.5 py-0.5">0</span></button>
+                    <button type="button" data-action="set-status-filter" data-status="overdue" class="status-chip px-3 py-1.5 rounded-lg text-xs font-bold text-wassalOrange hover:text-white">المتأخرة (+60د)</button>
                 </div>
             </div>
 
-            <div id="operations-kanban-container" class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
-                <div class="bg-slateDark border border-slateBorder rounded-2xl flex flex-col">
+            <div id="operations-kanban-container" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                <div class="kanban-stage-card bg-slateDark border border-slateBorder rounded-2xl flex flex-col">
                     <div class="p-3.5 border-b border-slateBorder flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <span class="w-2.5 h-2.5 rounded-full bg-neutral-400"></span>
@@ -385,7 +396,7 @@
                     <div id="col-list-received" class="p-3 space-y-3 min-h-[340px]"></div>
                 </div>
 
-                <div class="bg-slateDark border border-slateBorder rounded-2xl flex flex-col">
+                <div class="kanban-stage-card bg-slateDark border border-slateBorder rounded-2xl flex flex-col">
                     <div class="p-3.5 border-b border-slateBorder flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <span class="w-2.5 h-2.5 rounded-full bg-wassalOrange animate-pulse"></span>
@@ -397,7 +408,7 @@
                     <div id="col-list-onway" class="p-3 space-y-3 min-h-[340px]"></div>
                 </div>
 
-                <div class="bg-slateDark border border-slateBorder rounded-2xl flex flex-col">
+                <div class="kanban-stage-card bg-slateDark border border-slateBorder rounded-2xl flex flex-col">
                     <div class="p-3.5 border-b border-slateBorder flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <span class="w-2.5 h-2.5 rounded-full bg-white"></span>
@@ -408,7 +419,13 @@
                     </div>
                     <div id="col-list-delivered" class="p-3 space-y-3 min-h-[340px]"></div>
                 </div>
+
             </div>
+
+            <section id="cancelled-orders-container" class="hidden bg-slateDark border border-red-500/30 rounded-2xl overflow-hidden">
+                <div class="p-3.5 border-b border-red-500/20 flex items-center justify-between"><h3 class="font-black text-sm text-white">الطلبات الملغاة</h3><span id="cancelled-orders-total" class="px-2.5 py-0.5 rounded-full text-xs font-black bg-red-500/15 text-red-300">0</span></div>
+                <div id="col-list-cancelled" class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-3 p-3"></div>
+            </section>
 
             <div id="operations-table-container" class="hidden bg-slateDark border border-slateBorder rounded-2xl overflow-hidden">
                 <div class="overflow-x-auto">
@@ -426,6 +443,48 @@
                             </tr>
                         </thead>
                         <tbody id="quick-table-body" class="divide-y divide-slateBorder"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-delivery-review" class="view-section hidden p-4 sm:p-6 space-y-5">
+            <div class="bg-slateDark border border-wassalOrange/40 rounded-2xl p-5 flex flex-wrap items-center justify-between gap-3">
+                <div><h3 class="text-lg font-black text-white">مراجعة الطلبات بعد التوريد</h3><p class="text-xs text-neutral-400 mt-1">اختر تاريخ التوريد، ثم افتح أي طلب لمراجعة بياناته وتوقيتاته كاملة.</p></div>
+                <label class="text-xs font-bold text-neutral-300">تاريخ التوريد<input type="date" id="delivery-review-date" class="mt-1 block bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-white"></label>
+            </div>
+            <div id="delivery-review-summary" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+            <div class="bg-slateDark border border-slateBorder rounded-2xl overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-right text-xs"><thead class="bg-obsidian text-neutral-400"><tr><th class="p-3">رقم الطلب</th><th class="p-3">العميل والمتجر</th><th class="p-3">الطيار</th><th class="p-3">وقت التسليم والتوريد</th><th class="p-3">المبلغ</th><th class="p-3">التفاصيل</th></tr></thead><tbody id="delivery-review-body" class="divide-y divide-slateBorder"></tbody></table></div></div>
+        </section>
+
+        <section id="view-reports" class="view-section hidden p-4 sm:p-6 space-y-5">
+            <div class="bg-slateDark border border-wassalOrange/40 rounded-2xl p-5"><h3 class="text-lg font-black text-white">مركز التقارير</h3><p class="text-xs text-neutral-400 mt-1">اعرض تقريرًا مستقلًا حسب الفترة، أو اختر الطيار أو اسم العميل. تقارير التحصيل تعرض قيمة الطلب والتوصيل كلًا على حدة.</p></div>
+            <div class="bg-slateDark border border-wassalOrange/40 rounded-2xl p-5 space-y-4" id="orders-report-panel">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slateBorder pb-3">
+                    <div>
+                        <h3 id="orders-report-heading" class="font-black text-base text-white">تقرير كل الأوردرات</h3>
+                        <p id="orders-report-description" class="text-xs text-neutral-400">حدد فترة التقرير لعرض النتائج.</p>
+                    </div>
+                    <div class="flex gap-2 no-print">
+                        <button type="button" data-action="print-orders-report" class="px-3 py-2 rounded-xl bg-slateCard border border-slateBorder text-white text-xs font-bold">طباعة</button>
+                        <button type="button" data-action="export-orders-report" class="px-3 py-2 rounded-xl wassal-grad text-black text-xs font-black">تصدير CSV</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 no-print">
+                    <label class="text-[11px] text-neutral-300 font-bold">من تاريخ<input type="date" id="orders-report-from" class="mt-1 w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-white"></label>
+                    <label class="text-[11px] text-neutral-300 font-bold">إلى تاريخ<input type="date" id="orders-report-to" class="mt-1 w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-white"></label>
+                    <label class="text-[11px] text-neutral-300 font-bold">نوع التقرير<select id="orders-report-type" class="mt-1 w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-white"><option value="all">كل الأوردرات</option><option value="cash">التحصيلات النقدية</option><option value="rider">كشف حساب طيار</option><option value="store">تقرير متجر</option><option value="customer">أوردرات عميل</option></select></label>
+                    <label id="orders-report-rider-filter" class="text-[11px] text-neutral-300 font-bold hidden">الطيار<select id="orders-report-rider" class="mt-1 w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-white"><option value="all">كل الطيارين</option></select></label>
+                    <label id="orders-report-store-filter" class="text-[11px] text-neutral-300 font-bold hidden">المتجر<select id="orders-report-store" class="mt-1 w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-white"><option value="all">كل المتاجر</option></select></label>
+                    <label id="orders-report-customer-filter" class="text-[11px] text-neutral-300 font-bold hidden">اسم العميل<input type="search" id="orders-report-customer" placeholder="ابحث باسم العميل" class="mt-1 w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-white"></label>
+                </div>
+                <div id="orders-report-summary" class="grid grid-cols-2 lg:grid-cols-4 gap-2 text-xs"></div>
+                <div class="overflow-x-auto border border-slateBorder rounded-xl">
+                    <table class="w-full text-right text-xs min-w-[1000px]">
+                        <thead class="bg-obsidian text-neutral-400 border-b border-slateBorder"><tr>
+                            <th class="px-3 py-2.5">التاريخ</th><th class="px-3 py-2.5">رقم الأوردر</th><th class="px-3 py-2.5">المتجر</th><th class="px-3 py-2.5">العميل</th><th class="px-3 py-2.5">الطيار</th><th class="px-3 py-2.5">الحالة</th><th class="px-3 py-2.5">وقت التسليم</th><th class="px-3 py-2.5">قيمة الأوردر</th><th class="px-3 py-2.5">التوصيل</th><th class="px-3 py-2.5">الإجمالي</th>
+                        </tr></thead>
+                        <tbody id="orders-report-body" class="divide-y divide-slateBorder"></tbody>
                     </table>
                 </div>
             </div>
@@ -670,7 +729,7 @@
                                 <th class="px-3.5 py-2.5">التصنيف</th>
                                 <th class="px-3.5 py-2.5">المندوب / الجهة</th>
                                 <th class="px-3.5 py-2.5">المبلغ</th>
-                                <th class="px-3.5 py-2.5 text-center no-print">حذف</th>
+                                <th class="px-3.5 py-2.5 text-center no-print">إجراء</th>
                             </tr>
                         </thead>
                         <tbody id="expenses-table-body" class="divide-y divide-slateBorder"></tbody>
@@ -694,7 +753,6 @@
                                 <th class="px-4 py-3">أوردرات الشهر</th>
                                 <th class="px-4 py-3">نسبة المساهمة</th>
                                 <th class="px-4 py-3">مبيعات موردة (الشهر)</th>
-                                <th class="px-4 py-3">إيراد توصيل وصّل</th>
                             </tr>
                         </thead>
                         <tbody id="stores-accounting-body" class="divide-y divide-slateBorder"></tbody>
@@ -756,9 +814,10 @@
         </section>
     </main>
 
-    <!-- SLIDE-OVER ORDER DRAWER -->
-    <div id="order-drawer-backdrop" data-action="close-drawer" class="fixed inset-0 bg-black/75 z-40 hidden"></div>
-    <aside id="order-drawer" class="fixed top-0 left-0 z-50 h-screen w-full max-w-md bg-slateDark border-r border-slateBorder flex flex-col justify-between transition-transform duration-300 -translate-x-full shadow-2xl">
+    <!-- CENTERED ORDER DETAILS MODAL -->
+    <div id="order-drawer-backdrop" data-action="close-drawer" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-40 hidden"></div>
+    <section id="order-drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-order-id" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-6 pointer-events-none">
+      <div class="order-details-modal pointer-events-auto bg-slateDark border border-slateBorder rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
         <div class="p-5 border-b border-slateBorder flex items-center justify-between bg-slateCard">
             <div>
                 <div class="flex items-center gap-2">
@@ -771,7 +830,8 @@
         </div>
         <div id="drawer-content" class="p-5 space-y-4 overflow-y-auto flex-1"></div>
         <div id="drawer-footer" class="p-4 border-t border-slateBorder bg-obsidian space-y-2"></div>
-    </aside>
+      </div>
+    </section>
 
     <!-- MODAL: EDIT / REASSIGN ORDER -->
     <div id="modal-edit-order" class="fixed inset-0 bg-black/80 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
@@ -803,9 +863,10 @@
                     <label class="block font-bold text-neutral-300 mb-1">العنوان بالتفصيل *</label>
                     <input id="edit-order-address" type="text" required class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-wassalOrange">
                 </div>
-                <div>
-                    <label class="block font-bold text-neutral-300 mb-1">الأصناف</label>
-                    <input id="edit-order-items" type="text" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3 py-2 text-white focus:outline-none focus:border-wassalOrange">
+                <div class="bg-obsidian border border-slateBorder rounded-xl p-3 space-y-2">
+                    <div class="flex items-center justify-between gap-2"><label class="block font-bold text-neutral-300">أصناف الأوردر وأسعارها</label><button type="button" data-action="add-edit-order-item-row" class="px-3 py-1.5 rounded-lg wassal-grad text-black font-black">+ إضافة صنف</button></div>
+                    <div id="edit-order-items-list" class="space-y-2"></div>
+                    <p class="text-[10px] text-neutral-500">اسم الصنف وسعره حقلاّن مستقلان، ويمكن تعديل كل واحد بمفرده.</p>
                 </div>
                 <div class="grid grid-cols-2 gap-2.5">
                     <div>
@@ -898,16 +959,6 @@
                     </div>
                 </div>
 
-                <!-- Danger Zone (Admin Only) -->
-                <div class="admin-only-btn bg-obsidian border border-wassalOrange/40 rounded-xl p-3.5 flex items-center justify-between">
-                    <div>
-                        <div class="font-black text-wassalOrange">منطقة الخطر (للأدمن فقط)</div>
-                        <div class="text-[11px] text-neutral-400">مسح جميع البيانات من قاعدة البيانات نهائياً</div>
-                    </div>
-                    <button type="button" data-action="reset-demo" class="px-3 py-2 rounded-lg bg-wassalOrange hover:bg-orange-600 text-black font-black text-[11px]">
-                        تصفير النظام
-                    </button>
-                </div>
             </div>
         </div>
     </div>
@@ -1151,10 +1202,6 @@
                             <option value="حلويات ومخبوزات">حلويات ومخبوزات</option>
                         </select>
                     </div>
-                    <div>
-                        <label class="block font-bold text-neutral-300 mb-1">رسوم التوصيل الافتراضية *</label>
-                        <input id="input-store-fee" type="number" required value="25" class="w-full bg-obsidian border border-slateBorder rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-wassalOrange">
-                    </div>
                 </div>
                 <div>
                     <label class="block font-bold text-neutral-300 mb-1">هاتف المتجر *</label>
@@ -1170,6 +1217,17 @@
                 </div>
             </form>
         </div>
+    </div>
+
+    <div id="modal-cancel-order" class="fixed inset-0 bg-black/80 backdrop-blur-xs z-[70] hidden items-center justify-center p-4">
+        <div class="bg-slateDark border border-red-500/40 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
+            <div class="p-5 border-b border-slateBorder flex items-center justify-between bg-slateCard"><div><h3 class="font-black text-base text-red-300">إلغاء الطلب</h3><p id="cancel-order-summary" class="text-xs text-neutral-400 mt-1"></p></div><button type="button" data-action="close-modal" data-modal="modal-cancel-order" class="text-neutral-400 px-2 py-1 text-lg">✕</button></div>
+            <form id="form-cancel-order" class="p-5 space-y-4 text-xs"><input type="hidden" id="cancel-order-id"><label class="block font-bold text-neutral-300">سبب الإلغاء (اختياري)<textarea id="cancel-order-reason" rows="3" maxlength="300" class="mt-1 w-full bg-obsidian border border-slateBorder rounded-xl p-3 text-white" placeholder="اكتب سبب الإلغاء لتسهيل المراجعة"></textarea></label><div class="flex justify-end gap-2"><button type="button" data-action="close-modal" data-modal="modal-cancel-order" class="px-4 py-2.5 rounded-xl bg-slateCard text-neutral-300 font-bold">رجوع</button><button type="submit" class="px-5 py-2.5 rounded-xl bg-red-500 text-white font-black">تأكيد الإلغاء</button></div></form>
+        </div>
+    </div>
+
+    <div id="modal-app-message" class="fixed inset-0 bg-black/80 backdrop-blur-xs z-[80] hidden items-center justify-center p-4" role="dialog" aria-modal="true">
+        <div class="bg-slateDark border border-wassalOrange/40 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl"><div class="p-5 border-b border-slateBorder bg-slateCard"><h3 id="app-message-title" class="font-black text-base text-wassalOrange">تأكيد</h3></div><div id="app-message-body" class="p-5 text-sm text-neutral-200 whitespace-pre-line"></div><div class="p-4 border-t border-slateBorder flex justify-end gap-2"><button id="app-message-cancel" type="button" class="px-4 py-2.5 rounded-xl bg-slateCard text-neutral-300 font-bold">إلغاء</button><button id="app-message-accept" type="button" class="px-5 py-2.5 rounded-xl wassal-grad text-black font-black">موافق</button></div></div>
     </div>
 
     <!-- TOAST NOTIFICATIONS -->

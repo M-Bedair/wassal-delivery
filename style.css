@@ -735,6 +735,118 @@ header.glass-panel #theme-toggle {
 #operations-kanban-container [id^="col-list-"] > [data-action="open-drawer"] [class~="text-xs"],
 #cancelled-orders-container [data-action="open-drawer"] [class~="text-xs"] { font-size: 14px; }
 
+/* Dark theme readability refinements: keep the current palette and brighten only hover states. */
+html[data-theme="dark"] main > :not(header) :is(.bg-slateDark, .bg-slateCard, .bg-obsidian, .glass-panel) {
+    color: #172033;
+}
+html[data-theme="dark"] main > :not(header) :is(.bg-slateDark, .bg-slateCard, .bg-obsidian, .glass-panel)
+    :is(.text-neutral-200, .text-neutral-300, .text-neutral-400, .text-neutral-500,
+        .text-slate-200, .text-slate-300, .text-slate-400, .text-slate-500,
+        .text-gray-400, .text-gray-500, .text-gray-600) {
+    color: #111827 !important;
+}
+html[data-theme="dark"] main > :not(header) :is(.bg-slateDark, .bg-slateCard, .bg-obsidian, .glass-panel) .text-xs {
+    font-size: 0.875rem;
+    line-height: 1.45;
+}
+html[data-theme="dark"] main > :not(header) :is(.bg-slateDark, .bg-slateCard, .bg-obsidian, .glass-panel) .text-sm {
+    font-size: 1rem;
+    line-height: 1.5;
+}
+html[data-theme="dark"] main > :not(header) :is(.bg-slateDark, .bg-slateCard, .bg-obsidian, .glass-panel) [class~="text-[10px]"] {
+    font-size: 0.8125rem;
+    line-height: 1.4;
+}
+html[data-theme="dark"] main > :not(header) :is(.bg-slateDark, .bg-slateCard, .bg-obsidian, .glass-panel) [class~="text-[11px]"] {
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+html[data-theme="dark"] #operations-kanban-container [id^="col-list-"] > [data-action="open-drawer"]:hover,
+html[data-theme="dark"] #cancelled-orders-container [data-action="open-drawer"]:hover,
+html[data-theme="dark"] #sidebar .nav-tab:not(.wassal-grad):hover {
+    background-color: #F1F5F9 !important;
+    color: #172033 !important;
+}
+html[data-theme="dark"] body [class*="hover:bg-slateCard/"]:hover,
+html[data-theme="dark"] body [class~="hover:bg-slateHover"]:hover {
+    background-color: #E5E7EB !important;
+    color: #111827 !important;
+}
+html[data-theme="dark"] body [class*="hover:bg-slateCard/"]:hover :is(
+    .text-neutral-200, .text-neutral-300, .text-neutral-400, .text-neutral-500,
+    .text-slate-200, .text-slate-300, .text-slate-400, .text-slate-500,
+    .text-gray-400, .text-gray-500, .text-gray-600, .text-white
+),
+html[data-theme="dark"] body [class~="hover:bg-slateHover"]:hover :is(
+    .text-neutral-200, .text-neutral-300, .text-neutral-400, .text-neutral-500,
+    .text-slate-200, .text-slate-300, .text-slate-400, .text-slate-500,
+    .text-gray-400, .text-gray-500, .text-gray-600, .text-white
+) { color: #111827 !important; }
+html[data-theme="dark"] #operations-kanban-container [id^="col-list-"] > [data-action="open-drawer"] [class~="text-[10px]"],
+html[data-theme="dark"] #cancelled-orders-container [data-action="open-drawer"] [class~="text-[10px]"] { font-size: 0.8125rem !important; }
+html[data-theme="dark"] #operations-kanban-container [id^="col-list-"] > [data-action="open-drawer"] [class~="text-[11px]"],
+html[data-theme="dark"] #cancelled-orders-container [data-action="open-drawer"] [class~="text-[11px]"] { font-size: 0.875rem !important; }
+
+/* Make the three follow-up stage headings stand out in dark mode. */
+html[data-theme="dark"] #operations-kanban-container > .kanban-stage-card > div:first-child {
+    background-color: #1F2937 !important;
+    border-color: #475569 !important;
+}
+html[data-theme="dark"] #operations-kanban-container > .kanban-stage-card > div:first-child h3 {
+    color: #FFFFFF !important;
+    font-size: 1rem;
+}
+
+/* Enlarge report summaries and table contents; keep white headings on the dark table header. */
+html[data-theme="dark"] #view-reports #orders-report-summary > div { padding: 14px; }
+html[data-theme="dark"] #view-reports #orders-report-summary > div > div {
+    color: #111827 !important;
+    font-size: 0.875rem;
+    line-height: 1.45;
+}
+html[data-theme="dark"] #view-reports #orders-report-summary > div > strong {
+    font-size: 1.125rem;
+    line-height: 1.5;
+}
+html[data-theme="dark"] #view-reports table thead th {
+    color: #FFFFFF !important;
+    font-size: 0.875rem;
+    line-height: 1.45;
+}
+html[data-theme="dark"] #view-reports table tbody td {
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+/* Make the dark sidebar menu roomier and its labels/counts easier to scan. */
+html[data-theme="dark"] #sidebar .nav-tab {
+    min-height: 48px;
+    padding-inline: 14px;
+    font-size: 0.9375rem;
+}
+html[data-theme="dark"] #sidebar .nav-tab:not(.wassal-grad),
+html[data-theme="dark"] #sidebar .nav-tab:not(.wassal-grad) > span:first-child {
+    color: #FFFFFF !important;
+}
+html[data-theme="dark"] #sidebar .nav-tab > span:first-child {
+    font-size: 0.9375rem;
+    line-height: 1.35;
+    font-weight: 800;
+}
+html[data-theme="dark"] #sidebar .nav-tab > span:last-child {
+    min-width: 32px;
+    padding-inline: 9px;
+    font-size: 0.875rem;
+    text-align: center;
+}
+html[data-theme="dark"] #sidebar .nav-tab:not(.wassal-grad):hover {
+    background-color: #F1F5F9 !important;
+    color: #172033 !important;
+}
+html[data-theme="dark"] #sidebar .nav-tab:not(.wassal-grad):hover > span:first-child {
+    color: #172033 !important;
+}
+
 #order-drawer .order-details-modal { width: min(100%, 960px); }
 @media (max-width: 640px) {
     #order-drawer { padding: 10px; }

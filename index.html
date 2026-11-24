@@ -99,7 +99,7 @@
     <div id="sidebar-backdrop" data-action="toggle-sidebar" class="fixed inset-0 bg-black/75 backdrop-blur-xs z-40 hidden"></div>
 
     <!-- SLIDE-OVER RIGHT SIDEBAR (NO SCROLL, FULL FIT) -->
-    <aside id="sidebar" class="fixed top-0 right-0 z-50 h-screen w-72 bg-slateDark border-l border-slateBorder flex flex-col justify-between p-4 transition-transform duration-300 translate-x-full shadow-2xl">
+    <aside id="sidebar" class="fixed top-0 right-0 z-50 h-screen w-80 max-w-[92vw] overflow-y-auto bg-slateDark border-l border-slateBorder flex flex-col justify-between p-4 transition-transform duration-300 translate-x-full shadow-2xl">
         <!-- Top Brand & Close Button -->
         <div class="space-y-3">
             <div class="flex items-center justify-between border-b border-slateBorder pb-2.5">
@@ -180,22 +180,8 @@
             </nav>
         </div>
 
-        <!-- Bottom Fleet & Controls (Fixed at bottom, no scroll) -->
+        <!-- Bottom Controls -->
         <div class="space-y-2 border-t border-slateBorder pt-2.5">
-            <div class="bg-obsidian border border-slateBorder rounded-xl p-2.5 space-y-1.5">
-                <div class="flex items-center justify-between text-[11px]">
-                    <span id="sidebar-fleet-title" class="text-neutral-400 font-bold">جاهزية الأسطول</span>
-                    <span id="sidebar-fleet-pct" class="font-black text-wassalOrange">0%</span>
-                </div>
-                <div class="w-full h-1.5 bg-slateCard rounded-full overflow-hidden">
-                    <div id="sidebar-fleet-bar" class="h-full wassal-grad rounded-full transition-all duration-500" style="width: 0%"></div>
-                </div>
-                <div class="flex justify-between text-[10px] text-neutral-400">
-                    <span id="sidebar-office-txt" class="text-white font-bold">● 0 بالمكتب</span>
-                    <span id="sidebar-busy-txt" class="text-wassalOrange font-bold">● 0 في مهمة</span>
-                </div>
-            </div>
-
             <div class="grid grid-cols-3 gap-1.5">
                 <button type="button" data-action="open-close-day-modal" class="admin-only-btn py-2 px-1 rounded-lg bg-wassalOrange/15 hover:bg-wassalOrange text-wassalOrange hover:text-black border border-wassalOrange/40 text-[10px] font-black transition-colors">
                     إقفال اليوم

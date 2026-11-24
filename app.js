@@ -1408,8 +1408,6 @@ function renderKPIs() {
 
     const totalRidersCount = appState.riders.length;
     const availRiders = appState.riders.filter(r => r.status === 'available').length;
-    const busyRiders = appState.riders.filter(r => r.status === 'busy').length;
-
     document.getElementById('kpi-today-orders').textContent = currentStats.todayOrders.length;
     document.getElementById('kpi-month-orders').textContent = currentStats.monthOrders.length;
     document.getElementById('kpi-delivered-sub').textContent = `${currentStats.todayFin.settledCount} (مرتجع: ${currentStats.todayFin.returnedCount})`;
@@ -1456,13 +1454,6 @@ function renderKPIs() {
     const auditBadge = document.getElementById('nav-badge-audit');
     if (auditBadge) auditBadge.textContent = auditLogs.length;
 
-    const pct = totalRidersCount > 0 ? Math.round((availRiders / totalRidersCount) * 100) : 0;
-    const sidebarFleetTitle = document.getElementById('sidebar-fleet-title');
-    if (sidebarFleetTitle) sidebarFleetTitle.textContent = `جاهزية الأسطول (${totalRidersCount})`;
-    document.getElementById('sidebar-fleet-pct').textContent = `${pct}%`;
-    document.getElementById('sidebar-fleet-bar').style.width = `${pct}%`;
-    document.getElementById('sidebar-office-txt').textContent = `● ${availRiders} بالمكتب`;
-    document.getElementById('sidebar-busy-txt').textContent = `● ${busyRiders} في مهمة`;
 }
 
 function renderAuditLogs() {

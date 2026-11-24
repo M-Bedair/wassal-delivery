@@ -270,10 +270,12 @@
         <section id="kpi-ribbon" class="px-4 sm:px-6 pt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
             <div class="bg-slateDark border border-slateBorder rounded-2xl p-4 flex flex-col justify-between">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs text-neutral-400 font-bold">أوردرات اليوم / الشهر</span>
-                    <span class="kpi-icon kpi-icon-wallet" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7h14v11H3z"/><path d="M3 7l3-3h12l3 3v11h-4"/><circle cx="16" cy="12.5" r="1"/></svg>
-                    </span>
+                    <div class="kpi-heading-group">
+                        <span class="text-xs text-neutral-400 font-bold">أوردرات اليوم / الشهر</span>
+                        <span class="kpi-icon kpi-icon-wallet" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7h14v11H3z"/><path d="M3 7l3-3h12l3 3v11h-4"/><circle cx="16" cy="12.5" r="1"/></svg>
+                        </span>
+                    </div>
                 </div>
                 <div class="flex items-baseline gap-2 my-1.5">
                     <span id="kpi-today-orders" class="text-2xl font-black text-white">0</span>
@@ -287,10 +289,12 @@
 
             <div data-action="switch-tab" data-tab="operations" class="cursor-pointer bg-slateDark border border-slateBorder hover:border-wassalOrange transition-colors rounded-2xl p-4 flex flex-col justify-between">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs text-neutral-400 font-bold">أوردرات جارية الآن</span>
-                    <span class="kpi-icon kpi-icon-orange" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5"/></svg>
-                    </span>
+                    <div class="kpi-heading-group">
+                        <span class="text-xs text-neutral-400 font-bold">أوردرات جارية الآن</span>
+                        <span class="kpi-icon kpi-icon-orange" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5"/></svg>
+                        </span>
+                    </div>
                 </div>
                 <div id="kpi-active" class="text-2xl font-black text-wassalOrange my-1.5">0</div>
                 <div class="flex items-center gap-1.5 text-[11px] flex-wrap">
@@ -302,10 +306,12 @@
 
             <div data-action="switch-tab" data-tab="stores" class="cursor-pointer bg-slateDark border border-slateBorder hover:border-wassalOrange transition-colors rounded-2xl p-4 flex flex-col justify-between">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs text-neutral-400 font-bold">الأكثر طلباً</span>
-                    <span class="kpi-icon kpi-icon-trophy" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0z"/><path d="M7 6H4v2a4 4 0 0 0 4 4M17 6h3v2a4 4 0 0 1-4 4"/></svg>
-                    </span>
+                    <div class="kpi-heading-group">
+                        <span class="text-xs text-neutral-400 font-bold">الأكثر طلباً</span>
+                        <span class="kpi-icon kpi-icon-trophy" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0z"/><path d="M7 6H4v2a4 4 0 0 0 4 4M17 6h3v2a4 4 0 0 1-4 4"/></svg>
+                        </span>
+                    </div>
                 </div>
                 <div id="kpi-top-merchant-name" class="text-base font-black text-white truncate my-1.5">—</div>
                 <p class="text-[11px] text-neutral-400"><strong id="kpi-top-merchant-count" class="text-wassalOrange">0 أوردر</strong> • مساهمة <strong id="kpi-top-merchant-share" class="text-white">0%</strong></p>
@@ -313,10 +319,12 @@
 
             <div data-action="switch-tab" data-tab="riders" class="cursor-pointer bg-slateDark border border-slateBorder hover:border-wassalOrange transition-colors rounded-2xl p-4 flex flex-col justify-between">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs text-neutral-400 font-bold">المناديب المتاحة</span>
-                    <span class="kpi-icon kpi-icon-riders" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="7" r="3"/><path d="M3 21v-2a6 6 0 0 1 12 0v2M16 11a3 3 0 1 0 0-6M17 15a5 5 0 0 1 4 4v2"/></svg>
-                    </span>
+                    <div class="kpi-heading-group">
+                        <span class="text-xs text-neutral-400 font-bold">المناديب المتاحة</span>
+                        <span class="kpi-icon kpi-icon-riders" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="7" r="3"/><path d="M3 21v-2a6 6 0 0 1 12 0v2M16 11a3 3 0 1 0 0-6M17 15a5 5 0 0 1 4 4v2"/></svg>
+                        </span>
+                    </div>
                 </div>
                 <div class="text-2xl font-black text-white my-1.5"><span id="kpi-riders-avail">0</span><span id="kpi-riders-total" class="text-sm text-neutral-500 font-bold"> / 0</span></div>
                 <p class="text-[11px] text-neutral-400 truncate">الأكثر نشاطاً: <strong id="kpi-top-rider-mini" class="text-wassalOrange">—</strong></p>
@@ -324,10 +332,13 @@
 
             <div data-action="switch-tab" data-tab="accounting" class="cursor-pointer bg-slateDark border border-wassalOrange/50 hover:border-wassalOrange transition-colors rounded-2xl p-4 flex flex-col justify-between">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs text-neutral-300 font-bold">المُحصّل</span>
-                    <span class="kpi-icon kpi-icon-cart" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/><path d="M3 4h2l2.4 10.4A2 2 0 0 0 9.3 16H18a2 2 0 0 0 2-1.6L21 8H6"/></svg>
-                    </span>
+                    <div class="kpi-heading-group">
+                        <span class="text-xs text-neutral-300 font-bold">المُحصّل</span>
+                        <span class="kpi-icon kpi-icon-cart" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/><path d="M3 4h2l2.4 10.4A2 2 0 0 0 9.3 16H18a2 2 0 0 0 2-1.6L21 8H6"/></svg>
+                        </span>
+                    </div>
+                    <span class="text-xs font-black text-wassalOrange">ج.م</span>
                 </div>
                 <div id="kpi-today-profit" class="text-2xl font-black text-wassalOrange my-1.5">0</div>
                 <p class="text-[11px] text-neutral-400">إيراد: <strong id="kpi-revenue" class="text-white">0</strong> • مصروف: <strong id="kpi-today-expense" class="text-neutral-300">0</strong></p>

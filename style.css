@@ -597,6 +597,12 @@ header.glass-panel #theme-toggle {
     color: #91B4F3;
     background: rgb(145 180 243 / 0.08);
 }
+.kpi-heading-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
 .kpi-icon svg {
     width: 34px;
     height: 34px;
@@ -612,28 +618,6 @@ header.glass-panel #theme-toggle {
 .kpi-icon-riders { color: #91B4F3; background: transparent; }
 .kpi-icon-cart { color: #91B4F3; background: transparent; }
 .kpi-icon-wallet { color: #91B4F3; background: transparent; }
-
-#kpi-ribbon > div:first-child .kpi-icon-wallet {
-    position: absolute;
-    left: 28px;
-    bottom: 20px;
-    width: 52px;
-    height: 52px;
-}
-#kpi-ribbon > div:first-child .kpi-icon-wallet svg {
-    width: 44px;
-    height: 44px;
-}
-#kpi-ribbon > div:nth-child(3) .kpi-icon-trophy {
-    position: absolute;
-    left: 24px;
-    bottom: 18px;
-}
-#kpi-ribbon > div:nth-child(4) .kpi-icon-riders {
-    position: absolute;
-    left: 22px;
-    bottom: 18px;
-}
 
 .status-heading-icon {
     width: 42px;
